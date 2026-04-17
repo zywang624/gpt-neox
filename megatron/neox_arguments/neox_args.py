@@ -1050,3 +1050,20 @@ class NeoXArgsTextgen(NeoXArgsTemplate):
     """
     Tasks to evaluate on using lm_eval_harness
     """
+
+
+@dataclass
+class NeoXArgsLSKV(NeoXArgsTemplate):
+    """
+    Misc. Arguments
+    """
+
+    lskv_window_size: int = None
+    """
+    The size of the sliding window in LSKV.
+    """
+
+    lskv_bottleneck_dim: int = None
+    """
+    The dimension of the bottleneck layer in LSKV.
+    """

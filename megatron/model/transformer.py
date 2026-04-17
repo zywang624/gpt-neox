@@ -32,6 +32,8 @@ from megatron.model.positional_embeddings import (
     apply_rotary_pos_emb,
     apply_rotary_pos_emb_torch,
     AliBi,
+    apply_rotary_pos_emb_torch_k,
+    apply_rotary_pos_emb_k,
 )
 from megatron.model.fused_bias_dropout import (
     get_bias_dropout_add,

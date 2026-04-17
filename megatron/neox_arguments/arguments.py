@@ -46,6 +46,7 @@ from .neox_args import (
     NeoXArgsOptimizer,
     NeoXArgsLRScheduler,
     ATTENTION_TYPE_CHOICES,
+    NeoXArgsLSKV,
 )
 
 # ZERO defaults by deespeed
@@ -86,6 +87,7 @@ BASE_CLASSES = [
     NeoXArgsLogging,
     NeoXArgsTextgen,
     NeoXArgsOther,
+    NeoXArgsLSKV,
 ]
 
 DEEPSPEED_ARG_CLASSES = [NeoXArgsDeepspeedRunner, NeoXArgsDeepspeedConfig]
