@@ -1,0 +1,867 @@
+fatal: detected dubious ownership in repository at '/workspace/gpt-neox'
+To add an exception for this directory, call:
+
+	git config --global --add safe.directory /workspace/gpt-neox
+NeoXArgs.from_ymls() ['pythia-70m-deduped_lskv_d128_w160.yml']
+INFO:root:NeoXArgs.calculate_derived() Total number of GPUs determined to be: 7
+-------------------- arguments --------------------
+  attention_config ................ ['global', 'global', 'global', 'global', 'global', 'global']updated
+  attention_dropout ............... 0...........................updated
+  batch_size ...................... 32..........................updated
+  bias_gelu_fusion ................ True........................updated
+  checkpoint_activations .......... True........................updated
+  checkpoint_factor ............... 1000........................updated
+  clip_grad ....................... 1.0.........................updated
+  config_files .................... {'pythia-70m-deduped_lskv_d128_w160.yml': '{\n  # parallelism settings\n  "pipe-parallel-size": 1,\n  "model-parallel-size": 1,\n\n  # model settings\n  "num-layers": 6,\n  "hidden-size": 512,\n  "num-attention-heads": 8,\n  "seq-length": 2048,\n  "max-position-embeddings": 2048,\n  "pos-emb": "rotary",\n  "rotary-pct": 0.25,\n  "no-weight-tying": true,\n  "gpt-j-residual": true,\n  "output-layer-parallelism": "column",\n  \n  # "attention-config": [[["flash"], 6]],\n  "attention-config": [[["global"], 6]],\n\n  "scaled-upper-triang-masked-softmax-fusion": true,\n  "bias-gelu-fusion": true,\n\n  # init methods\n  "init_method": "small_init",\n  "output_layer_init_method": "wang_init",\n\n  "optimizer": {\n    "type": "Adam",\n    "params": {\n      "lr": 0.001,\n      "betas": [0.9, 0.95],\n      "eps": 1.0e-8\n    }\n  },\n  "min_lr": 0.0001,\n\n  "zero_optimization": {\n    "stage": 1,\n    "allgather_partitions": true,\n    "allgather_bucket_size": 500000000,\n    "overlap_comm": true,\n    "reduce_scatter": true,\n    "reduce_bucket_size": 500000000,\n    "contiguous_gradients": true,\n    "cpu_offload": false\n  },\n\n  # batch size (trained on 32 gpus)\n  "train_micro_batch_size_per_gpu": 32,\n  "gas": 4,   # 1\n  "data-impl": "mmap",\n  "num_workers": 1,\n\n  # activation checkpointing\n  "checkpoint-activations": true,\n  "checkpoint-num-layers": 1,\n  "partition-activations": true,\n  "synchronize-each-layer": true,\n\n  # regularization\n  "gradient_clipping": 1.0,\n  "weight-decay": 0.1,\n  "hidden-dropout": 0,\n  "attention-dropout": 0,\n\n  # precision settings\n  "fp16": {\n    "fp16": true,\n    "enabled": true,\n    "loss_scale": 0,\n    "loss_scale_window": 1000,\n    "initial_scale_power": 12,\n    "hysteresis": 2,\n    "min_loss_scale": 1\n  },\n\n  "train-iters": 19073,                 # original: 143000,\n  "lr-decay-iters": 19073,              # original: 143000,\n  "distributed-backend": "nccl",\n  "lr-decay-style": "cosine",\n  "warmup": 0.01,\n  "checkpoint-factor": 1000,\n  "extra-save-iters": [0,1,2,4,8,16,32,64,128,256,512],\n  "eval-interval": 100000,\n  "eval-iters": 10,\n\n  "log-interval": 10,\n  "steps_per_print": 10,\n  "wall_clock_breakdown": true,\n\n  "train-data-paths": ["/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document"],\n  "valid-data-paths": ["/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document"],\n  "test-data-paths": ["/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document"],\n\n  "tokenizer-type": "HFTokenizer",\n  "vocab-file": "/workspace/pythia/pythia_pile_idxmaps/20B_tokenizer.json",\n\n  "launcher": "slurm",\n  "deepspeed_slurm": false,\n\n  "save": "/workspace/pythia_70m_lskv_d128_w160_checkpoints",\n  # "load": "/workspace/pythia_checkpoints",\n  "checkpoint_validation_with_forward_pass": False,\n  "lskv_window_size": 160,\n  "lskv_bottleneck_dim": 128,\n}\n'}updated
+  data_impl ....................... mmap........................updated
+  dynamic_loss_scale .............. True........................updated
+  eval_interval ................... 100000......................updated
+  eval_iters ...................... 10..........................updated
+  extra_save_iters ................ [0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512]updated
+  fp16 ............................ {'fp16': True, 'enabled': True, 'loss_scale': 0, 'loss_scale_window': 1000, 'initial_scale_power': 12, 'hysteresis': 2, 'min_loss_scale': 1}updated
+  gas ............................. 1...........................updated
+  global_num_gpus ................. 7...........................updated
+  gpt_j_residual .................. True........................updated
+  gradient_clipping ............... 1.0.........................updated
+  hidden_dropout .................. 0...........................updated
+  hidden_size ..................... 512.........................updated
+  init_method ..................... small_init..................updated
+  is_pipe_parallel ................ True........................updated
+  launcher ........................ slurm.......................updated
+  log_interval .................... 10..........................updated
+  lr .............................. 0.001.......................updated
+  lr_decay_iters .................. 19073.......................updated
+  lr_decay_style .................. cosine......................updated
+  lskv_bottleneck_dim ............. 128.........................updated
+  lskv_window_size ................ 160.........................updated
+  max_position_embeddings ......... 2048........................updated
+  min_lr .......................... 0.0001......................updated
+  no_weight_tying ................. True........................updated
+  num_attention_heads ............. 8...........................updated
+  num_layers ...................... 6...........................updated
+  num_workers ..................... 1...........................updated
+  optimizer ....................... {'type': 'Adam', 'params': {'lr': 0.001, 'betas': [0.9, 0.95], 'eps': 1e-08}}updated
+  optimizer_type .................. Adam........................updated
+  output_layer_init_method ........ wang_init...................updated
+  output_layer_parallelism ........ column......................updated
+  partition_activations ........... True........................updated
+  pipe_parallel_size .............. 1...........................updated
+  pos_emb ......................... rotary......................updated
+  precision ....................... fp16........................updated
+  rotary_pct ...................... 0.25........................updated
+  save ............................ /workspace/pythia_70m_lskv_d128_w160_checkpointsupdated
+  save_iters ...................... [0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 11000, 12000, 13000, 14000, 15000, 16000, 17000, 18000, 19000]updated
+  scaled_upper_triang_masked_softmax_fusion  True...............updated
+  seq_length ...................... 2048........................updated
+  sparsity_config ................. {}..........................updated
+  synchronize_each_layer .......... True........................updated
+  test_data_paths ................. ['/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document']updated
+  test_data_weights ............... [1.0].......................updated
+  text_gen_type ................... unconditional...............updated
+  tokenizer_type .................. HFTokenizer.................updated
+  train_batch_size ................ 224.........................updated
+  train_data_paths ................ ['/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document']updated
+  train_data_weights .............. [1.0].......................updated
+  train_iters ..................... 19073.......................updated
+  train_micro_batch_size_per_gpu .. 32..........................updated
+  user_script ..................... train.py....................updated
+  valid_data_paths ................ ['/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document']updated
+  valid_data_weights .............. [1.0].......................updated
+  vocab_file ...................... /workspace/pythia/pythia_pile_idxmaps/20B_tokenizer.jsonupdated
+  wall_clock_breakdown ............ True........................updated
+  wandb_group ..................... cABsQ39G3rmqKwu5aVvSe3_etd3wz1cupdated
+  weight_decay .................... 0.1.........................updated
+  zero_allgather_bucket_size ...... 500000000...................updated
+  zero_contiguous_gradients ....... True........................updated
+  zero_optimization ............... {'stage': 1, 'allgather_partitions': True, 'allgather_bucket_size': 500000000, 'overlap_comm': True, 'reduce_scatter': True, 'reduce_bucket_size': 500000000, 'contiguous_gradients': True, 'cpu_offload': False}updated
+  zero_reduce_bucket_size ......... 500000000...................updated
+  zero_reduce_scatter ............. True........................updated
+  zero_stage ...................... 1...........................updated
+  activation ...................... gelu........................default
+  adlr_autoresume ................. False.......................default
+  adlr_autoresume_interval ........ 1000........................default
+  amp ............................. None........................default
+  apply_query_key_layer_scaling ... False.......................default
+  attention_softmax_in_fp32 ....... False.......................default
+  bias_dropout_fusion ............. False.......................default
+  char_level_ppl .................. False.......................default
+  checkpoint_in_cpu ............... False.......................default
+  checkpoint_num_layers ........... 1...........................default
+  checkpoint_scale ................ linear......................default
+  checkpoint_validation_with_forward_pass  False................default
+  comment ......................... None........................default
+  contiguous_checkpointing ........ False.......................default
+  data_path ....................... None........................default
+  deepscale ....................... False.......................default
+  deepscale_config ................ None........................default
+  deepspeed ....................... True........................default
+  deepspeed_activation_checkpointing  True......................default
+  deepspeed_mpi ................... False.......................default
+  deepspeed_slurm ................. False.......................default
+  detect_nvlink_pairs ............. False.......................default
+  distributed_backend ............. nccl........................default
+  do_test ......................... None........................default
+  do_train ........................ None........................default
+  do_valid ........................ None........................default
+  dump_state ...................... False.......................default
+  eod_mask_loss ................... False.......................default
+  eval_results_prefix ............. ............................default
+  eval_tasks ...................... None........................default
+  exclude ......................... None........................default
+  exit_interval ................... None........................default
+  finetune ........................ False.......................default
+  flops_profiler .................. None........................default
+  fp16_lm_cross_entropy ........... False.......................default
+  fp32_allreduce .................. False.......................default
+  git_hash ........................ None........................default
+  gmlp_attn_dim ................... 64..........................default
+  gpt_j_tied ...................... False.......................default
+  gradient_accumulation_steps ..... 1...........................default
+  gradient_noise_scale_cpu_offload  False.......................default
+  gradient_noise_scale_n_batches .. 5...........................default
+  gradient_predivide_factor ....... 1.0.........................default
+  hostfile ........................ None........................default
+  hysteresis ...................... 2...........................default
+  include ......................... None........................default
+  init_method_std ................. 0.02........................default
+  iteration ....................... None........................default
+  keep_last_n_checkpoints ......... None........................default
+  layernorm_epsilon ............... 1e-05.......................default
+  lazy_mpu_init ................... False.......................default
+  load ............................ None........................default
+  local_rank ...................... None........................default
+  log_dir ......................... None........................default
+  log_grad_norm ................... False.......................default
+  log_grad_pct_zeros .............. False.......................default
+  log_gradient_noise_scale ........ False.......................default
+  log_optimizer_states ............ False.......................default
+  log_param_norm .................. False.......................default
+  loss_scale ...................... None........................default
+  loss_scale_window ............... 1000.0......................default
+  make_vocab_size_divisible_by .... 128.........................default
+  master_addr ..................... None........................default
+  master_port ..................... 29500.......................default
+  maximum_tokens .................. 64..........................default
+  merge_file ...................... None........................default
+  min_scale ....................... 1.0.........................default
+  mmap_warmup ..................... False.......................default
+  model_parallel_size ............. 1...........................default
+  no_load_optim ................... False.......................default
+  no_load_rng ..................... False.......................default
+  no_save_optim ................... False.......................default
+  no_save_rng ..................... False.......................default
+  norm ............................ layernorm...................default
+  num_gpus ........................ None........................default
+  num_nodes ....................... -1..........................default
+  num_samples ..................... 1...........................default
+  num_unique_layers ............... None........................default
+  onnx_safe ....................... False.......................default
+  opt_pos_emb_offset .............. 0...........................default
+  override_lr_scheduler ........... False.......................default
+  padded_vocab_size ............... None........................default
+  param_sharing_style ............. grouped.....................default
+  pipe_partition_method ........... type:transformer|mlp........default
+  prescale_gradients .............. False.......................default
+  profile_backward ................ False.......................default
+  prompt_end ...................... 
+...........................default
+  rank ............................ None........................default
+  recompute ....................... False.......................default
+  return_logits ................... False.......................default
+  rms_norm_epsilon ................ 1e-08.......................default
+  rotary_emb_base ................. 10000.......................default
+  rpe_max_distance ................ 128.........................default
+  rpe_num_buckets ................. 32..........................default
+  sample_input_file ............... None........................default
+  sample_output_file .............. samples.txt.................default
+  scaled_masked_softmax_fusion .... False.......................default
+  scalenorm_epsilon ............... 1e-08.......................default
+  scheduler ....................... None........................default
+  seed ............................ 1234........................default
+  short_seq_prob .................. 0.1.........................default
+  soft_prompt_tuning .............. None........................default
+  sparse_gradients ................ False.......................default
+  split ........................... 969, 30, 1..................default
+  steps_per_print ................. 10..........................default
+  temperature ..................... 0.0.........................default
+  tensorboard_dir ................. None........................default
+  top_k ........................... 0...........................default
+  top_p ........................... 0.0.........................default
+  use_bnb_optimizer ............... False.......................default
+  use_checkpoint_lr_scheduler ..... False.......................default
+  use_cpu_initialization .......... False.......................default
+  use_shared_fs ................... True........................default
+  use_wandb ....................... None........................default
+  wandb_host ...................... https://api.wandb.ai........default
+  wandb_init_all_ranks ............ False.......................default
+  wandb_project ................... neox........................default
+  wandb_team ...................... None........................default
+  warmup .......................... 0.01........................default
+  weight_by_num_documents ......... False.......................default
+  weighted_sampler_alpha .......... 0.3.........................default
+  world_size ...................... None........................default
+  zero_allow_untested_optimizer ... False.......................default
+---------------- end of arguments ----------------
+[2026-04-23 23:47:03,918] [WARNING] [runner.py:126:fetch_hostfile] Unable to find hostfile, will proceed with training with local resources only.
+[2026-04-23 23:47:03,918] [INFO] [runner.py:366:main] cmd = /usr/bin/python -u -m deepspeed.launcher.launch --world_info=eyJsb2NhbGhvc3QiOiBbMCwgMSwgMiwgMywgNCwgNSwgNl19 --master_addr=127.0.0.1 --master_port=29500 train.py --deepspeed_config {"train_batch_size": 224, "train_micro_batch_size_per_gpu": 32, "optimizer": {"type": "Adam", "params": {"lr": 0.001, "betas": [0.9, 0.95], "eps": 1e-08}}, "fp16": {"fp16": true, "enabled": true, "loss_scale": 0, "loss_scale_window": 1000, "initial_scale_power": 12, "hysteresis": 2, "min_loss_scale": 1}, "gradient_clipping": 1.0, "zero_optimization": {"stage": 1, "allgather_partitions": true, "allgather_bucket_size": 500000000, "overlap_comm": true, "reduce_scatter": true, "reduce_bucket_size": 500000000, "contiguous_gradients": true, "cpu_offload": false}, "wall_clock_breakdown": true} --megatron_config {"launcher": "slurm", "train_batch_size": 224, "train_micro_batch_size_per_gpu": 32, "optimizer": {"type": "Adam", "params": {"lr": 0.001, "betas": [0.9, 0.95], "eps": 1e-08}}, "fp16": {"fp16": true, "enabled": true, "loss_scale": 0, "loss_scale_window": 1000, "initial_scale_power": 12, "hysteresis": 2, "min_loss_scale": 1}, "gradient_clipping": 1.0, "zero_optimization": {"stage": 1, "allgather_partitions": true, "allgather_bucket_size": 500000000, "overlap_comm": true, "reduce_scatter": true, "reduce_bucket_size": 500000000, "contiguous_gradients": true, "cpu_offload": false}, "wall_clock_breakdown": true, "precision": "fp16", "num_layers": 6, "hidden_size": 512, "num_attention_heads": 8, "seq_length": 2048, "max_position_embeddings": 2048, "pos_emb": "rotary", "no_weight_tying": true, "attention_config": ["global", "global", "global", "global", "global", "global"], "sparsity_config": {}, "scaled_upper_triang_masked_softmax_fusion": true, "bias_gelu_fusion": true, "rotary_pct": 0.25, "init_method": "small_init", "output_layer_init_method": "wang_init", "gpt_j_residual": true, "output_layer_parallelism": "column", "lr_decay_style": "cosine", "lr_decay_iters": 19073, "min_lr": 0.0001, "optimizer_type": "Adam", "zero_stage": 1, "zero_reduce_scatter": true, "zero_contiguous_gradients": true, "zero_reduce_bucket_size": 500000000, "zero_allgather_bucket_size": 500000000, "lr": 0.001, "tokenizer_type": "HFTokenizer", "train_data_paths": ["/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document"], "test_data_paths": ["/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document"], "valid_data_paths": ["/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document"], "train_data_weights": [1.0], "valid_data_weights": [1.0], "test_data_weights": [1.0], "data_impl": "mmap", "save": "/workspace/pythia_70m_lskv_d128_w160_checkpoints", "config_files": {"pythia-70m-deduped_lskv_d128_w160.yml": "{\n  # parallelism settings\n  \"pipe-parallel-size\": 1,\n  \"model-parallel-size\": 1,\n\n  # model settings\n  \"num-layers\": 6,\n  \"hidden-size\": 512,\n  \"num-attention-heads\": 8,\n  \"seq-length\": 2048,\n  \"max-position-embeddings\": 2048,\n  \"pos-emb\": \"rotary\",\n  \"rotary-pct\": 0.25,\n  \"no-weight-tying\": true,\n  \"gpt-j-residual\": true,\n  \"output-layer-parallelism\": \"column\",\n  \n  # \"attention-config\": [[[\"flash\"], 6]],\n  \"attention-config\": [[[\"global\"], 6]],\n\n  \"scaled-upper-triang-masked-softmax-fusion\": true,\n  \"bias-gelu-fusion\": true,\n\n  # init methods\n  \"init_method\": \"small_init\",\n  \"output_layer_init_method\": \"wang_init\",\n\n  \"optimizer\": {\n    \"type\": \"Adam\",\n    \"params\": {\n      \"lr\": 0.001,\n      \"betas\": [0.9, 0.95],\n      \"eps\": 1.0e-8\n    }\n  },\n  \"min_lr\": 0.0001,\n\n  \"zero_optimization\": {\n    \"stage\": 1,\n    \"allgather_partitions\": true,\n    \"allgather_bucket_size\": 500000000,\n    \"overlap_comm\": true,\n    \"reduce_scatter\": true,\n    \"reduce_bucket_size\": 500000000,\n    \"contiguous_gradients\": true,\n    \"cpu_offload\": false\n  },\n\n  # batch size (trained on 32 gpus)\n  \"train_micro_batch_size_per_gpu\": 32,\n  \"gas\": 4,   # 1\n  \"data-impl\": \"mmap\",\n  \"num_workers\": 1,\n\n  # activation checkpointing\n  \"checkpoint-activations\": true,\n  \"checkpoint-num-layers\": 1,\n  \"partition-activations\": true,\n  \"synchronize-each-layer\": true,\n\n  # regularization\n  \"gradient_clipping\": 1.0,\n  \"weight-decay\": 0.1,\n  \"hidden-dropout\": 0,\n  \"attention-dropout\": 0,\n\n  # precision settings\n  \"fp16\": {\n    \"fp16\": true,\n    \"enabled\": true,\n    \"loss_scale\": 0,\n    \"loss_scale_window\": 1000,\n    \"initial_scale_power\": 12,\n    \"hysteresis\": 2,\n    \"min_loss_scale\": 1\n  },\n\n  \"train-iters\": 19073,                 # original: 143000,\n  \"lr-decay-iters\": 19073,              # original: 143000,\n  \"distributed-backend\": \"nccl\",\n  \"lr-decay-style\": \"cosine\",\n  \"warmup\": 0.01,\n  \"checkpoint-factor\": 1000,\n  \"extra-save-iters\": [0,1,2,4,8,16,32,64,128,256,512],\n  \"eval-interval\": 100000,\n  \"eval-iters\": 10,\n\n  \"log-interval\": 10,\n  \"steps_per_print\": 10,\n  \"wall_clock_breakdown\": true,\n\n  \"train-data-paths\": [\"/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document\"],\n  \"valid-data-paths\": [\"/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document\"],\n  \"test-data-paths\": [\"/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document\"],\n\n  \"tokenizer-type\": \"HFTokenizer\",\n  \"vocab-file\": \"/workspace/pythia/pythia_pile_idxmaps/20B_tokenizer.json\",\n\n  \"launcher\": \"slurm\",\n  \"deepspeed_slurm\": false,\n\n  \"save\": \"/workspace/pythia_70m_lskv_d128_w160_checkpoints\",\n  # \"load\": \"/workspace/pythia_checkpoints\",\n  \"checkpoint_validation_with_forward_pass\": False,\n  \"lskv_window_size\": 160,\n  \"lskv_bottleneck_dim\": 128,\n}\n"}, "checkpoint_factor": 1000, "extra_save_iters": [0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512], "batch_size": 32, "train_iters": 19073, "eval_iters": 10, "eval_interval": 100000, "vocab_file": "/workspace/pythia/pythia_pile_idxmaps/20B_tokenizer.json", "num_workers": 1, "attention_dropout": 0, "hidden_dropout": 0, "weight_decay": 0.1, "checkpoint_activations": true, "synchronize_each_layer": true, "partition_activations": true, "gas": 1, "clip_grad": 1.0, "dynamic_loss_scale": true, "pipe_parallel_size": 1, "is_pipe_parallel": true, "wandb_group": "cABsQ39G3rmqKwu5aVvSe3_etd3wz1c", "log_interval": 10, "text_gen_type": "unconditional", "user_script": "train.py", "save_iters": [0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 11000, 12000, 13000, 14000, 15000, 16000, 17000, 18000, 19000], "global_num_gpus": 7, "lskv_window_size": 160, "lskv_bottleneck_dim": 128}
+[2026-04-23 23:47:04,802] [INFO] [launch.py:75:main] 0 NV_LIBNCCL_DEV_PACKAGE libnccl-dev=2.8.4-1+cuda11.1
+[2026-04-23 23:47:04,802] [INFO] [launch.py:75:main] 0 NV_LIBNCCL_DEV_PACKAGE_VERSION 2.8.4-1
+[2026-04-23 23:47:04,802] [INFO] [launch.py:75:main] 0 NCCL_VERSION 2.8.4-1
+[2026-04-23 23:47:04,802] [INFO] [launch.py:75:main] 0 NV_LIBNCCL_DEV_PACKAGE_NAME libnccl-dev
+[2026-04-23 23:47:04,802] [INFO] [launch.py:75:main] 0 NV_LIBNCCL_PACKAGE libnccl2=2.8.4-1+cuda11.1
+[2026-04-23 23:47:04,802] [INFO] [launch.py:75:main] 0 NV_LIBNCCL_PACKAGE_NAME libnccl2
+[2026-04-23 23:47:04,802] [INFO] [launch.py:75:main] 0 NV_LIBNCCL_PACKAGE_VERSION 2.8.4-1
+[2026-04-23 23:47:04,802] [INFO] [launch.py:82:main] WORLD INFO DICT: {'localhost': [0, 1, 2, 3, 4, 5, 6]}
+[2026-04-23 23:47:04,802] [INFO] [launch.py:88:main] nnodes=1, num_local_procs=7, node_rank=0
+[2026-04-23 23:47:04,802] [INFO] [launch.py:103:main] global_rank_mapping=defaultdict(<class 'list'>, {'localhost': [0, 1, 2, 3, 4, 5, 6]})
+[2026-04-23 23:47:04,802] [INFO] [launch.py:104:main] dist_world_size=7
+[2026-04-23 23:47:04,802] [INFO] [launch.py:112:main] Setting CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6
+fatal: detected dubious ownership in repository at '/workspace/gpt-neox'
+To add an exception for this directory, call:
+
+	git config --global --add safe.directory /workspace/gpt-neox
+fatal: detected dubious ownership in repository at '/workspace/gpt-neox'
+To add an exception for this directory, call:
+
+	git config --global --add safe.directory /workspace/gpt-neox
+fatal: detected dubious ownership in repository at '/workspace/gpt-neox'
+To add an exception for this directory, call:
+
+	git config --global --add safe.directory /workspace/gpt-neox
+fatal: detected dubious ownership in repository at '/workspace/gpt-neox'
+To add an exception for this directory, call:
+
+	git config --global --add safe.directory /workspace/gpt-neox
+fatal: detected dubious ownership in repository at '/workspace/gpt-neox'
+To add an exception for this directory, call:
+
+	git config --global --add safe.directory /workspace/gpt-neox
+fatal: detected dubious ownership in repository at '/workspace/gpt-neox'
+To add an exception for this directory, call:
+
+	git config --global --add safe.directory /workspace/gpt-neox
+fatal: detected dubious ownership in repository at '/workspace/gpt-neox'
+To add an exception for this directory, call:
+
+	git config --global --add safe.directory /workspace/gpt-neox
+NeoXArgs.configure_distributed_args() using world size: 7 and model-parallel size: 1 
+> building HFTokenizer tokenizer ...
+[2026-04-23 23:47:10,907] [INFO] [distributed.py:46:init_distributed] Initializing torch distributed with backend: nccl
+[2026-04-23 23:47:10,916] [INFO] [distributed.py:46:init_distributed] Initializing torch distributed with backend: nccl
+ > padded vocab (size: 50277) with 27 dummy tokens (new size: 50304)
+> initializing torch distributed ...
+[2026-04-23 23:47:10,993] [INFO] [distributed.py:46:init_distributed] Initializing torch distributed with backend: nccl
+[2026-04-23 23:47:10,994] [INFO] [distributed.py:46:init_distributed] Initializing torch distributed with backend: nccl
+[2026-04-23 23:47:11,008] [INFO] [distributed.py:46:init_distributed] Initializing torch distributed with backend: nccl
+[2026-04-23 23:47:11,020] [INFO] [distributed.py:46:init_distributed] Initializing torch distributed with backend: nccl
+[2026-04-23 23:47:11,050] [INFO] [distributed.py:46:init_distributed] Initializing torch distributed with backend: nccl
+> initializing model parallel with size 1
+MPU DP: [0, 1, 2, 3, 4, 5, 6]
+MPU PP: [0]
+MPU PP: [1]
+MPU PP: [2]
+MPU PP: [3]
+MPU PP: [4]
+MPU PP: [5]
+MPU PP: [6]
+MPU MP: [0]
+MPU MP: [1]
+MPU MP: [2]
+MPU MP: [3]
+MPU MP: [4]
+MPU MP: [5]
+MPU MP: [6]
+> setting random seeds to 1234 ...
+[2026-04-23 23:47:12,057] [INFO] [checkpointing.py:223:model_parallel_cuda_manual_seed] > initializing model parallel cuda seeds on global rank 0, model parallel rank 0, and data parallel rank 0 with model parallel seed: 3952 and data parallel seed: 1234
+make: Entering directory '/workspace/gpt-neox/megatron/data'
+make: Nothing to be done for 'default'.
+make: Leaving directory '/workspace/gpt-neox/megatron/data'
+building GPT2 model ...
+SEED_LAYERS=False BASE_SEED=1234 SEED_FN=None
+Using topology: {ProcessCoord(pipe=0, data=0, model=0): 0, ProcessCoord(pipe=0, data=1, model=0): 1, ProcessCoord(pipe=0, data=2, model=0): 2, ProcessCoord(pipe=0, data=3, model=0): 3, ProcessCoord(pipe=0, data=4, model=0): 4, ProcessCoord(pipe=0, data=5, model=0): 5, ProcessCoord(pipe=0, data=6, model=0): 6}
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+[2026-04-23 23:47:16,688] [INFO] [module.py:363:_partition_layers] Partitioning pipeline stages with method type:transformer|mlp
+stage=0 layers=11
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+     0: EmbeddingPipe
+     1: _pre_transformer_block
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128     2: ParallelTransformerLayerPipe
+
+     3: ParallelTransformerLayerPipe
+     4: ParallelTransformerLayerPipe
+     5: ParallelTransformerLayerPipe
+     6: ParallelTransformerLayerPipe
+     7: ParallelTransformerLayerPipe
+     8: _post_transformer_block
+     9: NormPipe
+    10: ParallelLinearPipe
+  loss: partial
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+[2026-04-23 23:47:16,705] [WARNING] [config.py:77:_sanity_check] DeepSpeedConfig: cpu_offload is deprecated. Please use offload_optimizer.
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+[2026-04-23 23:47:16,713] [WARNING] [config.py:77:_sanity_check] DeepSpeedConfig: cpu_offload is deprecated. Please use offload_optimizer.
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+using LSKV attention with lskv_st_window_size=160, lskv_bottleneck_dim=128
+[2026-04-23 23:47:16,722] [WARNING] [config.py:77:_sanity_check] DeepSpeedConfig: cpu_offload is deprecated. Please use offload_optimizer.
+[2026-04-23 23:47:16,723] [WARNING] [config.py:77:_sanity_check] DeepSpeedConfig: cpu_offload is deprecated. Please use offload_optimizer.
+[2026-04-23 23:47:16,723] [WARNING] [config.py:77:_sanity_check] DeepSpeedConfig: cpu_offload is deprecated. Please use offload_optimizer.
+Configuring Optimizer type: Adam with params: {'lr': 0.001, 'betas': [0.9, 0.95], 'eps': 1e-08}
+> learning rate decay style: cosine
+DeepSpeed is enabled.
+[2026-04-23 23:47:16,730] [INFO] [logging.py:60:log_dist] [Rank 0] DeepSpeed info: version=0.3.15+eb7f5cff, git-hash=eb7f5cff, git-branch=HEAD
+[2026-04-23 23:47:16,730] [WARNING] [config.py:77:_sanity_check] DeepSpeedConfig: cpu_offload is deprecated. Please use offload_optimizer.
+[2026-04-23 23:47:16,731] [WARNING] [config.py:77:_sanity_check] DeepSpeedConfig: cpu_offload is deprecated. Please use offload_optimizer.
+Using /root/.cache/torch_extensions as PyTorch extensions root...
+Using /root/.cache/torch_extensions as PyTorch extensions root...
+Using /root/.cache/torch_extensions as PyTorch extensions root...
+Using /root/.cache/torch_extensions as PyTorch extensions root...
+[2026-04-23 23:47:17,916] [INFO] [engine.py:654:_configure_optimizer] Removing param_group that has no 'params' in the client Optimizer
+[2026-04-23 23:47:17,916] [INFO] [engine.py:659:_configure_optimizer] Using client Optimizer as basic optimizer
+[2026-04-23 23:47:17,916] [INFO] [engine.py:668:_configure_optimizer] DeepSpeed Basic Optimizer = FusedAdam
+Checking ZeRO support for optimizer=FusedAdam type=<class 'apex.optimizers.fused_adam.FusedAdam'>
+[2026-04-23 23:47:17,916] [INFO] [logging.py:60:log_dist] [Rank 0] Creating fp16 ZeRO stage 1 optimizer
+Using /root/.cache/torch_extensions as PyTorch extensions root...
+Using /root/.cache/torch_extensions as PyTorch extensions root...
+Using /root/.cache/torch_extensions as PyTorch extensions root...
+Emitting ninja build file /root/.cache/torch_extensions/utils/build.ninja...
+Building extension module utils...
+Allowing ninja to set a default number of workers... (overridable by setting the environment variable MAX_JOBS=N)
+ninja: no work to do.
+Loading extension module utils...
+Time to load utils op: 0.7608115673065186 seconds
+[2026-04-23 23:47:18,672] [INFO] [stage1.py:160:__init__] ZeRO Elastic Checkpoint = True
+Using /root/.cache/torch_extensions as PyTorch extensions root...
+No modifications detected for re-loaded extension module utils, skipping build step...
+Loading extension module utils...
+Time to load utils op: 0.0005497932434082031 seconds
+Loading extension module utils...
+Time to load utils op: 0.8029391765594482 seconds
+[2026-04-23 23:47:18,715] [INFO] [stage1.py:160:__init__] ZeRO Elastic Checkpoint = True
+Loading extension module utils...
+Loading extension module utils...
+Time to load utils op: 0.8028745651245117 seconds
+[2026-04-23 23:47:18,717] [INFO] [stage1.py:160:__init__] ZeRO Elastic Checkpoint = True
+Time to load utils op: 0.8028604984283447 seconds
+Loading extension module utils...
+[2026-04-23 23:47:18,718] [INFO] [stage1.py:160:__init__] ZeRO Elastic Checkpoint = True
+Time to load utils op: 0.8029730319976807 seconds
+[2026-04-23 23:47:18,720] [INFO] [stage1.py:160:__init__] ZeRO Elastic Checkpoint = True
+Loading extension module utils...
+Loading extension module utils...
+Time to load utils op: 0.802802562713623 seconds
+[2026-04-23 23:47:18,722] [INFO] [stage1.py:160:__init__] ZeRO Elastic Checkpoint = True
+Time to load utils op: 0.8027112483978271 seconds
+[2026-04-23 23:47:18,722] [INFO] [stage1.py:160:__init__] ZeRO Elastic Checkpoint = True
+[2026-04-23 23:47:18,722] [INFO] [logging.py:60:log_dist] [Rank 0] Using default max_elements_per_comm 500000000
+[2026-04-23 23:47:18,722] [INFO] [logging.py:60:log_dist] [Rank 0] Total number of elements in model: 71172096, max elements per com: 500000000
+[2026-04-23 23:47:18,722] [INFO] [logging.py:60:log_dist] [Rank 0] sub_partition_count: 1, sub_partition_size: 10167443, padding: 5
+[2026-04-23 23:47:18,722] [INFO] [logging.py:60:log_dist] [Rank 0] number of elements with padding: 71172096 + 5 = 71172101
+[2026-04-23 23:47:18,723] [INFO] [stage1.py:375:get_data_parallel_sub_partitions] **** partition info:
+[2026-04-23 23:47:18,724] [INFO] [stage1.py:376:get_data_parallel_sub_partitions] 	 total_num_elements=71172101
+[2026-04-23 23:47:18,724] [INFO] [stage1.py:377:get_data_parallel_sub_partitions] 	 world_size=7
+[2026-04-23 23:47:18,724] [INFO] [stage1.py:378:get_data_parallel_sub_partitions] 	 max_elements_per_comm=71172101
+[2026-04-23 23:47:18,724] [INFO] [stage1.py:379:get_data_parallel_sub_partitions] 	 sub_partition_size=10167443
+[2026-04-23 23:47:18,724] [INFO] [stage1.py:380:get_data_parallel_sub_partitions] 	 num_sub_partitions=7
+[2026-04-23 23:47:18,724] [INFO] [stage1.py:381:get_data_parallel_sub_partitions] 	 num_comm_intervals=1
+[2026-04-23 23:47:18,724] [INFO] [stage1.py:382:get_data_parallel_sub_partitions] ****
+[2026-04-23 23:47:18,725] [INFO] [logging.py:60:log_dist] [Rank 0] Using default max_elements_per_comm 500000000
+[2026-04-23 23:47:18,725] [INFO] [logging.py:60:log_dist] [Rank 0] Total number of elements in model: 44800, max elements per com: 500000000
+[2026-04-23 23:47:18,725] [INFO] [logging.py:60:log_dist] [Rank 0] sub_partition_count: 1, sub_partition_size: 6400, padding: 0
+[2026-04-23 23:47:18,725] [INFO] [logging.py:60:log_dist] [Rank 0] number of elements with padding: 44800 + 0 = 44800
+[2026-04-23 23:47:18,725] [INFO] [stage1.py:375:get_data_parallel_sub_partitions] **** partition info:
+[2026-04-23 23:47:18,726] [INFO] [stage1.py:376:get_data_parallel_sub_partitions] 	 total_num_elements=44800
+[2026-04-23 23:47:18,726] [INFO] [stage1.py:377:get_data_parallel_sub_partitions] 	 world_size=7
+[2026-04-23 23:47:18,726] [INFO] [stage1.py:378:get_data_parallel_sub_partitions] 	 max_elements_per_comm=44800
+[2026-04-23 23:47:18,726] [INFO] [stage1.py:379:get_data_parallel_sub_partitions] 	 sub_partition_size=6400
+[2026-04-23 23:47:18,726] [INFO] [stage1.py:380:get_data_parallel_sub_partitions] 	 num_sub_partitions=7
+[2026-04-23 23:47:18,726] [INFO] [stage1.py:381:get_data_parallel_sub_partitions] 	 num_comm_intervals=1
+[2026-04-23 23:47:18,726] [INFO] [stage1.py:382:get_data_parallel_sub_partitions] ****
+Using /root/.cache/torch_extensions as PyTorch extensions root...
+No modifications detected for re-loaded extension module utils, skipping build step...
+Loading extension module utils...
+Time to load utils op: 0.00049591064453125 seconds
+Using /root/.cache/torch_extensions as PyTorch extensions root...
+No modifications detected for re-loaded extension module utils, skipping build step...
+Loading extension module utils...
+Time to load utils op: 0.0006449222564697266 secondsUsing /root/.cache/torch_extensions as PyTorch extensions root...
+
+No modifications detected for re-loaded extension module utils, skipping build step...
+Loading extension module utils...
+Time to load utils op: 0.0004248619079589844 seconds
+Using /root/.cache/torch_extensions as PyTorch extensions root...
+No modifications detected for re-loaded extension module utils, skipping build step...
+Loading extension module utils...
+Time to load utils op: 0.0003974437713623047 seconds
+Using /root/.cache/torch_extensions as PyTorch extensions root...
+No modifications detected for re-loaded extension module utils, skipping build step...
+Loading extension module utils...
+Time to load utils op: 0.0009772777557373047 seconds
+[2026-04-23 23:47:18,852] [INFO] [logging.py:60:log_dist] [Rank 0] DeepSpeed Final Optimizer = FusedAdam
+[2026-04-23 23:47:18,852] [INFO] [engine.py:498:_configure_lr_scheduler] DeepSpeed using client LR scheduler
+[2026-04-23 23:47:18,852] [INFO] [logging.py:60:log_dist] [Rank 0] DeepSpeed LR Scheduler = <megatron.learning_rates.AnnealingLR object at 0x725a122cb670>
+[2026-04-23 23:47:18,853] [INFO] [logging.py:60:log_dist] [Rank 0] step=0, skipped=0, lr=[0.0, 0.0], mom=[[0.9, 0.95], [0.9, 0.95]]
+[2026-04-23 23:47:18,853] [INFO] [config.py:759:print] DeepSpeedEngine configuration:
+[2026-04-23 23:47:18,853] [INFO] [config.py:763:print]   activation_checkpointing_config  {
+    "partition_activations": false, 
+    "contiguous_memory_optimization": false, 
+    "cpu_checkpointing": false, 
+    "number_checkpoints": null, 
+    "synchronize_checkpoint_boundary": false, 
+    "profile": false
+}
+[2026-04-23 23:47:18,853] [INFO] [config.py:763:print]   aio_config ................... {'block_size': 1048576, 'queue_depth': 8, 'thread_count': 1, 'single_submit': False, 'overlap_events': True}
+[2026-04-23 23:47:18,853] [INFO] [config.py:763:print]   allreduce_always_fp32 ........ False
+[2026-04-23 23:47:18,853] [INFO] [config.py:763:print]   amp_enabled .................. False
+[2026-04-23 23:47:18,853] [INFO] [config.py:763:print]   amp_params ................... False
+[2026-04-23 23:47:18,853] [INFO] [config.py:763:print]   checkpoint_tag_validation_enabled  True
+[2026-04-23 23:47:18,853] [INFO] [config.py:763:print]   checkpoint_tag_validation_fail  False
+[2026-04-23 23:47:18,853] [INFO] [config.py:763:print]   disable_allgather ............ False
+[2026-04-23 23:47:18,853] [INFO] [config.py:763:print]   dump_state ................... False
+[2026-04-23 23:47:18,853] [INFO] [config.py:763:print]   dynamic_loss_scale_args ...... {'init_scale': 4096, 'scale_window': 1000, 'delayed_shift': 2, 'min_scale': 1}
+[2026-04-23 23:47:18,853] [INFO] [config.py:763:print]   elasticity_enabled ........... False
+[2026-04-23 23:47:18,854] [INFO] [config.py:763:print]   flops_profiler_config ........ {
+    "enabled": false, 
+    "profile_step": 1, 
+    "module_depth": -1, 
+    "top_modules": 3, 
+    "detailed": true
+}
+[2026-04-23 23:47:18,854] [INFO] [config.py:763:print]   fp16_enabled ................. True
+[2026-04-23 23:47:18,854] [INFO] [config.py:763:print]   fp16_type .................... fp16
+[2026-04-23 23:47:18,854] [INFO] [config.py:763:print]   global_rank .................. 0
+[2026-04-23 23:47:18,854] [INFO] [config.py:763:print]   gradient_accumulation_steps .. 1
+[2026-04-23 23:47:18,854] [INFO] [config.py:763:print]   gradient_clipping ............ 1.0
+[2026-04-23 23:47:18,854] [INFO] [config.py:763:print]   gradient_predivide_factor .... 1.0
+[2026-04-23 23:47:18,854] [INFO] [config.py:763:print]   initial_dynamic_scale ........ 4096
+[2026-04-23 23:47:18,854] [INFO] [config.py:763:print]   loss_scale ................... 0
+[2026-04-23 23:47:18,854] [INFO] [config.py:763:print]   memory_breakdown ............. False
+[2026-04-23 23:47:18,854] [INFO] [config.py:763:print]   optimizer_legacy_fusion ...... False
+[2026-04-23 23:47:18,854] [INFO] [config.py:763:print]   optimizer_name ............... adam
+[2026-04-23 23:47:18,854] [INFO] [config.py:763:print]   optimizer_params ............. {'lr': 0.001, 'betas': [0.9, 0.95], 'eps': 1e-08}
+[2026-04-23 23:47:18,854] [INFO] [config.py:763:print]   pipeline ..................... {'stages': 'auto', 'partition': 'best', 'seed_layers': False, 'activation_checkpoint_interval': 0}
+[2026-04-23 23:47:18,854] [INFO] [config.py:763:print]   pld_enabled .................. False
+[2026-04-23 23:47:18,854] [INFO] [config.py:763:print]   pld_params ................... False
+[2026-04-23 23:47:18,854] [INFO] [config.py:763:print]   precision .................... torch.float16
+[2026-04-23 23:47:18,854] [INFO] [config.py:763:print]   prescale_gradients ........... False
+[2026-04-23 23:47:18,854] [INFO] [config.py:763:print]   scheduler_name ............... None
+[2026-04-23 23:47:18,854] [INFO] [config.py:763:print]   scheduler_params ............. None
+[2026-04-23 23:47:18,854] [INFO] [config.py:763:print]   sparse_attention ............. None
+[2026-04-23 23:47:18,854] [INFO] [config.py:763:print]   sparse_gradients_enabled ..... False
+[2026-04-23 23:47:18,854] [INFO] [config.py:763:print]   steps_per_print .............. 10
+[2026-04-23 23:47:18,854] [INFO] [config.py:763:print]   tensorboard_enabled .......... False
+[2026-04-23 23:47:18,854] [INFO] [config.py:763:print]   tensorboard_job_name ......... DeepSpeedJobName
+[2026-04-23 23:47:18,854] [INFO] [config.py:763:print]   tensorboard_output_path ...... 
+[2026-04-23 23:47:18,854] [INFO] [config.py:763:print]   train_batch_size ............. 224
+[2026-04-23 23:47:18,854] [INFO] [config.py:763:print]   train_micro_batch_size_per_gpu  32
+[2026-04-23 23:47:18,854] [INFO] [config.py:763:print]   wall_clock_breakdown ......... True
+[2026-04-23 23:47:18,854] [INFO] [config.py:763:print]   world_size ................... 7
+[2026-04-23 23:47:18,854] [INFO] [config.py:763:print]   zero_allow_untested_optimizer  False
+[2026-04-23 23:47:18,854] [INFO] [config.py:763:print]   zero_config .................. {
+    "stage": 1, 
+    "contiguous_gradients": true, 
+    "reduce_scatter": true, 
+    "reduce_bucket_size": 5.000000e+08, 
+    "allgather_partitions": true, 
+    "allgather_bucket_size": 5.000000e+08, 
+    "overlap_comm": true, 
+    "load_from_fp32_weights": true, 
+    "elastic_checkpoint": true, 
+    "offload_param": null, 
+    "offload_optimizer": null, 
+    "sub_group_size": 1.000000e+12, 
+    "prefetch_bucket_size": 5.000000e+07, 
+    "param_persistence_threshold": 1.000000e+05, 
+    "max_live_parameters": 1.000000e+09, 
+    "max_reuse_distance": 1.000000e+09, 
+    "gather_fp16_weights_on_model_save": false
+}
+[2026-04-23 23:47:18,854] [INFO] [config.py:763:print]   zero_enabled ................. True
+[2026-04-23 23:47:18,854] [INFO] [config.py:763:print]   zero_optimization_stage ...... 1
+[2026-04-23 23:47:18,855] [INFO] [config.py:765:print]   json = {
+    "train_batch_size": 224, 
+    "train_micro_batch_size_per_gpu": 32, 
+    "optimizer": {
+        "type": "Adam", 
+        "params": {
+            "lr": 0.001, 
+            "betas": [0.9, 0.95], 
+            "eps": 1e-08
+        }
+    }, 
+    "fp16": {
+        "fp16": true, 
+        "enabled": true, 
+        "loss_scale": 0, 
+        "loss_scale_window": 1000, 
+        "initial_scale_power": 12, 
+        "hysteresis": 2, 
+        "min_loss_scale": 1
+    }, 
+    "gradient_clipping": 1.0, 
+    "zero_optimization": {
+        "stage": 1, 
+        "allgather_partitions": true, 
+        "allgather_bucket_size": 5.000000e+08, 
+        "overlap_comm": true, 
+        "reduce_scatter": true, 
+        "reduce_bucket_size": 5.000000e+08, 
+        "contiguous_gradients": true, 
+        "cpu_offload": false
+    }, 
+    "wall_clock_breakdown": true
+}
+Using /root/.cache/torch_extensions as PyTorch extensions root...
+No modifications detected for re-loaded extension module utils, skipping build step...
+Loading extension module utils...
+Time to load utils op: 0.0004153251647949219 seconds
+[2026-04-23 23:47:18,856] [INFO] [engine.py:84:__init__] CONFIG: micro_batches=1 micro_batch_size=32
+[2026-04-23 23:47:18,885] [INFO] [engine.py:141:__init__] RANK=0 STAGE=0 LAYERS=11 [0, 11) STAGE_PARAMS=71216896 (71.217M) TOTAL_PARAMS=71216896 (71.217M) UNIQUE_PARAMS=71216896 (71.217M)
+ > number of parameters on model parallel rank 0: 71216896
+ > total params: 71,216,896
+> building train, validation, and test datasets ...
+    reading sizes...
+    reading pointers...
+    reading document index...
+    creating numpy buffer of mmap...
+    creating memory view of numpy buffer...
+    train_0:
+     no. of documents:134318121
+ > loading doc-idx mapping from /workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document_train_0_indexmap_4293714ns_2048sl_1234s_doc_idx.npy
+ > loading sample-idx mapping from /workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document_train_0_indexmap_4293714ns_2048sl_1234s_sample_idx.npy
+ > loading shuffle-idx mapping from /workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document_train_0_indexmap_4293714ns_2048sl_1234s_shuffle_idx.npy
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+    loaded indexed file in 0.001 seconds
+    total number of samples: 101157429
+    total number of epochs: 1
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+    reading sizes...
+    reading pointers...
+    reading document index...
+    creating numpy buffer of mmap...
+    creating memory view of numpy buffer...
+    valid_0:
+     no. of documents:134318121
+ > loading doc-idx mapping from /workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document_valid_0_indexmap_2252ns_2048sl_1234s_doc_idx.npy
+ > loading sample-idx mapping from /workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document_valid_0_indexmap_2252ns_2048sl_1234s_sample_idx.npy
+ > loading shuffle-idx mapping from /workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document_valid_0_indexmap_2252ns_2048sl_1234s_shuffle_idx.npy
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)    loaded indexed file in 0.001 seconds
+
+    total number of samples: 101157429
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)    total number of epochs: 1
+
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+    reading sizes...
+    reading pointers...
+    reading document index...
+    creating numpy buffer of mmap...
+    creating memory view of numpy buffer...
+    test_0:
+     no. of documents:134318121
+ > loading doc-idx mapping from /workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document_test_0_indexmap_2252ns_2048sl_1234s_doc_idx.npy
+ > loading sample-idx mapping from /workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document_test_0_indexmap_2252ns_2048sl_1234s_sample_idx.npy
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+ > loading shuffle-idx mapping from /workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document_test_0_indexmap_2252ns_2048sl_1234s_shuffle_idx.npy
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+    loaded indexed file in 0.001 seconds
+    total number of samples: 101157429
+    total number of epochs: 1
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+> building indices for blendable datasets ...
+> RANK 2 elapsed time for building blendable dataset indices: 0.55 (sec)
+ > sample ratios:
+   dataset 0, input: 1, achieved: 1
+> RANK 0 elapsed time for building blendable dataset indices: 0.59 (sec)
+> building indices for blendable datasets ...
+> RANK 6 elapsed time for building blendable dataset indices: 0.59 (sec)
+> RANK 4 elapsed time for building blendable dataset indices: 0.61 (sec)
+> RANK 1 elapsed time for building blendable dataset indices: 0.61 (sec)
+> RANK 5 elapsed time for building blendable dataset indices: 0.62 (sec)
+> RANK 3 elapsed time for building blendable dataset indices: 0.62 (sec)
+> RANK 2 elapsed time for building blendable dataset indices: 0.53 (sec)
+ > sample ratios:
+   dataset 0, input: 1, achieved: 1
+> RANK 0 elapsed time for building blendable dataset indices: 0.59 (sec)
+> building indices for blendable datasets ...
+> RANK 6 elapsed time for building blendable dataset indices: 0.59 (sec)
+> RANK 5 elapsed time for building blendable dataset indices: 0.60 (sec)
+> RANK 3 elapsed time for building blendable dataset indices: 0.59 (sec)
+> RANK 4 elapsed time for building blendable dataset indices: 0.61 (sec)
+> RANK 1 elapsed time for building blendable dataset indices: 0.61 (sec)
+> RANK 2 elapsed time for building blendable dataset indices: 0.52 (sec)
+ > sample ratios:
+   dataset 0, input: 1, achieved: 1
+> RANK 0 elapsed time for building blendable dataset indices: 0.59 (sec)
+setting training data start iteration to 0
+setting validation data start iteration to 0
+> RANK 6 elapsed time for building blendable dataset indices: 0.58 (sec)
+> RANK 5 elapsed time for building blendable dataset indices: 0.58 (sec)
+> RANK 3 elapsed time for building blendable dataset indices: 0.58 (sec)
+> RANK 4 elapsed time for building blendable dataset indices: 0.59 (sec)
+> RANK 1 elapsed time for building blendable dataset indices: 0.60 (sec)
+done with setups ...
+time (ms) | model and optimizer: 5275.11 | train/valid/test data iterators: 5709.99
+training ...
+[2026-04-23 23:47:27,998] [INFO] [logging.py:60:log_dist] [Rank 0] Saving model checkpoint: /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step0/mp_rank_00_model_states.pt
+[2026-04-23 23:47:28,204] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:28,205] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step0/zero_pp_rank_5_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:28,205] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:28,205] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step0/zero_pp_rank_2_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:28,211] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:28,212] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step0/zero_pp_rank_6_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:28,213] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:28,214] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step0/zero_pp_rank_0_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:28,218] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:28,219] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step0/zero_pp_rank_4_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:28,219] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:28,220] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:28,221] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step0/zero_pp_rank_3_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:28,221] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step0/zero_pp_rank_1_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:28,285] [INFO] [checkpointing.py:405:forward] Activation Checkpointing Information
+[2026-04-23 23:47:28,285] [INFO] [checkpointing.py:406:forward] ----Partition Activations True, CPU CHECKPOINTING False
+[2026-04-23 23:47:28,285] [INFO] [checkpointing.py:409:forward] ----contiguous Memory Checkpointing False with 6 total layers
+[2026-04-23 23:47:28,285] [INFO] [checkpointing.py:412:forward] ----Synchronization True
+[2026-04-23 23:47:28,285] [INFO] [checkpointing.py:413:forward] ----Profiling False
+[2026-04-23 23:47:31,194] [INFO] [logging.py:60:log_dist] [Rank 0] Saving model checkpoint: /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step1/mp_rank_00_model_states.pt
+[2026-04-23 23:47:31,379] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:31,380] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step1/zero_pp_rank_6_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:31,383] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:31,384] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step1/zero_pp_rank_5_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:31,384] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:31,385] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step1/zero_pp_rank_4_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:31,399] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:31,400] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step1/zero_pp_rank_0_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:31,403] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:31,403] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step1/zero_pp_rank_1_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:31,421] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:31,422] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step1/zero_pp_rank_2_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:31,424] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:31,425] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step1/zero_pp_rank_3_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:32,655] [INFO] [logging.py:60:log_dist] [Rank 0] Saving model checkpoint: /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step2/mp_rank_00_model_states.pt
+[2026-04-23 23:47:32,840] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:32,841] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step2/zero_pp_rank_6_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:32,862] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:32,863] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step2/zero_pp_rank_4_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:32,864] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:32,865] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step2/zero_pp_rank_5_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:32,871] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:32,872] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step2/zero_pp_rank_2_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:32,882] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:32,882] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step2/zero_pp_rank_0_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:32,883] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:32,884] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step2/zero_pp_rank_3_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:32,890] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:32,890] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step2/zero_pp_rank_1_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:35,152] [INFO] [logging.py:60:log_dist] [Rank 0] Saving model checkpoint: /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step4/mp_rank_00_model_states.pt
+[2026-04-23 23:47:35,338] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:35,338] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step4/zero_pp_rank_6_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:35,345] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:35,346] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step4/zero_pp_rank_5_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:35,349] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:35,349] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step4/zero_pp_rank_4_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:35,366] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:35,366] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step4/zero_pp_rank_2_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:35,371] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:35,372] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step4/zero_pp_rank_3_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:35,372] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:35,373] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:35,373] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step4/zero_pp_rank_0_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:35,373] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step4/zero_pp_rank_1_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:39,804] [INFO] [logging.py:60:log_dist] [Rank 0] Saving model checkpoint: /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step8/mp_rank_00_model_states.pt
+[2026-04-23 23:47:40,004] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:40,005] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step8/zero_pp_rank_6_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:40,015] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:40,016] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step8/zero_pp_rank_0_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:40,019] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:40,019] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step8/zero_pp_rank_5_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:40,022] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:40,023] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step8/zero_pp_rank_2_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:40,025] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:40,026] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step8/zero_pp_rank_1_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:40,026] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:40,027] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step8/zero_pp_rank_4_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:40,031] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:40,032] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step8/zero_pp_rank_3_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:42,148] [INFO] [logging.py:60:log_dist] [Rank 0] step=10, skipped=0, lr=[5.2430136842657165e-05, 5.2430136842657165e-05], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 10 loss: 10.2505 iter time (s): 1.227 samples/sec: 182.561
+%comms: 3.7827638540570523 
+ %optimizer_step 1.942645409026022 
+ %forward: 25.931384231572903 
+ %backward: 57.44125233527001
+[2026-04-23 23:47:42,150] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 573.37 | forward: 3181.75 | backward_microstep: 7048.24 | backward: 7047.96 | backward_inner_microstep: 7047.37 | backward_inner: 7047.15 | backward_allreduce_microstep: 0.28 | backward_allreduce: 0.10 | reduce_tied_grads: 0.31 | comms: 464.14 | reduce_grads: 349.45 | step: 238.36 | _step_clipping: 0.12 | _step_step: 236.85 | _step_zero_grad: 0.31 | _step_check_overflow: 0.47
+ samples/sec: 160.832 | iteration       10/   19073 | elapsed time per iteration (ms): 1392.8 | learning rate: 5.243E-05 | approx flops per GPU: 37.9TFLOPS | lm_loss: 1.075692E+01 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+after 10 iterations memory (MB) | allocated: 6547.27294921875 | max allocated: 25928.0244140625 | reserved: 37104.0 | max reserved: 37104.0
+time (ms)
+[2026-04-23 23:47:48,788] [INFO] [logging.py:60:log_dist] [Rank 0] Saving model checkpoint: /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step16/mp_rank_00_model_states.pt
+[2026-04-23 23:47:48,995] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:48,996] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step16/zero_pp_rank_6_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:49,004] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:49,004] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step16/zero_pp_rank_2_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:49,019] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:49,020] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step16/zero_pp_rank_1_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:49,021] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:49,021] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step16/zero_pp_rank_5_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:49,025] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:49,025] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step16/zero_pp_rank_0_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:49,025] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:49,026] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step16/zero_pp_rank_3_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:49,097] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:47:49,097] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step16/zero_pp_rank_4_mp_rank_00_optim_states.pt
+[2026-04-23 23:47:53,559] [INFO] [logging.py:60:log_dist] [Rank 0] step=20, skipped=0, lr=[0.00010486027368531433, 0.00010486027368531433], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 20 loss: 9.5107 iter time (s): 1.091 samples/sec: 205.389
+%comms: 6.512211076190405 
+ %optimizer_step 2.1727110705721366 
+ %forward: 19.255409397513105 
+ %backward: 60.04450149281975
+[2026-04-23 23:47:53,560] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 585.84 | forward: 2100.02 | backward_microstep: 6548.81 | backward: 6548.53 | backward_inner_microstep: 6547.92 | backward_inner: 6547.66 | backward_allreduce_microstep: 0.29 | backward_allreduce: 0.10 | reduce_tied_grads: 0.32 | comms: 710.23 | reduce_grads: 597.34 | step: 236.96 | _step_clipping: 0.12 | _step_step: 235.46 | _step_zero_grad: 0.35 | _step_check_overflow: 0.41
+ samples/sec: 196.319 | iteration       20/   19073 | elapsed time per iteration (ms): 1141.0 | learning rate: 1.049E-04 | approx flops per GPU: 46.2TFLOPS | lm_loss: 9.800134E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-04-23 23:48:04,718] [INFO] [logging.py:60:log_dist] [Rank 0] step=30, skipped=0, lr=[0.0001572904105279715, 0.0001572904105279715], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 30 loss: 8.8673 iter time (s): 1.116 samples/sec: 200.793
+%comms: 7.435106711422677 
+ %optimizer_step 2.135440235777342 
+ %forward: 18.534762526804002 
+ %backward: 58.6925690565192
+[2026-04-23 23:48:04,719] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 751.41 | forward: 2067.69 | backward_microstep: 6547.86 | backward: 6547.59 | backward_inner_microstep: 6546.87 | backward_inner: 6546.59 | backward_allreduce_microstep: 0.36 | backward_allreduce: 0.12 | reduce_tied_grads: 0.36 | comms: 829.44 | reduce_grads: 715.41 | step: 238.22 | _step_clipping: 0.11 | _step_step: 236.71 | _step_zero_grad: 0.31 | _step_check_overflow: 0.47
+ samples/sec: 200.733 | iteration       30/   19073 | elapsed time per iteration (ms): 1115.9 | learning rate: 1.573E-04 | approx flops per GPU: 47.3TFLOPS | lm_loss: 9.196131E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-04-23 23:48:07,120] [INFO] [logging.py:60:log_dist] [Rank 0] Saving model checkpoint: /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step32/mp_rank_00_model_states.pt
+[2026-04-23 23:48:07,322] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:48:07,323] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step32/zero_pp_rank_4_mp_rank_00_optim_states.pt
+[2026-04-23 23:48:07,324] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:48:07,324] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step32/zero_pp_rank_2_mp_rank_00_optim_states.pt
+[2026-04-23 23:48:07,330] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:48:07,330] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step32/zero_pp_rank_6_mp_rank_00_optim_states.pt
+[2026-04-23 23:48:07,332] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:48:07,333] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step32/zero_pp_rank_0_mp_rank_00_optim_states.pt
+[2026-04-23 23:48:07,342] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:48:07,343] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:48:07,343] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step32/zero_pp_rank_1_mp_rank_00_optim_states.pt
+[2026-04-23 23:48:07,343] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step32/zero_pp_rank_5_mp_rank_00_optim_states.pt
+[2026-04-23 23:48:07,346] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:48:07,346] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step32/zero_pp_rank_3_mp_rank_00_optim_states.pt
+[2026-04-23 23:48:16,479] [INFO] [logging.py:60:log_dist] [Rank 0] step=40, skipped=0, lr=[0.00020972054737062866, 0.00020972054737062866], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 40 loss: 8.1194 iter time (s): 1.133 samples/sec: 197.674
+%comms: 6.276604700027 
+ %optimizer_step 2.1489445140616477 
+ %forward: 18.494660550227472 
+ %backward: 57.941403347739914
+[2026-04-23 23:48:16,479] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 982.60 | forward: 2095.78 | backward_microstep: 6566.32 | backward: 6565.80 | backward_inner_microstep: 6565.01 | backward_inner: 6564.67 | backward_allreduce_microstep: 0.38 | backward_allreduce: 0.14 | reduce_tied_grads: 0.42 | comms: 711.25 | reduce_grads: 598.01 | step: 243.51 | _step_clipping: 0.12 | _step_step: 241.78 | _step_zero_grad: 0.34 | _step_check_overflow: 0.59
+ samples/sec: 190.465 | iteration       40/   19073 | elapsed time per iteration (ms): 1176.1 | learning rate: 2.097E-04 | approx flops per GPU: 44.8TFLOPS | lm_loss: 8.464589E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-04-23 23:48:27,697] [INFO] [logging.py:60:log_dist] [Rank 0] step=50, skipped=0, lr=[0.0002621506842132858, 0.0002621506842132858], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 50 loss: 7.6179 iter time (s): 1.121 samples/sec: 199.742
+%comms: 3.233400137542914 
+ %optimizer_step 2.141171720380885 
+ %forward: 20.195167391359252 
+ %backward: 58.658272869528375
+[2026-04-23 23:48:27,697] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 1043.54 | forward: 2264.78 | backward_microstep: 6578.49 | backward: 6578.22 | backward_inner_microstep: 6577.60 | backward_inner: 6577.38 | backward_allreduce_microstep: 0.28 | backward_allreduce: 0.10 | reduce_tied_grads: 0.31 | comms: 362.61 | reduce_grads: 251.55 | step: 240.12 | _step_clipping: 0.11 | _step_step: 238.66 | _step_zero_grad: 0.34 | _step_check_overflow: 0.37
+ samples/sec: 199.679 | iteration       50/   19073 | elapsed time per iteration (ms): 1121.8 | learning rate: 2.622E-04 | approx flops per GPU: 47.0TFLOPS | lm_loss: 7.837300E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-04-23 23:48:38,835] [INFO] [logging.py:60:log_dist] [Rank 0] step=60, skipped=0, lr=[0.000314580821055943, 0.000314580821055943], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 60 loss: 7.2200 iter time (s): 1.113 samples/sec: 201.172
+%comms: 1.7679130525774807 
+ %optimizer_step 2.134696234719482 
+ %forward: 20.815436459396423 
+ %backward: 59.06762039387037
+[2026-04-23 23:48:38,836] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 1085.26 | forward: 2317.75 | backward_microstep: 6577.29 | backward: 6577.03 | backward_inner_microstep: 6576.29 | backward_inner: 6576.03 | backward_allreduce_microstep: 0.37 | backward_allreduce: 0.11 | reduce_tied_grads: 0.32 | comms: 196.85 | reduce_grads: 82.08 | step: 237.69 | _step_clipping: 0.11 | _step_step: 236.34 | _step_zero_grad: 0.32 | _step_check_overflow: 0.33
+ samples/sec: 201.112 | iteration       60/   19073 | elapsed time per iteration (ms): 1113.8 | learning rate: 3.146E-04 | approx flops per GPU: 47.4TFLOPS | lm_loss: 7.395875E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-04-23 23:48:43,463] [INFO] [logging.py:60:log_dist] [Rank 0] Saving model checkpoint: /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step64/mp_rank_00_model_states.pt
+[2026-04-23 23:48:43,654] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:48:43,655] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step64/zero_pp_rank_6_mp_rank_00_optim_states.pt
+[2026-04-23 23:48:43,665] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:48:43,666] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step64/zero_pp_rank_4_mp_rank_00_optim_states.pt
+[2026-04-23 23:48:43,680] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:48:43,680] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step64/zero_pp_rank_5_mp_rank_00_optim_states.pt
+[2026-04-23 23:48:43,683] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:48:43,684] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step64/zero_pp_rank_2_mp_rank_00_optim_states.pt
+[2026-04-23 23:48:43,698] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:48:43,699] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step64/zero_pp_rank_3_mp_rank_00_optim_states.pt
+[2026-04-23 23:48:43,701] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:48:43,701] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d128_w160_checkpoints/zero_to_fp32.py
+[2026-04-23 23:48:43,702] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step64/zero_pp_rank_1_mp_rank_00_optim_states.pt
+[2026-04-23 23:48:43,702] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d128_w160_checkpoints/global_step64/zero_pp_rank_0_mp_rank_00_optim_states.pt
+[2026-04-23 23:48:50,319] [INFO] [logging.py:60:log_dist] [Rank 0] step=70, skipped=0, lr=[0.00036701095789860015, 0.00036701095789860015], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 70 loss: 7.0172 iter time (s): 1.104 samples/sec: 202.821
+%comms: 2.0026559226611207 
+ %optimizer_step 2.2391653715005013 
+ %forward: 19.962890912342786 
+ %backward: 59.384211497189774
+[2026-04-23 23:48:50,319] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 1087.35 | forward: 2204.75 | backward_microstep: 6558.77 | backward: 6558.53 | backward_inner_microstep: 6557.92 | backward_inner: 6557.69 | backward_allreduce_microstep: 0.31 | backward_allreduce: 0.13 | reduce_tied_grads: 0.28 | comms: 221.18 | reduce_grads: 110.73 | step: 247.30 | _step_clipping: 0.10 | _step_step: 245.94 | _step_zero_grad: 0.34 | _step_check_overflow: 0.33
+ samples/sec: 195.060 | iteration       70/   19073 | elapsed time per iteration (ms): 1148.4 | learning rate: 3.670E-04 | approx flops per GPU: 45.9TFLOPS | lm_loss: 7.125706E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-04-23 23:49:01,306] [INFO] [logging.py:60:log_dist] [Rank 0] step=80, skipped=0, lr=[0.0004194410947412573, 0.0004194410947412573], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 80 loss: 6.7800 iter time (s): 1.098 samples/sec: 203.929
+%comms: 2.6596052829927395 
+ %optimizer_step 2.1877121375192132 
+ %forward: 19.216938725432474 
+ %backward: 59.76152147864063
+[2026-04-23 23:49:01,307] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 1052.63 | forward: 2110.83 | backward_microstep: 6564.59 | backward: 6564.35 | backward_inner_microstep: 6563.67 | backward_inner: 6563.42 | backward_allreduce_microstep: 0.34 | backward_allreduce: 0.11 | reduce_tied_grads: 0.33 | comms: 292.14 | reduce_grads: 179.72 | step: 240.30 | _step_clipping: 0.10 | _step_step: 238.97 | _step_zero_grad: 0.32 | _step_check_overflow: 0.32
+ samples/sec: 203.869 | iteration       80/   19073 | elapsed time per iteration (ms): 1098.7 | learning rate: 4.194E-04 | approx flops per GPU: 48.0TFLOPS | lm_loss: 6.892542E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-04-23 23:49:12,258] [INFO] [logging.py:60:log_dist] [Rank 0] step=90, skipped=0, lr=[0.00047187123158391443, 0.00047187123158391443], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 90 loss: 6.5124 iter time (s): 1.095 samples/sec: 204.602
+%comms: 1.9544224627636813 
+ %optimizer_step 2.1512122832214167 
+ %forward: 20.391680667602362 
+ %backward: 59.96722746629703
+[2026-04-23 23:49:12,258] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 976.78 | forward: 2232.50 | backward_microstep: 6565.50 | backward: 6565.26 | backward_inner_microstep: 6564.58 | backward_inner: 6564.33 | backward_allreduce_microstep: 0.33 | backward_allreduce: 0.13 | reduce_tied_grads: 0.31 | comms: 213.97 | reduce_grads: 101.94 | step: 235.52 | _step_clipping: 0.11 | _step_step: 234.12 | _step_zero_grad: 0.33 | _step_check_overflow: 0.33
+ samples/sec: 204.539 | iteration       90/   19073 | elapsed time per iteration (ms): 1095.1 | learning rate: 4.719E-04 | approx flops per GPU: 48.2TFLOPS | lm_loss: 6.632570E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-04-23 23:49:23,485] [INFO] [logging.py:60:log_dist] [Rank 0] step=100, skipped=0, lr=[0.0005243013684265716, 0.0005243013684265716], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 100 loss: 6.4018 iter time (s): 1.122 samples/sec: 199.564
+%comms: 9.031330247523602 
+ %optimizer_step 2.1058458298077833 
+ %forward: 18.699044764065974 
+ %backward: 58.63933866827304
+[2026-04-23 23:49:23,486] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 569.99 | forward: 2098.87 | backward_microstep: 6582.22 | backward: 6581.97 | backward_inner_microstep: 6581.30 | backward_inner: 6581.05 | backward_allreduce_microstep: 0.34 | backward_allreduce: 0.12 | reduce_tied_grads: 0.37 | comms: 1013.72 | reduce_grads: 900.28 | step: 236.37 | _step_clipping: 0.10 | _step_step: 234.98 | _step_zero_grad: 0.32 | _step_check_overflow: 0.36
+ samples/sec: 199.504 | iteration      100/   19073 | elapsed time per iteration (ms): 1122.8 | learning rate: 5.243E-04 | approx flops per GPU: 47.0TFLOPS | lm_loss: 6.468486E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
