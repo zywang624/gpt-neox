@@ -276,12 +276,12 @@ class ParallelSelfAttention(nn.Module):
             )
 
         self.down_up_proj = nn.Sequential(
-            nn.Linear(neox_args.hidden_size, neox_args.lskv_bottleneck_dim, bias=True),
-            nn.GELU(),
-            nn.Linear(neox_args.lskv_bottleneck_dim, neox_args.hidden_size, bias=True),
+            nn.Linear(neox_args.hidden_size, neox_args.lskv_bottleneck_dim, bias=False),
+            # nn.GELU(),
+            nn.Linear(neox_args.lskv_bottleneck_dim, neox_args.hidden_size, bias=False),
         )
         print(
-            f"using LSKV attention with lskv_st_window_size={self.lskv_st_window_size}, lskv_bottleneck_dim={self.lskv_bottleneck_dim}"
+            f"using LSKV attention with lskv_st_window_size={self.lskv_st_window_size}, lskv_bottleneck_dim={self.lskv_bottleneck_dim}, no bias and activation"
         )
         ## lskv specific args end ##
 
