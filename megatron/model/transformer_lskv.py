@@ -274,7 +274,7 @@ class ParallelSelfAttention(nn.Module):
             raise ValueError(
                 f"lskv_bottleneck_dim should be a positive integer, but got {self.lskv_bottleneck_dim}"
             )
-        
+
         self.down_up_proj = nn.Sequential(
             nn.Linear(neox_args.hidden_size, neox_args.lskv_bottleneck_dim, bias=True),
             nn.GELU(),
@@ -376,7 +376,6 @@ class ParallelSelfAttention(nn.Module):
             skip_bias_add=True,
             parallel_output=parallel_output,
         )
-
 
     def attention(
         self, query_layer, key_layer, value_layer, layer_past, attention_mask,
@@ -589,7 +588,7 @@ class ParallelSelfAttention(nn.Module):
 
         # Attention heads [sq, b, h] --> [sq, b, (np * 3 * hn)]
         mixed_x_layer, _ = self.query_key_value(hidden_states)
-        
+
         lt_hidden_states = self.down_up_proj(hidden_states)
         lt_mixed_x_layer, _ = self.query_key_value(lt_hidden_states)
 
@@ -605,7 +604,7 @@ class ParallelSelfAttention(nn.Module):
         (query_layer, key_layer, value_layer) = mpu.split_tensor_along_last_dim(
             mixed_x_layer, 3
         )
-        
+
         (_, lt_key_layer, lt_value_layer) = mpu.split_tensor_along_last_dim(
             lt_mixed_x_layer, 3
         )
