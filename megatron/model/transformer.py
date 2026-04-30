@@ -32,8 +32,6 @@ from megatron.model.positional_embeddings import (
     apply_rotary_pos_emb,
     apply_rotary_pos_emb_torch,
     AliBi,
-    apply_rotary_pos_emb_torch_k,
-    apply_rotary_pos_emb_k,
 )
 from megatron.model.fused_bias_dropout import (
     get_bias_dropout_add,
@@ -68,53 +66,6 @@ torch._C._jit_override_can_fuse_on_gpu(True)
                masked-attention-scores = attention_mask_func(
                                      unmasked-attention-scores, attention-mask)
 """
-
-def build_st_mask(
-    attn_mask_shape,
-    st_window_size: int,
-    cache_position: torch.Tensor,
-    device=None,
-    dtype=torch.float32,
-    return_bool: bool = True,
-):
-    Tq = int(attn_mask_shape[-2])
-    Tk = int(attn_mask_shape[-1])
-
-    if device is None:
-        device = cache_position.device
-    if dtype is None:
-        dtype = torch.float32
-
-    # Ensure 1D [Tq]
-    if cache_position.dim() != 1:
-        cache_position = cache_position.view(-1)
-    assert (
-        cache_position.numel() == Tq
-    ), f"cache_position len {cache_position.numel()} != Tq {Tq}"
-
-    w = int(st_window_size)
-    if w < 0:
-        raise ValueError("st_window_size must be >= 0")
-
-    # p: [Tq] absolute positions
-    p = cache_position.to(device=device)
-
-    # start/end: [Tq]
-    start = (p - w + 1).clamp_min(0)
-    end = p.clamp_max(Tk - 1)
-
-    # j: [Tk]
-    j = torch.arange(Tk, device=device)
-
-    # [Tq, Tk] bool mask
-    st_2d = (j[None, :] >= start[:, None]) & (j[None, :] <= end[:, None])
-
-    st = st_2d.unsqueeze(0).unsqueeze(0)  # [1,1,Tq,Tk]
-
-    if return_bool:
-        return st
-
-    return st.to(dtype)
 
 
 class ParallelMLP(nn.Module):
@@ -263,28 +214,6 @@ class ParallelSelfAttention(nn.Module):
         )
         self.pos_emb = neox_args.pos_emb
 
-        ## lskv specific args start ##
-        self.lskv_st_window_size = neox_args.lskv_window_size
-        if self.lskv_st_window_size is None or self.lskv_st_window_size <= 0:
-            raise ValueError(
-                f"lskv_window_size should be a positive integer, but got {self.lskv_st_window_size}"
-            )
-        self.lskv_bottleneck_dim = neox_args.lskv_bottleneck_dim
-        if self.lskv_bottleneck_dim is None  or self.lskv_bottleneck_dim <= 0: 
-            raise ValueError(
-                f"lskv_bottleneck_dim should be a positive integer, but got {self.lskv_bottleneck_dim}"
-            )
-
-        self.down_up_proj = nn.Sequential(
-            nn.Linear(neox_args.hidden_size, neox_args.lskv_bottleneck_dim, bias=False),
-            # nn.GELU(),
-            nn.Linear(neox_args.lskv_bottleneck_dim, neox_args.hidden_size, bias=False),
-        )
-        print(
-            f"using LSKV attention with lskv_st_window_size={self.lskv_st_window_size}, lskv_bottleneck_dim={self.lskv_bottleneck_dim}, no bias and activation"
-        )
-        ## lskv specific args end ##
-
         # Strided linear layer.
         self.query_key_value = mpu.ColumnParallelLinear(
             neox_args=neox_args,
@@ -378,8 +307,7 @@ class ParallelSelfAttention(nn.Module):
         )
 
     def attention(
-        self, query_layer, key_layer, value_layer, layer_past, attention_mask,
-        lt_key_layer, lt_value_layer,  # ← 新增两个参数
+        self, query_layer, key_layer, value_layer, layer_past, attention_mask
     ):
         # ===================================
         # Raw attention scores. [b, np, s, s]
@@ -398,7 +326,6 @@ class ParallelSelfAttention(nn.Module):
             output_size[2], output_size[0] * output_size[1], -1
         )
         key_layer = key_layer.view(output_size[3], output_size[0] * output_size[1], -1)
-        lt_key_layer = lt_key_layer.view(output_size[3], output_size[0] * output_size[1], -1)  # ← 新增
 
         # preallocating result tensor: [b * np, sq, sk]
         matmul_result = torch.empty(
@@ -418,30 +345,8 @@ class ParallelSelfAttention(nn.Module):
             alpha=(1.0 / self.norm_factor),
         )
 
-        # ← 新增：LT attention scores
-        lt_matmul_result = torch.empty_like(matmul_result)
-        lt_matmul_result = torch.baddbmm(
-            lt_matmul_result,
-            query_layer.transpose(0, 1),
-            lt_key_layer.transpose(0, 1).transpose(1, 2),
-            beta=0.0,
-            alpha=(1.0 / self.norm_factor),
-        )
-
         # change view to [b, np, sq, sk]
         attention_scores = matmul_result.view(*output_size)
-
-        # ← 新增：按 ST window mask 融合 ST / LT scores
-        SQ, SK = output_size[2], output_size[3]
-        cache_position = torch.arange(SK - SQ, SK, device=attention_scores.device)
-        st_mask_bool = build_st_mask(
-            output_size,
-            self.lskv_st_window_size,
-            cache_position=cache_position,
-            device=attention_scores.device,
-            dtype=attention_scores.dtype,
-        )
-        attention_scores = torch.where(st_mask_bool, attention_scores, lt_matmul_result.view(*output_size))
 
         # ==================================================
         # Update attention mask for inference. [b, np, sq, sk]
@@ -491,21 +396,14 @@ class ParallelSelfAttention(nn.Module):
         value_layer = value_layer.view(
             value_layer.size(0), output_size[0] * output_size[1], -1
         )
-        lt_value_layer = lt_value_layer.view(lt_value_layer.size(0), output_size[0] * output_size[1], -1)  # ← 新增
 
         # change view [b * np, sq, sk]
         attention_probs = attention_probs.view(
             output_size[0] * output_size[1], output_size[2], -1
         )
 
-        # ← 新增：st_mask 广播到 [b * np, sq, sk]
-        st_mask_f = st_mask_bool.to(attention_probs.dtype).view(1, SQ, SK)
-
-        # matmul: [b * np, sq, hn]  ← 原来是单路 bmm，现在改为 ST/LT 分路
-        context_layer = (
-            torch.bmm(attention_probs *         st_mask_f,  value_layer.transpose(0, 1)) +
-            torch.bmm(attention_probs * (1.0 - st_mask_f), lt_value_layer.transpose(0, 1))
-        )
+        # matmul: [b * np, sq, hn]
+        context_layer = torch.bmm(attention_probs, value_layer.transpose(0, 1))
 
         # change view [b, np, sq, hn]
         context_layer = context_layer.view(*output_size)
@@ -589,24 +487,16 @@ class ParallelSelfAttention(nn.Module):
         # Attention heads [sq, b, h] --> [sq, b, (np * 3 * hn)]
         mixed_x_layer, _ = self.query_key_value(hidden_states)
 
-        lt_hidden_states = self.down_up_proj(hidden_states)
-        lt_mixed_x_layer, _ = self.query_key_value(lt_hidden_states)
-
         # [sq, b, (np * 3 * hn)] --> [sq, b, np, 3 * hn]
         new_tensor_shape = mixed_x_layer.size()[:-1] + (
             self.num_attention_heads_per_partition,
             3 * self.hidden_size_per_attention_head,
         )
         mixed_x_layer = mixed_x_layer.view(*new_tensor_shape)
-        lt_mixed_x_layer = lt_mixed_x_layer.view(*new_tensor_shape)
 
         # [sq, b, np, 3 * hn] --> 3 [sq, b, np, hn]
         (query_layer, key_layer, value_layer) = mpu.split_tensor_along_last_dim(
             mixed_x_layer, 3
-        )
-
-        (_, lt_key_layer, lt_value_layer) = mpu.split_tensor_along_last_dim(
-            lt_mixed_x_layer, 3
         )
 
         if exists(self.rotary_emb):
@@ -620,21 +510,11 @@ class ParallelSelfAttention(nn.Module):
                     key_layer[..., : self.rotary_ndims],
                     key_layer[..., self.rotary_ndims :],
                 )
-                lt_key_rot, lt_key_pass = (
-                    lt_key_layer[..., : self.rotary_ndims],
-                    lt_key_layer[..., self.rotary_ndims :],
-                )
             else:
                 # full rotary
                 query_rot, key_rot = query_layer, key_layer
-                lt_key_rot =  lt_key_layer
             apply_rotary_fn = (
                 apply_rotary_pos_emb_torch if self.bf16 else apply_rotary_pos_emb
-            )
-            lt_apply_rotary_fn = (
-                apply_rotary_pos_emb_torch_k
-                if self.bf16
-                else apply_rotary_pos_emb_k
             )
 
             seq_len = key_layer.shape[0]
@@ -647,43 +527,31 @@ class ParallelSelfAttention(nn.Module):
                 query_rot, key_rot, cos, sin, offset=offset
             )
 
-            lt_cos, lt_sin = self.rotary_emb(lt_value_layer, seq_len=seq_len)
-            lt_key_layer = lt_apply_rotary_fn(
-                query_rot, lt_key_rot, lt_cos, lt_sin, offset=offset
-            )
             if exists(self.rotary_ndims):
                 query_layer = torch.cat((query_layer, query_pass), dim=-1)
                 key_layer = torch.cat((key_layer, key_pass), dim=-1)
-                lt_key_layer = torch.cat((lt_key_layer, lt_key_pass), dim=-1)
 
         # ==================================
         # Cache key and value for inference
         # ==================================
 
         if exists(layer_past) and layer_past.numel() > 0:
-            past_key, past_value, past_lt_key, past_lt_value = layer_past
+            past_key, past_value = layer_past
             key_layer = torch.cat((past_key.type_as(key_layer), key_layer), dim=0)
             value_layer = torch.cat(
                 (past_value.type_as(value_layer), value_layer), dim=0
             )
-            lt_key_layer = torch.cat((past_lt_key.type_as(lt_key_layer), lt_key_layer), dim=0)
-            lt_value_layer = torch.cat(
-                (past_lt_value.type_as(lt_value_layer), lt_value_layer), dim=0
-            )
 
         if self.use_cache:
-            present = torch.stack((key_layer, value_layer, lt_key_layer, lt_value_layer))
+            present = torch.stack((key_layer, value_layer))
 
         if self.use_flash_attention:
-            raise NotImplementedError("LSKV attention does not support flash attention yet.")
             context_layer = self.flash_attention(query_layer, key_layer, value_layer)
         elif not self.sparse:
             context_layer = self.attention(
-                query_layer, key_layer, value_layer, layer_past, attention_mask,
-                lt_key_layer, lt_value_layer
+                query_layer, key_layer, value_layer, layer_past, attention_mask
             )
         else:
-            raise NotImplementedError("LSKV attention does not support sparse attention yet.")
             context_layer = self.sparse_attention(
                 query_layer, key_layer, value_layer, attention_mask
             )

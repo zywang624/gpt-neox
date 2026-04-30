@@ -99,7 +99,7 @@
   "launcher": "slurm",
   "deepspeed_slurm": false,
 
-  "save": "/workspace/pythia_70m_lskv_d256_w128_checkpoints",
+  "save": "/workspace/pythia_70m_lskv_d256_w128_wo_act_bias_checkpoints",
   # "load": "/workspace/pythia_checkpoints",
   "checkpoint_validation_with_forward_pass": False,
   "lskv_window_size": 128,
