@@ -46,10 +46,10 @@
     "cpu_offload": false
   },
 
-  # batch size: 16 × 16 × 4 = 1024 (Pythia 严格)
+  # batch size: 16 × 32 × 2 = 1024 (Pythia 严格)
   "train_micro_batch_size_per_gpu": 16,
   # "gas": 4,   # 1
-  "gradient_accumulation_steps": 16,
+  "gradient_accumulation_steps": 32,
   "data-impl": "mmap",
   "num_workers": 1,
 
@@ -103,11 +103,12 @@
   "launcher": "slurm",
   "deepspeed_slurm": false,
 
-  "save": "/workspace/pythia_70m_lskv_d256_w128_aligned_config_checkpoints",
-  "load": "/workspace/pythia_70m_lskv_d256_w128_aligned_config_checkpoints",
+  "save": "/workspace/pythia_70m_lskv_d128_w0_aligned_config_checkpoints",
+  # "load": "/workspace/pythia_70m_lskv_d128_w0_aligned_config_checkpoints",
+
   "checkpoint_validation_with_forward_pass": False,
-  "lskv_window_size": 128,
-  "lskv_bottleneck_dim": 256,
+  "lskv_window_size": 0,
+  "lskv_bottleneck_dim": 128,
 
   "global_num_gpus": 2,
   # "num_gpus": 7,

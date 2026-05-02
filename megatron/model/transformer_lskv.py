@@ -49,15 +49,15 @@ torch._C._jit_override_can_fuse_on_cpu(True)
 torch._C._jit_override_can_fuse_on_gpu(True)
 
 """ We use the following notation throughout this file:
-     h: hidden size
-     n: number of attention heads
-     p: number of model parallel partitions
-     np: n/p
-     hp: h/p
-     hn: h/n
-     b: batch size
-     s: sequence length
-     l: number of layers
+    h: hidden size
+    n: number of attention heads
+    p: number of model parallel partitions
+    np: n/p
+    hp: h/p
+    hn: h/n
+    b: batch size
+    s: sequence length
+    l: number of layers
     Transformer takes input of size [s, b, h] and returns a
     tensor of the same size. We use the following arguments:
         hyperparameters: transformer hyperparameters
@@ -65,9 +65,10 @@ torch._C._jit_override_can_fuse_on_gpu(True)
             with size [b, np, s, s] and an `attention-mask` and will apply
             the masking. The function should return a masked score of the
             same size [b, np, s, s].
-               masked-attention-scores = attention_mask_func(
-                                     unmasked-attention-scores, attention-mask)
+            masked-attention-scores = attention_mask_func(
+                                    unmasked-attention-scores, attention-mask)
 """
+
 
 def build_st_mask(
     attn_mask_shape,
@@ -265,12 +266,12 @@ class ParallelSelfAttention(nn.Module):
 
         ## lskv specific args start ##
         self.lskv_st_window_size = neox_args.lskv_window_size
-        if self.lskv_st_window_size is None or self.lskv_st_window_size <= 0:
+        if self.lskv_st_window_size is None or self.lskv_st_window_size < 0:
             raise ValueError(
                 f"lskv_window_size should be a positive integer, but got {self.lskv_st_window_size}"
             )
         self.lskv_bottleneck_dim = neox_args.lskv_bottleneck_dim
-        if self.lskv_bottleneck_dim is None  or self.lskv_bottleneck_dim <= 0: 
+        if self.lskv_bottleneck_dim is None or self.lskv_bottleneck_dim <= 0:
             raise ValueError(
                 f"lskv_bottleneck_dim should be a positive integer, but got {self.lskv_bottleneck_dim}"
             )
@@ -383,8 +384,14 @@ class ParallelSelfAttention(nn.Module):
         )
 
     def attention(
-        self, query_layer, key_layer, value_layer, layer_past, attention_mask,
-        lt_key_layer, lt_value_layer,  # ← 新增两个参数
+        self,
+        query_layer,
+        key_layer,
+        value_layer,
+        layer_past,
+        attention_mask,
+        lt_key_layer,
+        lt_value_layer,  # ← 新增两个参数
     ):
         # ===================================
         # Raw attention scores. [b, np, s, s]
@@ -403,7 +410,9 @@ class ParallelSelfAttention(nn.Module):
             output_size[2], output_size[0] * output_size[1], -1
         )
         key_layer = key_layer.view(output_size[3], output_size[0] * output_size[1], -1)
-        lt_key_layer = lt_key_layer.view(output_size[3], output_size[0] * output_size[1], -1)  # ← 新增
+        lt_key_layer = lt_key_layer.view(
+            output_size[3], output_size[0] * output_size[1], -1
+        )  # ← 新增
 
         # preallocating result tensor: [b * np, sq, sk]
         matmul_result = torch.empty(
@@ -446,7 +455,9 @@ class ParallelSelfAttention(nn.Module):
             device=attention_scores.device,
             dtype=attention_scores.dtype,
         )
-        attention_scores = torch.where(st_mask_bool, attention_scores, lt_matmul_result.view(*output_size))
+        attention_scores = torch.where(
+            st_mask_bool, attention_scores, lt_matmul_result.view(*output_size)
+        )
 
         # ==================================================
         # Update attention mask for inference. [b, np, sq, sk]
@@ -496,7 +507,9 @@ class ParallelSelfAttention(nn.Module):
         value_layer = value_layer.view(
             value_layer.size(0), output_size[0] * output_size[1], -1
         )
-        lt_value_layer = lt_value_layer.view(lt_value_layer.size(0), output_size[0] * output_size[1], -1)  # ← 新增
+        lt_value_layer = lt_value_layer.view(
+            lt_value_layer.size(0), output_size[0] * output_size[1], -1
+        )  # ← 新增
 
         # change view [b * np, sq, sk]
         attention_probs = attention_probs.view(
@@ -507,9 +520,10 @@ class ParallelSelfAttention(nn.Module):
         st_mask_f = st_mask_bool.to(attention_probs.dtype).view(1, SQ, SK)
 
         # matmul: [b * np, sq, hn]  ← 原来是单路 bmm，现在改为 ST/LT 分路
-        context_layer = (
-            torch.bmm(attention_probs *         st_mask_f,  value_layer.transpose(0, 1)) +
-            torch.bmm(attention_probs * (1.0 - st_mask_f), lt_value_layer.transpose(0, 1))
+        context_layer = torch.bmm(
+            attention_probs * st_mask_f, value_layer.transpose(0, 1)
+        ) + torch.bmm(
+            attention_probs * (1.0 - st_mask_f), lt_value_layer.transpose(0, 1)
         )
 
         # change view [b, np, sq, hn]
@@ -610,7 +624,7 @@ class ParallelSelfAttention(nn.Module):
             mixed_x_layer, 3
         )
 
-        (_, lt_key_layer, lt_value_layer) = mpu.split_tensor_along_last_dim(
+        _, lt_key_layer, lt_value_layer = mpu.split_tensor_along_last_dim(
             lt_mixed_x_layer, 3
         )
 
@@ -632,14 +646,12 @@ class ParallelSelfAttention(nn.Module):
             else:
                 # full rotary
                 query_rot, key_rot = query_layer, key_layer
-                lt_key_rot =  lt_key_layer
+                lt_key_rot = lt_key_layer
             apply_rotary_fn = (
                 apply_rotary_pos_emb_torch if self.bf16 else apply_rotary_pos_emb
             )
             lt_apply_rotary_fn = (
-                apply_rotary_pos_emb_torch_k
-                if self.bf16
-                else apply_rotary_pos_emb_k
+                apply_rotary_pos_emb_torch_k if self.bf16 else apply_rotary_pos_emb_k
             )
 
             seq_len = key_layer.shape[0]
@@ -671,24 +683,37 @@ class ParallelSelfAttention(nn.Module):
             value_layer = torch.cat(
                 (past_value.type_as(value_layer), value_layer), dim=0
             )
-            lt_key_layer = torch.cat((past_lt_key.type_as(lt_key_layer), lt_key_layer), dim=0)
+            lt_key_layer = torch.cat(
+                (past_lt_key.type_as(lt_key_layer), lt_key_layer), dim=0
+            )
             lt_value_layer = torch.cat(
                 (past_lt_value.type_as(lt_value_layer), lt_value_layer), dim=0
             )
 
         if self.use_cache:
-            present = torch.stack((key_layer, value_layer, lt_key_layer, lt_value_layer))
+            present = torch.stack(
+                (key_layer, value_layer, lt_key_layer, lt_value_layer)
+            )
 
         if self.use_flash_attention:
-            raise NotImplementedError("LSKV attention does not support flash attention yet.")
+            raise NotImplementedError(
+                "LSKV attention does not support flash attention yet."
+            )
             context_layer = self.flash_attention(query_layer, key_layer, value_layer)
         elif not self.sparse:
             context_layer = self.attention(
-                query_layer, key_layer, value_layer, layer_past, attention_mask,
-                lt_key_layer, lt_value_layer
+                query_layer,
+                key_layer,
+                value_layer,
+                layer_past,
+                attention_mask,
+                lt_key_layer,
+                lt_value_layer,
             )
         else:
-            raise NotImplementedError("LSKV attention does not support sparse attention yet.")
+            raise NotImplementedError(
+                "LSKV attention does not support sparse attention yet."
+            )
             context_layer = self.sparse_attention(
                 query_layer, key_layer, value_layer, attention_mask
             )

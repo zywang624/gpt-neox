@@ -422,6 +422,13 @@ class NeoXArgs(*BASE_CLASSES):
                 )
             )
 
+        if "MASTER_PORT" in os.environ:
+            args_list.extend(
+                self.convert_key_value_to_command_line_arg(
+                    "master_port", os.environ["MASTER_PORT"]
+                )
+            )
+
         if (
             "--include" in args_list or "--exclude" in args_list
         ) and "--num_gpus" in args_list:
