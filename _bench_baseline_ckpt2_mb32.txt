@@ -1,0 +1,273 @@
+/data/anaconda3/envs/pythia/lib/python3.10/site-packages/wandb/apis/public.py:3109: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+NeoXArgs.from_ymls() ['/data/zhiyuanwang/code/ls_kv/ppl/train_pythia/gpt-neox/_bench_baseline_ckpt2_mb32.yml']
+INFO:root:NeoXArgs.calculate_derived() Total number of GPUs determined to be: 4
+-------------------- arguments --------------------
+  attention_config ................ ['global', 'global', 'global', 'global', 'global', 'global', 'global', 'global', 'global', 'global', 'global', 'global', 'global', 'global', 'global', 'global']updated
+  attention_dropout ............... 0...........................updated
+  batch_size ...................... 32..........................updated
+  bias_gelu_fusion ................ True........................updated
+  checkpoint_activations .......... True........................updated
+  checkpoint_factor ............... 999999......................updated
+  checkpoint_num_layers ........... 2...........................updated
+  clip_grad ....................... 1.0.........................updated
+  config_files .................... {'_bench_baseline_ckpt2_mb32.yml': '{\n  # parallelism settings\n  "pipe-parallel-size": 1,\n  "model-parallel-size": 1,\n\n  # model settings\n  "num-layers": 16,\n  "hidden-size": 2048,\n  "num-attention-heads": 8,\n  "seq-length": 2048,\n  "max-position-embeddings": 2048,\n  "pos-emb": "rotary",\n  "rotary-pct": 0.25,\n  "no-weight-tying": true,\n  "gpt-j-residual": true,\n  "output-layer-parallelism": "column",\n  \n  # "attention-config": [[["flash"], 16]],\n  "attention-config": [[["global"], 16]],\n\n  "scaled-upper-triang-masked-softmax-fusion": true,\n  "bias-gelu-fusion": true,\n\n  # init methods\n  "init_method": "small_init",\n  "output_layer_init_method": "wang_init",\n\n  "optimizer": {\n    "type": "Adam",\n    "params": {\n      "lr": 0.00025,\n      "betas": [0.9, 0.95],\n      "eps": 1.0e-8\n    }\n  },\n  "min_lr": 0.000025,\n\n  "zero_optimization": {\n    "stage": 1,\n    "allgather_partitions": true,\n    "allgather_bucket_size": 500000000,\n    "overlap_comm": true,\n    "reduce_scatter": true,\n    "reduce_bucket_size": 500000000,\n    "contiguous_gradients": true,\n    "cpu_offload": false\n  },\n\n  # ################# batch size (trained on 8 gpus) #################\n  # "train_micro_batch_size_per_gpu": 32,\n  # "gradient_accumulation_steps": 1,\n  # # "gas": 4,                 # not used\n  # ##################################################################\n\n  ################# batch size (trained on 4 gpus) #################\n  "train_micro_batch_size_per_gpu": 32,\n  "gradient_accumulation_steps": 1,\n  # "gas": 8,                 # not used\n  ##################################################################\n\n  "data-impl": "mmap",\n  "num_workers": 1,\n\n  # activation checkpointing\n  "checkpoint-activations": true,\n  "checkpoint-num-layers": 2,\n  "partition-activations": false,\n  "synchronize-each-layer": false,\n\n  # regularization\n  "gradient_clipping": 1.0,\n  "weight-decay": 0.1,\n  "hidden-dropout": 0,\n  "attention-dropout": 0,\n\n  # precision settings\n  "fp16": {\n    "fp16": true,\n    "enabled": true,\n    "loss_scale": 0,\n    "loss_scale_window": 1000,\n    "initial_scale_power": 12,\n    "hysteresis": 2,\n    "min_loss_scale": 1,\n  },\n\n  "train-iters": 35,       # for #tokens=20B with total_batch_size=1024\n  "lr-decay-iters": 35,    # for #tokens=20B with total_batch_size=1024\n  "distributed-backend": "nccl",\n  "lr-decay-style": "cosine",\n  "warmup": 0.01,\n  "checkpoint-factor": 999999,\n    "eval-interval": 999999,\n  "eval-iters": 10,\n\n  "log-interval": 10,\n  "steps_per_print": 10,\n  "wall_clock_breakdown": false,\n\n  "train-data-paths": ["/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document"],\n  "valid-data-paths": ["/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document"],\n  "test-data-paths": ["/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document"],\n\n  "tokenizer-type": "HFTokenizer",\n  "vocab-file": "/workspace/pythia/pythia_pile_idxmaps/20B_tokenizer.json",\n\n  # "launcher": "pdsh",\n  # "include": "localhost:1,2,3,4",\n  "launcher": "pdsh",\n    "save": "/workspace/pythia_1b_lskv_d512_w128_checkpoints",\n  # "load": "/workspace/pythia_checkpoints",\n  "checkpoint_validation_with_forward_pass": False,\n  "lskv_window_size": 128,\n  "lskv_bottleneck_dim": 512,\n}\n'}updated
+  data_impl ....................... mmap........................updated
+  dynamic_loss_scale .............. True........................updated
+  eval_interval ................... 999999......................updated
+  eval_iters ...................... 10..........................updated
+  fp16 ............................ {'fp16': True, 'enabled': True, 'loss_scale': 0, 'loss_scale_window': 1000, 'initial_scale_power': 12, 'hysteresis': 2, 'min_loss_scale': 1}updated
+  gas ............................. 1...........................updated
+  global_num_gpus ................. 4...........................updated
+  gpt_j_residual .................. True........................updated
+  gradient_clipping ............... 1.0.........................updated
+  hidden_dropout .................. 0...........................updated
+  hidden_size ..................... 2048........................updated
+  init_method ..................... small_init..................updated
+  is_pipe_parallel ................ True........................updated
+  log_interval .................... 10..........................updated
+  lr .............................. 0.00025.....................updated
+  lr_decay_iters .................. 35..........................updated
+  lr_decay_style .................. cosine......................updated
+  lskv_bottleneck_dim ............. 512.........................updated
+  lskv_window_size ................ 128.........................updated
+  max_position_embeddings ......... 2048........................updated
+  min_lr .......................... 2.5e-05.....................updated
+  no_weight_tying ................. True........................updated
+  num_attention_heads ............. 8...........................updated
+  num_layers ...................... 16..........................updated
+  num_workers ..................... 1...........................updated
+  optimizer ....................... {'type': 'Adam', 'params': {'lr': 0.00025, 'betas': [0.9, 0.95], 'eps': 1e-08}}updated
+  optimizer_type .................. Adam........................updated
+  output_layer_init_method ........ wang_init...................updated
+  output_layer_parallelism ........ column......................updated
+  pipe_parallel_size .............. 1...........................updated
+  pos_emb ......................... rotary......................updated
+  precision ....................... fp16........................updated
+  rotary_pct ...................... 0.25........................updated
+  save ............................ /workspace/pythia_1b_lskv_d512_w128_checkpointsupdated
+  save_iters ...................... []..........................updated
+  scaled_upper_triang_masked_softmax_fusion  True...............updated
+  seq_length ...................... 2048........................updated
+  sparsity_config ................. {}..........................updated
+  test_data_paths ................. ['/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document']updated
+  test_data_weights ............... [1.0].......................updated
+  text_gen_type ................... unconditional...............updated
+  tokenizer_type .................. HFTokenizer.................updated
+  train_batch_size ................ 128.........................updated
+  train_data_paths ................ ['/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document']updated
+  train_data_weights .............. [1.0].......................updated
+  train_iters ..................... 35..........................updated
+  train_micro_batch_size_per_gpu .. 32..........................updated
+  user_script ..................... train.py....................updated
+  valid_data_paths ................ ['/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document']updated
+  valid_data_weights .............. [1.0].......................updated
+  vocab_file ...................... /workspace/pythia/pythia_pile_idxmaps/20B_tokenizer.jsonupdated
+  wandb_group ..................... E846c6zoHzuzbra5Rhac8h_f28wo5n4updated
+  weight_decay .................... 0.1.........................updated
+  zero_allgather_bucket_size ...... 500000000...................updated
+  zero_contiguous_gradients ....... True........................updated
+  zero_optimization ............... {'stage': 1, 'allgather_partitions': True, 'allgather_bucket_size': 500000000, 'overlap_comm': True, 'reduce_scatter': True, 'reduce_bucket_size': 500000000, 'contiguous_gradients': True, 'cpu_offload': False}updated
+  zero_reduce_bucket_size ......... 500000000...................updated
+  zero_reduce_scatter ............. True........................updated
+  zero_stage ...................... 1...........................updated
+  activation ...................... gelu........................default
+  adlr_autoresume ................. False.......................default
+  adlr_autoresume_interval ........ 1000........................default
+  amp ............................. None........................default
+  apply_query_key_layer_scaling ... False.......................default
+  attention_softmax_in_fp32 ....... False.......................default
+  bias_dropout_fusion ............. False.......................default
+  char_level_ppl .................. False.......................default
+  checkpoint_in_cpu ............... False.......................default
+  checkpoint_scale ................ linear......................default
+  checkpoint_validation_with_forward_pass  False................default
+  comment ......................... None........................default
+  contiguous_checkpointing ........ False.......................default
+  data_path ....................... None........................default
+  deepscale ....................... False.......................default
+  deepscale_config ................ None........................default
+  deepspeed ....................... True........................default
+  deepspeed_activation_checkpointing  True......................default
+  deepspeed_mpi ................... False.......................default
+  deepspeed_slurm ................. False.......................default
+  detect_nvlink_pairs ............. False.......................default
+  distributed_backend ............. nccl........................default
+  do_test ......................... None........................default
+  do_train ........................ None........................default
+  do_valid ........................ None........................default
+  dump_state ...................... False.......................default
+  eod_mask_loss ................... False.......................default
+  eval_results_prefix ............. ............................default
+  eval_tasks ...................... None........................default
+  exclude ......................... None........................default
+  exit_interval ................... None........................default
+  extra_save_iters ................ None........................default
+  finetune ........................ False.......................default
+  flops_profiler .................. None........................default
+  fp16_lm_cross_entropy ........... False.......................default
+  fp32_allreduce .................. False.......................default
+  git_hash ........................ 30b47edd....................default
+  gmlp_attn_dim ................... 64..........................default
+  gpt_j_tied ...................... False.......................default
+  gradient_accumulation_steps ..... 1...........................default
+  gradient_noise_scale_cpu_offload  False.......................default
+  gradient_noise_scale_n_batches .. 5...........................default
+  gradient_predivide_factor ....... 1.0.........................default
+  hostfile ........................ None........................default
+  hysteresis ...................... 2...........................default
+  include ......................... None........................default
+  init_method_std ................. 0.02........................default
+  iteration ....................... None........................default
+  keep_last_n_checkpoints ......... None........................default
+  launcher ........................ pdsh........................default
+  layernorm_epsilon ............... 1e-05.......................default
+  lazy_mpu_init ................... False.......................default
+  load ............................ None........................default
+  local_rank ...................... None........................default
+  log_dir ......................... None........................default
+  log_grad_norm ................... False.......................default
+  log_grad_pct_zeros .............. False.......................default
+  log_gradient_noise_scale ........ False.......................default
+  log_optimizer_states ............ False.......................default
+  log_param_norm .................. False.......................default
+  loss_scale ...................... None........................default
+  loss_scale_window ............... 1000.0......................default
+  make_vocab_size_divisible_by .... 128.........................default
+  master_addr ..................... None........................default
+  master_port ..................... 29500.......................default
+  maximum_tokens .................. 64..........................default
+  merge_file ...................... None........................default
+  min_scale ....................... 1.0.........................default
+  mmap_warmup ..................... False.......................default
+  model_parallel_size ............. 1...........................default
+  no_load_optim ................... False.......................default
+  no_load_rng ..................... False.......................default
+  no_save_optim ................... False.......................default
+  no_save_rng ..................... False.......................default
+  norm ............................ layernorm...................default
+  num_gpus ........................ None........................default
+  num_nodes ....................... -1..........................default
+  num_samples ..................... 1...........................default
+  num_unique_layers ............... None........................default
+  onnx_safe ....................... False.......................default
+  opt_pos_emb_offset .............. 0...........................default
+  override_lr_scheduler ........... False.......................default
+  padded_vocab_size ............... None........................default
+  param_sharing_style ............. grouped.....................default
+  partition_activations ........... False.......................default
+  pipe_partition_method ........... type:transformer|mlp........default
+  prescale_gradients .............. False.......................default
+  profile_backward ................ False.......................default
+  prompt_end ...................... 
+...........................default
+  rank ............................ None........................default
+  recompute ....................... False.......................default
+  return_logits ................... False.......................default
+  rms_norm_epsilon ................ 1e-08.......................default
+  rotary_emb_base ................. 10000.......................default
+  rpe_max_distance ................ 128.........................default
+  rpe_num_buckets ................. 32..........................default
+  sample_input_file ............... None........................default
+  sample_output_file .............. samples.txt.................default
+  scaled_masked_softmax_fusion .... False.......................default
+  scalenorm_epsilon ............... 1e-08.......................default
+  scheduler ....................... None........................default
+  seed ............................ 1234........................default
+  short_seq_prob .................. 0.1.........................default
+  soft_prompt_tuning .............. None........................default
+  sparse_gradients ................ False.......................default
+  split ........................... 969, 30, 1..................default
+  steps_per_print ................. 10..........................default
+  synchronize_each_layer .......... False.......................default
+  temperature ..................... 0.0.........................default
+  tensorboard_dir ................. None........................default
+  top_k ........................... 0...........................default
+  top_p ........................... 0.0.........................default
+  use_bnb_optimizer ............... False.......................default
+  use_checkpoint_lr_scheduler ..... False.......................default
+  use_cpu_initialization .......... False.......................default
+  use_shared_fs ................... True........................default
+  use_wandb ....................... None........................default
+  wall_clock_breakdown ............ False.......................default
+  wandb_host ...................... https://api.wandb.ai........default
+  wandb_init_all_ranks ............ False.......................default
+  wandb_project ................... neox........................default
+  wandb_team ...................... None........................default
+  warmup .......................... 0.01........................default
+  weight_by_num_documents ......... False.......................default
+  weighted_sampler_alpha .......... 0.3.........................default
+  world_size ...................... None........................default
+  zero_allow_untested_optimizer ... False.......................default
+---------------- end of arguments ----------------
+[2026-04-21 01:45:35,795] [WARNING] [runner.py:117:fetch_hostfile] Unable to find hostfile, will proceed with training with local resources only.
+[2026-04-21 01:45:35,795] [INFO] [runner.py:355:main] cmd = /data/anaconda3/envs/pythia/bin/python -u -m deepspeed.launcher.launch --world_info=eyJsb2NhbGhvc3QiOiBbMCwgMSwgMiwgM119 --master_addr=127.0.0.1 --master_port=29500 train.py --deepspeed_config {"train_batch_size": 128, "train_micro_batch_size_per_gpu": 32, "optimizer": {"type": "Adam", "params": {"lr": 0.00025, "betas": [0.9, 0.95], "eps": 1e-08}}, "fp16": {"fp16": true, "enabled": true, "loss_scale": 0, "loss_scale_window": 1000, "initial_scale_power": 12, "hysteresis": 2, "min_loss_scale": 1}, "gradient_clipping": 1.0, "zero_optimization": {"stage": 1, "allgather_partitions": true, "allgather_bucket_size": 500000000, "overlap_comm": true, "reduce_scatter": true, "reduce_bucket_size": 500000000, "contiguous_gradients": true, "cpu_offload": false}} --megatron_config {"train_batch_size": 128, "train_micro_batch_size_per_gpu": 32, "optimizer": {"type": "Adam", "params": {"lr": 0.00025, "betas": [0.9, 0.95], "eps": 1e-08}}, "fp16": {"fp16": true, "enabled": true, "loss_scale": 0, "loss_scale_window": 1000, "initial_scale_power": 12, "hysteresis": 2, "min_loss_scale": 1}, "gradient_clipping": 1.0, "zero_optimization": {"stage": 1, "allgather_partitions": true, "allgather_bucket_size": 500000000, "overlap_comm": true, "reduce_scatter": true, "reduce_bucket_size": 500000000, "contiguous_gradients": true, "cpu_offload": false}, "precision": "fp16", "num_layers": 16, "hidden_size": 2048, "num_attention_heads": 8, "seq_length": 2048, "max_position_embeddings": 2048, "pos_emb": "rotary", "no_weight_tying": true, "attention_config": ["global", "global", "global", "global", "global", "global", "global", "global", "global", "global", "global", "global", "global", "global", "global", "global"], "sparsity_config": {}, "scaled_upper_triang_masked_softmax_fusion": true, "bias_gelu_fusion": true, "rotary_pct": 0.25, "init_method": "small_init", "output_layer_init_method": "wang_init", "gpt_j_residual": true, "output_layer_parallelism": "column", "lr_decay_style": "cosine", "lr_decay_iters": 35, "min_lr": 2.5e-05, "optimizer_type": "Adam", "zero_stage": 1, "zero_reduce_scatter": true, "zero_contiguous_gradients": true, "zero_reduce_bucket_size": 500000000, "zero_allgather_bucket_size": 500000000, "lr": 0.00025, "tokenizer_type": "HFTokenizer", "train_data_paths": ["/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document"], "test_data_paths": ["/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document"], "valid_data_paths": ["/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document"], "train_data_weights": [1.0], "valid_data_weights": [1.0], "test_data_weights": [1.0], "data_impl": "mmap", "save": "/workspace/pythia_1b_lskv_d512_w128_checkpoints", "config_files": {"_bench_baseline_ckpt2_mb32.yml": "{\n  # parallelism settings\n  \"pipe-parallel-size\": 1,\n  \"model-parallel-size\": 1,\n\n  # model settings\n  \"num-layers\": 16,\n  \"hidden-size\": 2048,\n  \"num-attention-heads\": 8,\n  \"seq-length\": 2048,\n  \"max-position-embeddings\": 2048,\n  \"pos-emb\": \"rotary\",\n  \"rotary-pct\": 0.25,\n  \"no-weight-tying\": true,\n  \"gpt-j-residual\": true,\n  \"output-layer-parallelism\": \"column\",\n  \n  # \"attention-config\": [[[\"flash\"], 16]],\n  \"attention-config\": [[[\"global\"], 16]],\n\n  \"scaled-upper-triang-masked-softmax-fusion\": true,\n  \"bias-gelu-fusion\": true,\n\n  # init methods\n  \"init_method\": \"small_init\",\n  \"output_layer_init_method\": \"wang_init\",\n\n  \"optimizer\": {\n    \"type\": \"Adam\",\n    \"params\": {\n      \"lr\": 0.00025,\n      \"betas\": [0.9, 0.95],\n      \"eps\": 1.0e-8\n    }\n  },\n  \"min_lr\": 0.000025,\n\n  \"zero_optimization\": {\n    \"stage\": 1,\n    \"allgather_partitions\": true,\n    \"allgather_bucket_size\": 500000000,\n    \"overlap_comm\": true,\n    \"reduce_scatter\": true,\n    \"reduce_bucket_size\": 500000000,\n    \"contiguous_gradients\": true,\n    \"cpu_offload\": false\n  },\n\n  # ################# batch size (trained on 8 gpus) #################\n  # \"train_micro_batch_size_per_gpu\": 32,\n  # \"gradient_accumulation_steps\": 1,\n  # # \"gas\": 4,                 # not used\n  # ##################################################################\n\n  ################# batch size (trained on 4 gpus) #################\n  \"train_micro_batch_size_per_gpu\": 32,\n  \"gradient_accumulation_steps\": 1,\n  # \"gas\": 8,                 # not used\n  ##################################################################\n\n  \"data-impl\": \"mmap\",\n  \"num_workers\": 1,\n\n  # activation checkpointing\n  \"checkpoint-activations\": true,\n  \"checkpoint-num-layers\": 2,\n  \"partition-activations\": false,\n  \"synchronize-each-layer\": false,\n\n  # regularization\n  \"gradient_clipping\": 1.0,\n  \"weight-decay\": 0.1,\n  \"hidden-dropout\": 0,\n  \"attention-dropout\": 0,\n\n  # precision settings\n  \"fp16\": {\n    \"fp16\": true,\n    \"enabled\": true,\n    \"loss_scale\": 0,\n    \"loss_scale_window\": 1000,\n    \"initial_scale_power\": 12,\n    \"hysteresis\": 2,\n    \"min_loss_scale\": 1,\n  },\n\n  \"train-iters\": 35,       # for #tokens=20B with total_batch_size=1024\n  \"lr-decay-iters\": 35,    # for #tokens=20B with total_batch_size=1024\n  \"distributed-backend\": \"nccl\",\n  \"lr-decay-style\": \"cosine\",\n  \"warmup\": 0.01,\n  \"checkpoint-factor\": 999999,\n    \"eval-interval\": 999999,\n  \"eval-iters\": 10,\n\n  \"log-interval\": 10,\n  \"steps_per_print\": 10,\n  \"wall_clock_breakdown\": false,\n\n  \"train-data-paths\": [\"/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document\"],\n  \"valid-data-paths\": [\"/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document\"],\n  \"test-data-paths\": [\"/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document\"],\n\n  \"tokenizer-type\": \"HFTokenizer\",\n  \"vocab-file\": \"/workspace/pythia/pythia_pile_idxmaps/20B_tokenizer.json\",\n\n  # \"launcher\": \"pdsh\",\n  # \"include\": \"localhost:1,2,3,4\",\n  \"launcher\": \"pdsh\",\n    \"save\": \"/workspace/pythia_1b_lskv_d512_w128_checkpoints\",\n  # \"load\": \"/workspace/pythia_checkpoints\",\n  \"checkpoint_validation_with_forward_pass\": False,\n  \"lskv_window_size\": 128,\n  \"lskv_bottleneck_dim\": 512,\n}\n"}, "checkpoint_factor": 999999, "batch_size": 32, "train_iters": 35, "eval_iters": 10, "eval_interval": 999999, "vocab_file": "/workspace/pythia/pythia_pile_idxmaps/20B_tokenizer.json", "num_workers": 1, "attention_dropout": 0, "hidden_dropout": 0, "weight_decay": 0.1, "checkpoint_activations": true, "checkpoint_num_layers": 2, "gas": 1, "clip_grad": 1.0, "dynamic_loss_scale": true, "pipe_parallel_size": 1, "is_pipe_parallel": true, "wandb_group": "E846c6zoHzuzbra5Rhac8h_f28wo5n4", "log_interval": 10, "text_gen_type": "unconditional", "user_script": "train.py", "save_iters": [], "global_num_gpus": 4, "lskv_window_size": 128, "lskv_bottleneck_dim": 512}
+[2026-04-21 01:45:36,991] [INFO] [launch.py:80:main] WORLD INFO DICT: {'localhost': [0, 1, 2, 3]}
+[2026-04-21 01:45:36,991] [INFO] [launch.py:86:main] nnodes=1, num_local_procs=4, node_rank=0
+[2026-04-21 01:45:36,991] [INFO] [launch.py:101:main] global_rank_mapping=defaultdict(<class 'list'>, {'localhost': [0, 1, 2, 3]})
+[2026-04-21 01:45:36,991] [INFO] [launch.py:102:main] dist_world_size=4
+[2026-04-21 01:45:36,991] [INFO] [launch.py:104:main] Setting CUDA_VISIBLE_DEVICES=0,1,2,3
+/data/anaconda3/envs/pythia/lib/python3.10/site-packages/wandb/apis/public.py:3109: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+/data/anaconda3/envs/pythia/lib/python3.10/site-packages/wandb/apis/public.py:3109: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+/data/anaconda3/envs/pythia/lib/python3.10/site-packages/wandb/apis/public.py:3109: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+/data/anaconda3/envs/pythia/lib/python3.10/site-packages/wandb/apis/public.py:3109: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+Traceback (most recent call last):
+  File "/data/zhiyuanwang/code/ls_kv/ppl/train_pythia/gpt-neox/train.py", line 20, in <module>
+    from megatron.training import pretrain
+  File "/data/zhiyuanwang/code/ls_kv/ppl/train_pythia/gpt-neox/megatron/training.py", line 58, in <module>
+    from eval_tasks import run_eval_harness
+  File "/data/zhiyuanwang/code/ls_kv/ppl/train_pythia/gpt-neox/eval_tasks/__init__.py", line 15, in <module>
+    from .eval_adapter import EvalHarnessAdapter, run_eval_harness
+  File "/data/zhiyuanwang/code/ls_kv/ppl/train_pythia/gpt-neox/eval_tasks/eval_adapter.py", line 16, in <module>
+Traceback (most recent call last):
+    import best_download
+ModuleNotFoundError  File "/data/zhiyuanwang/code/ls_kv/ppl/train_pythia/gpt-neox/train.py", line 20, in <module>
+: No module named 'best_download'
+Traceback (most recent call last):
+  File "/data/zhiyuanwang/code/ls_kv/ppl/train_pythia/gpt-neox/train.py", line 20, in <module>
+    from megatron.training import pretrain
+  File "/data/zhiyuanwang/code/ls_kv/ppl/train_pythia/gpt-neox/megatron/training.py", line 58, in <module>
+    from megatron.training import pretrain
+Traceback (most recent call last):
+  File "/data/zhiyuanwang/code/ls_kv/ppl/train_pythia/gpt-neox/megatron/training.py", line 58, in <module>
+  File "/data/zhiyuanwang/code/ls_kv/ppl/train_pythia/gpt-neox/train.py", line 20, in <module>
+    from eval_tasks import run_eval_harness
+  File "/data/zhiyuanwang/code/ls_kv/ppl/train_pythia/gpt-neox/eval_tasks/__init__.py", line 15, in <module>
+    from eval_tasks import run_eval_harness
+  File "/data/zhiyuanwang/code/ls_kv/ppl/train_pythia/gpt-neox/eval_tasks/__init__.py", line 15, in <module>
+    from megatron.training import pretrain
+      File "/data/zhiyuanwang/code/ls_kv/ppl/train_pythia/gpt-neox/megatron/training.py", line 58, in <module>
+from .eval_adapter import EvalHarnessAdapter, run_eval_harness
+  File "/data/zhiyuanwang/code/ls_kv/ppl/train_pythia/gpt-neox/eval_tasks/eval_adapter.py", line 16, in <module>
+    from .eval_adapter import EvalHarnessAdapter, run_eval_harness
+  File "/data/zhiyuanwang/code/ls_kv/ppl/train_pythia/gpt-neox/eval_tasks/eval_adapter.py", line 16, in <module>
+    import best_download
+ModuleNotFoundError: No module named 'best_download'    
+from eval_tasks import run_eval_harness
+  File "/data/zhiyuanwang/code/ls_kv/ppl/train_pythia/gpt-neox/eval_tasks/__init__.py", line 15, in <module>
+    import best_download
+ModuleNotFoundError: No module named 'best_download'
+    from .eval_adapter import EvalHarnessAdapter, run_eval_harness
+  File "/data/zhiyuanwang/code/ls_kv/ppl/train_pythia/gpt-neox/eval_tasks/eval_adapter.py", line 16, in <module>
+    import best_download
+ModuleNotFoundError: No module named 'best_download'
+Killing subprocess 3456835
+Killing subprocess 3456836
+Killing subprocess 3456837
+Killing subprocess 3456838
+Traceback (most recent call last):
+  File "/data/anaconda3/envs/pythia/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/data/anaconda3/envs/pythia/lib/python3.10/runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "/data/anaconda3/envs/pythia/lib/python3.10/site-packages/deepspeed/launcher/launch.py", line 171, in <module>
+    main()
+  File "/data/anaconda3/envs/pythia/lib/python3.10/site-packages/deepspeed/launcher/launch.py", line 161, in main
+    sigkill_handler(signal.SIGTERM, None)  # not coming back
+  File "/data/anaconda3/envs/pythia/lib/python3.10/site-packages/deepspeed/launcher/launch.py", line 139, in sigkill_handler
+    raise subprocess.CalledProcessError(returncode=last_return_code, cmd=cmd)
+subprocess.CalledProcessError: Command '['/data/anaconda3/envs/pythia/bin/python', '-u', 'train.py', '--local_rank=3', '--deepspeed_config', '{"train_batch_size": 128, "train_micro_batch_size_per_gpu": 32, "optimizer": {"type": "Adam", "params": {"lr": 0.00025, "betas": [0.9, 0.95], "eps": 1e-08}}, "fp16": {"fp16": true, "enabled": true, "loss_scale": 0, "loss_scale_window": 1000, "initial_scale_power": 12, "hysteresis": 2, "min_loss_scale": 1}, "gradient_clipping": 1.0, "zero_optimization": {"stage": 1, "allgather_partitions": true, "allgather_bucket_size": 500000000, "overlap_comm": true, "reduce_scatter": true, "reduce_bucket_size": 500000000, "contiguous_gradients": true, "cpu_offload": false}}', '--megatron_config', '{"train_batch_size": 128, "train_micro_batch_size_per_gpu": 32, "optimizer": {"type": "Adam", "params": {"lr": 0.00025, "betas": [0.9, 0.95], "eps": 1e-08}}, "fp16": {"fp16": true, "enabled": true, "loss_scale": 0, "loss_scale_window": 1000, "initial_scale_power": 12, "hysteresis": 2, "min_loss_scale": 1}, "gradient_clipping": 1.0, "zero_optimization": {"stage": 1, "allgather_partitions": true, "allgather_bucket_size": 500000000, "overlap_comm": true, "reduce_scatter": true, "reduce_bucket_size": 500000000, "contiguous_gradients": true, "cpu_offload": false}, "precision": "fp16", "num_layers": 16, "hidden_size": 2048, "num_attention_heads": 8, "seq_length": 2048, "max_position_embeddings": 2048, "pos_emb": "rotary", "no_weight_tying": true, "attention_config": ["global", "global", "global", "global", "global", "global", "global", "global", "global", "global", "global", "global", "global", "global", "global", "global"], "sparsity_config": {}, "scaled_upper_triang_masked_softmax_fusion": true, "bias_gelu_fusion": true, "rotary_pct": 0.25, "init_method": "small_init", "output_layer_init_method": "wang_init", "gpt_j_residual": true, "output_layer_parallelism": "column", "lr_decay_style": "cosine", "lr_decay_iters": 35, "min_lr": 2.5e-05, "optimizer_type": "Adam", "zero_stage": 1, "zero_reduce_scatter": true, "zero_contiguous_gradients": true, "zero_reduce_bucket_size": 500000000, "zero_allgather_bucket_size": 500000000, "lr": 0.00025, "tokenizer_type": "HFTokenizer", "train_data_paths": ["/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document"], "test_data_paths": ["/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document"], "valid_data_paths": ["/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document"], "train_data_weights": [1.0], "valid_data_weights": [1.0], "test_data_weights": [1.0], "data_impl": "mmap", "save": "/workspace/pythia_1b_lskv_d512_w128_checkpoints", "config_files": {"_bench_baseline_ckpt2_mb32.yml": "{\\n  # parallelism settings\\n  \\"pipe-parallel-size\\": 1,\\n  \\"model-parallel-size\\": 1,\\n\\n  # model settings\\n  \\"num-layers\\": 16,\\n  \\"hidden-size\\": 2048,\\n  \\"num-attention-heads\\": 8,\\n  \\"seq-length\\": 2048,\\n  \\"max-position-embeddings\\": 2048,\\n  \\"pos-emb\\": \\"rotary\\",\\n  \\"rotary-pct\\": 0.25,\\n  \\"no-weight-tying\\": true,\\n  \\"gpt-j-residual\\": true,\\n  \\"output-layer-parallelism\\": \\"column\\",\\n  \\n  # \\"attention-config\\": [[[\\"flash\\"], 16]],\\n  \\"attention-config\\": [[[\\"global\\"], 16]],\\n\\n  \\"scaled-upper-triang-masked-softmax-fusion\\": true,\\n  \\"bias-gelu-fusion\\": true,\\n\\n  # init methods\\n  \\"init_method\\": \\"small_init\\",\\n  \\"output_layer_init_method\\": \\"wang_init\\",\\n\\n  \\"optimizer\\": {\\n    \\"type\\": \\"Adam\\",\\n    \\"params\\": {\\n      \\"lr\\": 0.00025,\\n      \\"betas\\": [0.9, 0.95],\\n      \\"eps\\": 1.0e-8\\n    }\\n  },\\n  \\"min_lr\\": 0.000025,\\n\\n  \\"zero_optimization\\": {\\n    \\"stage\\": 1,\\n    \\"allgather_partitions\\": true,\\n    \\"allgather_bucket_size\\": 500000000,\\n    \\"overlap_comm\\": true,\\n    \\"reduce_scatter\\": true,\\n    \\"reduce_bucket_size\\": 500000000,\\n    \\"contiguous_gradients\\": true,\\n    \\"cpu_offload\\": false\\n  },\\n\\n  # ################# batch size (trained on 8 gpus) #################\\n  # \\"train_micro_batch_size_per_gpu\\": 32,\\n  # \\"gradient_accumulation_steps\\": 1,\\n  # # \\"gas\\": 4,                 # not used\\n  # ##################################################################\\n\\n  ################# batch size (trained on 4 gpus) #################\\n  \\"train_micro_batch_size_per_gpu\\": 32,\\n  \\"gradient_accumulation_steps\\": 1,\\n  # \\"gas\\": 8,                 # not used\\n  ##################################################################\\n\\n  \\"data-impl\\": \\"mmap\\",\\n  \\"num_workers\\": 1,\\n\\n  # activation checkpointing\\n  \\"checkpoint-activations\\": true,\\n  \\"checkpoint-num-layers\\": 2,\\n  \\"partition-activations\\": false,\\n  \\"synchronize-each-layer\\": false,\\n\\n  # regularization\\n  \\"gradient_clipping\\": 1.0,\\n  \\"weight-decay\\": 0.1,\\n  \\"hidden-dropout\\": 0,\\n  \\"attention-dropout\\": 0,\\n\\n  # precision settings\\n  \\"fp16\\": {\\n    \\"fp16\\": true,\\n    \\"enabled\\": true,\\n    \\"loss_scale\\": 0,\\n    \\"loss_scale_window\\": 1000,\\n    \\"initial_scale_power\\": 12,\\n    \\"hysteresis\\": 2,\\n    \\"min_loss_scale\\": 1,\\n  },\\n\\n  \\"train-iters\\": 35,       # for #tokens=20B with total_batch_size=1024\\n  \\"lr-decay-iters\\": 35,    # for #tokens=20B with total_batch_size=1024\\n  \\"distributed-backend\\": \\"nccl\\",\\n  \\"lr-decay-style\\": \\"cosine\\",\\n  \\"warmup\\": 0.01,\\n  \\"checkpoint-factor\\": 999999,\\n    \\"eval-interval\\": 999999,\\n  \\"eval-iters\\": 10,\\n\\n  \\"log-interval\\": 10,\\n  \\"steps_per_print\\": 10,\\n  \\"wall_clock_breakdown\\": false,\\n\\n  \\"train-data-paths\\": [\\"/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document\\"],\\n  \\"valid-data-paths\\": [\\"/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document\\"],\\n  \\"test-data-paths\\": [\\"/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document\\"],\\n\\n  \\"tokenizer-type\\": \\"HFTokenizer\\",\\n  \\"vocab-file\\": \\"/workspace/pythia/pythia_pile_idxmaps/20B_tokenizer.json\\",\\n\\n  # \\"launcher\\": \\"pdsh\\",\\n  # \\"include\\": \\"localhost:1,2,3,4\\",\\n  \\"launcher\\": \\"pdsh\\",\\n    \\"save\\": \\"/workspace/pythia_1b_lskv_d512_w128_checkpoints\\",\\n  # \\"load\\": \\"/workspace/pythia_checkpoints\\",\\n  \\"checkpoint_validation_with_forward_pass\\": False,\\n  \\"lskv_window_size\\": 128,\\n  \\"lskv_bottleneck_dim\\": 512,\\n}\\n"}, "checkpoint_factor": 999999, "batch_size": 32, "train_iters": 35, "eval_iters": 10, "eval_interval": 999999, "vocab_file": "/workspace/pythia/pythia_pile_idxmaps/20B_tokenizer.json", "num_workers": 1, "attention_dropout": 0, "hidden_dropout": 0, "weight_decay": 0.1, "checkpoint_activations": true, "checkpoint_num_layers": 2, "gas": 1, "clip_grad": 1.0, "dynamic_loss_scale": true, "pipe_parallel_size": 1, "is_pipe_parallel": true, "wandb_group": "E846c6zoHzuzbra5Rhac8h_f28wo5n4", "log_interval": 10, "text_gen_type": "unconditional", "user_script": "train.py", "save_iters": [], "global_num_gpus": 4, "lskv_window_size": 128, "lskv_bottleneck_dim": 512}']' returned non-zero exit status 1.

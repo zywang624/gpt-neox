@@ -104,13 +104,13 @@
   "deepspeed_slurm": false,
 
   "save": "/workspace/pythia_70m_lskv_d256_w128_aligned_config_checkpoints",
-  "load": "/workspace/pythia_70m_lskv_d256_w128_aligned_config_checkpoints",
+  # "load": "/workspace/pythia_70m_lskv_d256_w128_aligned_config_checkpoints",
   "checkpoint_validation_with_forward_pass": False,
   "lskv_window_size": 128,
   "lskv_bottleneck_dim": 256,
 
-  "global_num_gpus": 2,
+  "global_num_gpus": 4,
   # "num_gpus": 7,
   # "train_batch_size": 896,       # ← 加这行，显式写死 16 × 8 × 7 = 896
-  "include": "localhost:2,3",
+  "include": "localhost:4,5,6,7",
 }
