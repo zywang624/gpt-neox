@@ -46,10 +46,10 @@
     "cpu_offload": false
   },
 
-  # batch size: 16 × 8 × 8 = 1024 (Pythia 严格)
-  "train_micro_batch_size_per_gpu": 16,
+  # batch size: 32 × 8 × 1 = 256
+  "train_micro_batch_size_per_gpu": 32,
   # "gas": 4,   # 1
-  "gradient_accumulation_steps": 8,
+  "gradient_accumulation_steps": 1,
   "data-impl": "mmap",
   "num_workers": 1,
 
@@ -78,8 +78,8 @@
 
   # 10B token training
   # 10B / (1024 * 2048) = ~4768 steps, round to 5000
-  "train-iters": 5000,                 # original: 143000,
-  "lr-decay-iters": 5000,              # original: 143000,
+  "train-iters": 19073,                 # original: 143000,
+  "lr-decay-iters": 19073,              # original: 143000,
   "distributed-backend": "nccl",
   "lr-decay-style": "cosine",
   "warmup": 0.01,
@@ -97,14 +97,15 @@
   "test-data-paths": ["/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document"],
 
   "tokenizer-type": "HFTokenizer",
-  "vocab-file": "/workspace/pythia/pythia_pile_idxmaps/20B_tokenizer.json",
-  # "vocab-file": "/data/zhiyuanwang/code/ls_kv/ppl/train_pythia/pythia/pythia_pile_idxmaps/20B_tokenizer.json",
+  # "vocab-file": "/workspace/pythia/pythia_pile_idxmaps/20B_tokenizer.json",
+  "vocab-file": "/data/zhiyuanwang/code/ls_kv/ppl/train_pythia/pythia/pythia_pile_idxmaps/20B_tokenizer.json",
 
   "launcher": "slurm",
   "deepspeed_slurm": false,
 
-  "save": "/workspace/pythia_70m_lskv_d64_w128_aligned_config_checkpoints",
-  # "load": "/workspace/pythia_70m_lskv_d64_w128_aligned_config_checkpoints",
+  "save": "/workspace/pythia_70m_lskv_d64_w128_bs256_gelu_no_bias_checkpoints",
+  # "load": "/workspace/pythia_70m_lskv_d64_w128_bs256_gelu_no_bias_checkpoints",
+
   "checkpoint_validation_with_forward_pass": False,
   "lskv_window_size": 128,
   "lskv_bottleneck_dim": 64,

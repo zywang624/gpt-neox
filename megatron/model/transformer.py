@@ -277,18 +277,18 @@ class ParallelSelfAttention(nn.Module):
             )
 
         self.down_up_proj = nn.Sequential(
-            nn.Linear(neox_args.hidden_size, neox_args.lskv_bottleneck_dim, bias=False),
-            # nn.GELU(),
-            nn.Linear(neox_args.lskv_bottleneck_dim, neox_args.hidden_size, bias=False),
+            nn.Linear(neox_args.hidden_size, neox_args.lskv_bottleneck_dim, bias=True),
+            nn.GELU(),
+            nn.Linear(neox_args.lskv_bottleneck_dim, neox_args.hidden_size, bias=True),
         )
         print(
-            f"using LSKV attention with lskv_st_window_size={self.lskv_st_window_size}, lskv_bottleneck_dim={self.lskv_bottleneck_dim}, no bias and activation"
+            f"using LSKV attention with lskv_st_window_size={self.lskv_st_window_size}, lskv_bottleneck_dim={self.lskv_bottleneck_dim}"
         )
 
         # 手动应用 neox 的初始化逻辑
-        init_method(self.down_up_proj[0].weight)
-        init_method(self.down_up_proj[1].weight)
-        print(f"init down_up_proj with {init_method.__name__} for both layers")
+        # init_method(self.down_up_proj[0].weight)
+        # init_method(self.down_up_proj[1].weight)
+        # print(f"init down_up_proj with {init_method.__name__} for both layers")
         ## lskv specific args end ##
 
         # Strided linear layer.

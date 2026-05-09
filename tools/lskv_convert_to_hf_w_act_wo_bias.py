@@ -1,3 +1,9 @@
+# convert_lskv_to_hf.py
+import os, sys, yaml, argparse
+from tqdm import tqdm
+import torch
+from lskv_modeling_w_act_wo_bias import GPTNeoXConfig, GPTNeoXForCausalLM
+
 # Copyright (c) 2021, EleutherAI
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,17 +18,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import sys
 from typing import List
-
-import yaml
-import argparse
-from tqdm import tqdm
-
-import torch
-from transformers import GPTNeoXConfig, GPTNeoXForCausalLM
-
 
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir))
@@ -130,6 +126,8 @@ def create_config(neox_config):
         eos_token_id=tokenizer.eod,
         tie_word_embeddings=(not get_key(neox_config, "no-weight-tying", False)),
         use_parallel_residual=get_key(neox_config, "gpt-j-residual", False),
+        lskv_st_window_size=get_key(neox_config, "lskv_window_size", None),
+        lskv_bottleneck_dim=get_key(neox_config, "lskv_bottleneck_dim", None),
     )
     return hf_config
 
@@ -217,6 +215,13 @@ def convert(input_checkpoint_path, loaded_config, output_checkpoint_path):
         # state_dict["attention.masked_bias"] = hf_layer.state_dict()[
         #     "attention.masked_bias"
         # ]
+
+        # ★ 加这几行，down_up_proj 不是 MP 并行的，直接取 rank 0
+        for key in [
+            "attention.down_up_proj.0.weight",
+            "attention.down_up_proj.2.weight",
+        ]:
+            state_dict[key] = loaded_tp_ranks[0][key]
 
         # load state_dict into layer
         hf_layer.load_state_dict(state_dict)

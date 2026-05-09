@@ -99,11 +99,11 @@
   "launcher": "slurm",
   "deepspeed_slurm": false,
 
-  "save": "/workspace/pythia_70m_lskv_d128_w0_act_bias_checkpoints",
-  "load": "/workspace/pythia_70m_lskv_d128_w0_act_bias_checkpoints",
+  "save": "/workspace/pythia_70m_lskv_d64_w0_act_bias_checkpoints",
+  "load": "/workspace/pythia_70m_lskv_d64_w0_act_bias_checkpoints",
   "checkpoint_validation_with_forward_pass": False,
   "lskv_window_size": 0,
-  "lskv_bottleneck_dim": 128,
+  "lskv_bottleneck_dim": 64,
 
   "global_num_gpus": 8,
   # "num_gpus": 7,

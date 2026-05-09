@@ -46,10 +46,9 @@
     "cpu_offload": false
   },
 
-  # batch size: 16 × 8 × 8 = 1024 (Pythia 严格)
-  "train_micro_batch_size_per_gpu": 16,
-  # "gas": 4,   # 1
-  "gradient_accumulation_steps": 8,
+  # batch size (trained on 32 gpus)
+  "train_micro_batch_size_per_gpu": 32,
+  "gas": 4,   # 1
   "data-impl": "mmap",
   "num_workers": 1,
 
@@ -76,16 +75,14 @@
     "min_loss_scale": 1
   },
 
-  # 10B token training
-  # 10B / (1024 * 2048) = ~4768 steps, round to 5000
-  "train-iters": 5000,                 # original: 143000,
-  "lr-decay-iters": 5000,              # original: 143000,
+  "train-iters": 19073,                 # original: 143000,
+  "lr-decay-iters": 19073,              # original: 143000,
   "distributed-backend": "nccl",
   "lr-decay-style": "cosine",
   "warmup": 0.01,
   "checkpoint-factor": 1000,
   "extra-save-iters": [0,1,2,4,8,16,32,64,128,256,512],
-  "eval-interval": 1000,
+  "eval-interval": 100000,
   "eval-iters": 10,
 
   "log-interval": 10,
@@ -98,14 +95,12 @@
 
   "tokenizer-type": "HFTokenizer",
   "vocab-file": "/workspace/pythia/pythia_pile_idxmaps/20B_tokenizer.json",
-  # "vocab-file": "/data/zhiyuanwang/code/ls_kv/ppl/train_pythia/pythia/pythia_pile_idxmaps/20B_tokenizer.json",
 
   "launcher": "slurm",
   "deepspeed_slurm": false,
 
-  "save": "/workspace/pythia_70m_lskv_d256_w0_aligned_config_checkpoints",
-  "load": "/workspace/pythia_70m_lskv_d256_w0_aligned_config_checkpoints",
-
+  "save": "/workspace/pythia_70m_lskv_d256_w0_act_bias_checkpoints",
+  # "load": "/workspace/pythia_checkpoints",
   "checkpoint_validation_with_forward_pass": False,
   "lskv_window_size": 0,
   "lskv_bottleneck_dim": 256,
