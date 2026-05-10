@@ -1067,3 +1067,26 @@ class NeoXArgsLSKV(NeoXArgsTemplate):
     """
     The dimension of the bottleneck layer in LSKV.
     """
+
+    use_alpha_routing: bool = False
+    """
+    If True, enables per-token alpha routing between two LT down_up_proj
+    branches (full bottleneck and half bottleneck) in the ddim attention path.
+    When False, the model behaves exactly as before and the ddim file is not
+    used.
+    """
+
+    alpha_reg_coef: float = 0.0
+    """
+    Coefficient for the alpha regularization term added to the cross-entropy
+    loss: total_loss = ce + alpha_reg_coef * alpha.mean(). Pushes alpha toward
+    0 (i.e., toward the half-bottleneck branch). 0 disables the regularizer.
+    Only used when use_alpha_routing is True.
+    """
+
+    alpha_hard_inference: bool = False
+    """
+    If True, at inference time alpha is thresholded at 0.5 to hard-select one
+    of the two branches. Training always uses soft mixing for differentiability.
+    Only used when use_alpha_routing is True.
+    """

@@ -36,8 +36,9 @@ from megatron.model.transformer import (
     parallel_lm_logits,
     ParallelLinear,
 )
+from megatron.model import transformer_ddim
 from megatron.model.gmlp import GMLPBlock
-from megatron.model.word_embeddings import EmbeddingPipe, SoftEmbedding
+from megatron.model.word_embeddings import EmbeddingPipe, SoftEmbedding, AlphaRouterPipe
 
 # Pipeline parallelism
 from deepspeed.pipe import PipelineModule, LayerSpec, TiedLayerSpec
@@ -49,16 +50,33 @@ def gpt2_attention_mask_func(attention_scores, ltor_mask):
     return attention_scores
 
 
-def cross_entropy(output, labels, _fp16=False):
-    """From pretrain_gpt2:forward_step()"""
+# Per-process buffer of alpha_mean values from each micro-batch's cross_entropy
+# call. megatron/logging.py drains this every log_interval and prints the mean
+# to the per-iteration log line. Lives at module scope (not on the model) so
+# it's accessible without threading a model reference into the logger.
+_ALPHA_MEAN_HISTORY: list = []
+
+
+def pop_alpha_mean_history():
+    """Return and clear accumulated alpha_mean values; consumed by the logger."""
+    global _ALPHA_MEAN_HISTORY
+    vals = _ALPHA_MEAN_HISTORY
+    _ALPHA_MEAN_HISTORY = []
+    return vals
+
+
+def cross_entropy(output, labels, _fp16=False, alpha_reg_coef=0.0):
+    """From pretrain_gpt2:forward_step()
+
+    When alpha-routing is on, the pipeline's last stage emits
+    ``(logits, alpha_mean)`` instead of just logits; we add
+    ``alpha_reg_coef * alpha_mean`` to the cross-entropy loss and stash
+    alpha_mean for the per-iteration logger to surface.
     """
-    if self.fp16_lm_cross_entropy:
-        assert output.dtype == torch.half
-        loss = mpu.vocab_parallel_cross_entropy(output, labels)
-    else:
-        loss = mpu.vocab_parallel_cross_entropy(output.float(), labels)
-        return loss
-    """
+    alpha_mean = None
+    if isinstance(output, (tuple, list)):
+        output, alpha_mean = output[0], output[1]
+
     labels, loss_mask = labels[0], labels[1]
     if _fp16:
         assert output.dtype == torch.half and loss_mask.dtype == torch.half
@@ -67,6 +85,16 @@ def cross_entropy(output, labels, _fp16=False):
         losses = mpu.vocab_parallel_cross_entropy(output.float().contiguous(), labels)
     loss_mask = loss_mask.view(-1)
     loss = torch.sum(losses.view(-1) * loss_mask) / loss_mask.sum()
+
+    if alpha_mean is not None:
+        # Stash for logging, irrespective of reg coefficient — the user wants
+        # to see whether alpha is actually being driven toward 0.
+        try:
+            _ALPHA_MEAN_HISTORY.append(float(alpha_mean.detach().item()))
+        except Exception:
+            pass
+        if alpha_reg_coef != 0.0:
+            loss = loss + alpha_reg_coef * alpha_mean.to(loss.dtype)
     return loss
 
 
@@ -83,6 +111,59 @@ def _post_transformer_block(args):
     assert len(args) == 2, "Incorrect number of arguments to _post_transformer_block"
     fn = lambda _args: (_args[0].transpose(0, 1).contiguous())
     return fn(args)
+
+
+def _pre_transformer_block_alpha(args):
+    # (hidden_states [b,s,h], alpha [b,s,1], attention_mask)
+    # -> (hidden_states [s,b,h], alpha [s,b,1], attention_mask)
+    assert len(args) == 3, "Incorrect number of arguments to _pre_transformer_block_alpha"
+    h, alpha, mask = args
+    return (
+        h.transpose(0, 1).contiguous(),
+        alpha.transpose(0, 1).contiguous(),
+        mask,
+    )
+
+
+def _post_transformer_block_alpha(args):
+    # (hidden_states [s,b,h], alpha [s,b,h] (scalar broadcast), attention_mask)
+    # -> (hidden_states [b,s,h], alpha_mean [scalar])
+    assert len(args) == 3, "Incorrect number of arguments to _post_transformer_block_alpha"
+    h, alpha, _mask = args
+    # alpha replicates the same per-token scalar across the hidden dim, so
+    # alpha.mean() is identical in value to alpha[..., 0].mean() — and we
+    # avoid a SelectBackward op that mis-shapes under DeepSpeed activation
+    # checkpointing.
+    alpha_mean = alpha.mean()
+    return (h.transpose(0, 1).contiguous(), alpha_mean)
+
+
+class AlphaNormPipe(nn.Module):
+    """NormPipe variant that passes alpha_mean through unchanged."""
+
+    def __init__(self, norm_class, hidden_size, eps):
+        super().__init__()
+        self.norm = norm_class(hidden_size, eps=eps)
+
+    def forward(self, args):
+        assert (
+            isinstance(args, tuple) and len(args) == 2
+        ), "AlphaNormPipe expects (hidden_states, alpha_mean)"
+        h, alpha_mean = args
+        return self.norm(h), alpha_mean
+
+
+class AlphaParallelLinearPipe(ParallelLinear):
+    """ParallelLinear variant that takes (hidden, alpha_mean) and returns
+    (logits, alpha_mean). Used when weight tying is disabled."""
+
+    def forward(self, args):
+        assert (
+            isinstance(args, tuple) and len(args) == 2
+        ), "AlphaParallelLinearPipe expects (hidden_states, alpha_mean)"
+        h, alpha_mean = args
+        logits, _bias = super().forward(h)
+        return logits, alpha_mean
 
 
 class GPT2ModelPipe(PipelineModule, torch.nn.Module):
@@ -122,7 +203,15 @@ class GPT2ModelPipe(PipelineModule, torch.nn.Module):
 
         super().__init__(
             layers=self.specs,
-            loss_fn=partial(cross_entropy, _fp16=self.neox_args.fp16_lm_cross_entropy),
+            loss_fn=partial(
+                cross_entropy,
+                _fp16=self.neox_args.fp16_lm_cross_entropy,
+                alpha_reg_coef=(
+                    float(self.neox_args.alpha_reg_coef)
+                    if getattr(self.neox_args, "use_alpha_routing", False)
+                    else 0.0
+                ),
+            ),
             topology=topology,
             activation_checkpoint_interval=self.neox_args.checkpoint_num_layers
             if self.neox_args.checkpoint_activations
@@ -166,6 +255,7 @@ class GPT2ModelPipe(PipelineModule, torch.nn.Module):
     def init_specs(self):
 
         weight_tying = not self.neox_args.no_weight_tying
+        use_alpha = bool(getattr(self.neox_args, "use_alpha_routing", False))
         self.specs = []
 
         # Embedding layer
@@ -200,12 +290,22 @@ class GPT2ModelPipe(PipelineModule, torch.nn.Module):
                 )
             )
 
+        # When alpha-routing is on, compute per-token alpha right after embedding
+        # and thread it through the rest of the pipeline as the second tuple element.
+        if use_alpha:
+            self.specs.append(
+                LayerSpec(AlphaRouterPipe, self.neox_args, self.init_method)
+            )
+
         # NB: the attention mask always needs to be the *last* item in the args when being passed from
         # one stage to the next, because deepspeed is hacks on top of hacks.
         #
-        # outputs are now (hidden_states,  attention_mask)
+        # outputs are now (hidden_states,  attention_mask) — or
+        # (hidden_states, alpha, attention_mask) when use_alpha is on.
 
-        self.specs.append(_pre_transformer_block)
+        self.specs.append(
+            _pre_transformer_block_alpha if use_alpha else _pre_transformer_block
+        )
 
         # T5 RPE positional embedding
         if self.neox_args.pos_emb == "rpe":
@@ -221,6 +321,15 @@ class GPT2ModelPipe(PipelineModule, torch.nn.Module):
                 max_distance=self.neox_args.rpe_max_distance,
                 heads=self.neox_args.num_attention_heads,
             )
+
+        # Pick the transformer-layer class. The alpha-routing path lives in
+        # transformer_ddim.ParallelTransformerLayerPipe; everything else uses
+        # the stock one from transformer.py.
+        layer_pipe_cls = (
+            transformer_ddim.ParallelTransformerLayerPipe
+            if use_alpha
+            else ParallelTransformerLayerPipe
+        )
 
         # Transformer layers
         for i in range(self.neox_args.num_layers):
@@ -239,7 +348,7 @@ class GPT2ModelPipe(PipelineModule, torch.nn.Module):
             else:
                 self.specs.append(
                     LayerSpec(
-                        ParallelTransformerLayerPipe,
+                        layer_pipe_cls,
                         neox_args=self.neox_args,
                         attention_mask_func=gpt2_attention_mask_func,
                         init_method=self.init_method,
@@ -251,16 +360,24 @@ class GPT2ModelPipe(PipelineModule, torch.nn.Module):
                     )
                 )
 
-        # used to drop attention mask + reshape hidden states
-        self.specs.append(_post_transformer_block)
+        # used to drop attention mask + reshape hidden states (and reduce alpha
+        # to a scalar mean when alpha-routing is on).
+        self.specs.append(
+            _post_transformer_block_alpha if use_alpha else _post_transformer_block
+        )
 
         # NormPipe is a (deprecated) helper class that used to be used to pass presents along the pipeline - since presents are now cached to the `TransformerLayer` class this is no longer needed
         norm, eps = get_norm(self.neox_args)
-        self.specs.append(
-            LayerSpec(NormPipe, norm, self.neox_args.hidden_size, eps=eps)
-        )
+        if use_alpha:
+            self.specs.append(
+                LayerSpec(AlphaNormPipe, norm, self.neox_args.hidden_size, eps=eps)
+            )
+        else:
+            self.specs.append(
+                LayerSpec(NormPipe, norm, self.neox_args.hidden_size, eps=eps)
+            )
 
-        # outputs are now a single tensor: hidden_states
+        # outputs are now a single tensor: hidden_states (or (hidden, alpha_mean) when alpha-routing on)
 
         def _logits_helper(embedding, lm_output):
             """Just a wrapper to massage inputs/outputs from pipeline."""
@@ -268,6 +385,13 @@ class GPT2ModelPipe(PipelineModule, torch.nn.Module):
                 lm_output, embedding.word_embeddings_weight, self.parallel_output
             )
             return logits
+
+        def _logits_helper_alpha(embedding, lm_output):
+            h, alpha_mean = lm_output
+            logits = parallel_lm_logits(
+                h, embedding.word_embeddings_weight, self.parallel_output
+            )
+            return logits, alpha_mean
 
         if weight_tying:
             self.specs.append(
@@ -281,19 +405,29 @@ class GPT2ModelPipe(PipelineModule, torch.nn.Module):
                     self.neox_args.hidden_dropout,
                     self.init_method,
                     self.num_tokentypes,
-                    forward_fn=_logits_helper,
+                    forward_fn=(_logits_helper_alpha if use_alpha else _logits_helper),
                     tied_weight_attr="word_embeddings_weight",
                 )
             )
         else:
-            self.specs.append(
-                LayerSpec(
-                    ParallelLinearPipe,
-                    neox_args=self.neox_args,
-                    init_method=self.init_method,
-                    parallel_output=self.parallel_output,
+            if use_alpha:
+                self.specs.append(
+                    LayerSpec(
+                        AlphaParallelLinearPipe,
+                        neox_args=self.neox_args,
+                        init_method=self.init_method,
+                        parallel_output=self.parallel_output,
+                    )
                 )
-            )
+            else:
+                self.specs.append(
+                    LayerSpec(
+                        ParallelLinearPipe,
+                        neox_args=self.neox_args,
+                        init_method=self.init_method,
+                        parallel_output=self.parallel_output,
+                    )
+                )
 
     def _set_parallel_output(self, value):
         # sets the parallel output value of the final layer to value

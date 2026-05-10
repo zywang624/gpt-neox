@@ -324,6 +324,18 @@ def training_log(
                 total_loss_dict[key] = 0.0
         if neox_args.precision == "fp16":
             log_string += " loss scale: {:.1f} |".format(loss_scale)
+        # Surface alpha-routing's mean alpha (if active) so we can see whether
+        # it's being driven toward 0 over training.
+        if getattr(neox_args, "use_alpha_routing", False):
+            try:
+                from megatron.model.gpt2_model import pop_alpha_mean_history
+
+                _alpha_vals = pop_alpha_mean_history()
+                if _alpha_vals:
+                    _alpha_mean = sum(_alpha_vals) / len(_alpha_vals)
+                    log_string += " alpha_mean: {:.6f} |".format(_alpha_mean)
+            except Exception:
+                pass
         log_string += " number of skipped iterations: {:3d} |".format(
             total_loss_dict[skipped_iters_key]
         )

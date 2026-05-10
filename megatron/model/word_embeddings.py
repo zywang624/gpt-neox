@@ -230,3 +230,39 @@ class SoftEmbedding(torch.nn.Module):
                 embedding = embedding[:, : self.neox_args.seq_length, ...]
             # otherwise, we're in incremental mode, and just want to forward the single embedding (since the soft prompt has already been cached)
             return embedding, layer_past, attention_mask
+
+
+class AlphaRouterPipe(torch.nn.Module):
+    """Computes per-token alpha from the embedding output and forwards it
+    alongside the embeddings through the pipeline.
+
+    Input:  (embeddings [b, s, h], attention_mask)
+    Output: (embeddings [b, s, h], alpha [b, s, h], attention_mask)
+
+    Note on the alpha shape: alpha is logically a per-token scalar, so a
+    [b, s, 1] tensor would be the natural fit. But DeepSpeed's pipeline
+    activation checkpointing (when ``partition-activations`` is enabled)
+    assumes every non-last tuple element shares the same [s, b, h] layout
+    as ``hidden_states`` and reshapes accordingly; a [b, s, 1] alpha gets
+    its 1-dim collapsed and ends up mis-shaped at the next stage. To stay
+    on the well-trodden path, we broadcast the per-token scalar across the
+    hidden dimension so alpha has identical shape to hidden_states. The
+    consumer (attention layer) only reads ``alpha[..., :1]``.
+    """
+
+    def __init__(self, neox_args, init_method=None):
+        super().__init__()
+        self.hidden_size = neox_args.hidden_size
+        self.router = torch.nn.Linear(neox_args.hidden_size, 1, bias=True)
+        if init_method is not None:
+            init_method(self.router.weight)
+        torch.nn.init.zeros_(self.router.bias)
+
+    def forward(self, args):
+        assert (
+            len(args) == 2
+        ), f"AlphaRouterPipe expects (embeddings, attention_mask), got {len(args)} args."
+        embeddings, attention_mask = args
+        alpha_scalar = torch.sigmoid(self.router(embeddings))  # [b, s, 1]
+        alpha = alpha_scalar.expand(-1, -1, self.hidden_size).contiguous()
+        return embeddings, alpha, attention_mask
