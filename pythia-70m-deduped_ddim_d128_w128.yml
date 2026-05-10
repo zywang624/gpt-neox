@@ -119,6 +119,6 @@
   "alpha_reg_coef": 0.001,
   "alpha_hard_inference": false,
 
-  # "global_num_gpus": 4,
-  # "include": "localhost:4,5,6,7",
+  "global_num_gpus": 4,
+  "include": "localhost:4,5,6,7",
 }
