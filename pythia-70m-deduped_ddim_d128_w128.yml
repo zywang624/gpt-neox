@@ -107,7 +107,7 @@
   "deepspeed_slurm": false,
 
   "save": "/workspace/pythia_70m_ddim_d128_w128_bs256_arc1e-3_checkpoints",
-  # "load": "/workspace/pythia_70m_ddim_d128_w128_bs256_arc1e-3_checkpoints",
+  "load": "/workspace/pythia_70m_ddim_d128_w128_bs256_arc1e-3_checkpoints",
   "checkpoint_validation_with_forward_pass": False,
 
   # ===== existing lskv knobs (must be present for transformer_ddim) =====
@@ -120,5 +120,6 @@
   "alpha_hard_inference": false,
 
   "global_num_gpus": 4,
-  "include": "localhost:4,5,6,7",
+  "include": "localhost:0,1,2,3",
+  # "include": "localhost:4,5,6,7",
 }

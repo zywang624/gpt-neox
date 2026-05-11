@@ -61,7 +61,7 @@ class LSKVCache(DynamicCache):
         assert self.get_seq_length(layer_idx) == self.long_term_components_cache.get_seq_length(layer_idx), "full kv cache length != long term components cache length"
 
         return key_states, value_states, lt_key_states, lt_value_states
-    
+
 class GPTNeoXMLP(nn.Module):
     def __init__(self, config):
         super().__init__()
@@ -270,26 +270,27 @@ class GPTNeoXAttention(nn.Module):
         self.query_key_value = nn.Linear(config.hidden_size, 3 * config.hidden_size, bias=config.attention_bias)
         self.dense = nn.Linear(config.hidden_size, config.hidden_size, bias=config.attention_bias)
 
-
         #### zhiyuan modified — DDIM (alpha-routed) variant #####
         self.lskv_st_window_size = getattr(config, "lskv_st_window_size")
         assert (
             self.lskv_st_window_size is not None
         ), "lskv_st_window_size can not be None"
 
-        bottleneck = config.lskv_bottleneck_dim
-        assert bottleneck is not None and bottleneck > 0, \
-            "lskv_bottleneck_dim must be a positive int"
-        assert bottleneck % 2 == 0, \
-            f"lskv_bottleneck_dim must be even, got {bottleneck}"
-        self.lskv_bottleneck_dim_half = bottleneck // 2
+        lskv_bottleneck_dim = config.lskv_bottleneck_dim
+        assert (
+            lskv_bottleneck_dim is not None and lskv_bottleneck_dim > 0
+        ), "lskv_bottleneck_dim must be a positive int"
+        assert (
+            lskv_bottleneck_dim % 2 == 0
+        ), f"lskv_bottleneck_dim must be even, got {lskv_bottleneck_dim}"
+        self.lskv_bottleneck_dim_half = lskv_bottleneck_dim // 2
 
         # Two parallel projections; alpha picks per-token how much of each.
         # Both have bias=False and no activation in between — matches the
         # training-time transformer_ddim.ParallelSelfAttention definition.
         self.down_up_proj = nn.Sequential(
-            nn.Linear(config.hidden_size, bottleneck, bias=False),
-            nn.Linear(bottleneck, config.hidden_size, bias=False),
+            nn.Linear(config.hidden_size, lskv_bottleneck_dim, bias=False),
+            nn.Linear(lskv_bottleneck_dim, config.hidden_size, bias=False),
         )
         self.down_up_proj_half = nn.Sequential(
             nn.Linear(config.hidden_size, self.lskv_bottleneck_dim_half, bias=False),
@@ -299,11 +300,10 @@ class GPTNeoXAttention(nn.Module):
         print(
             f"using DDIM LSKV attention (alpha-routed) with "
             f"lskv_st_window_size={self.lskv_st_window_size}, "
-            f"lskv_bottleneck_dim={bottleneck} (half={self.lskv_bottleneck_dim_half}), "
+            f"lskv_bottleneck_dim={lskv_bottleneck_dim} (half={self.lskv_bottleneck_dim_half}), "
             f"alpha_hard_inference={self.alpha_hard_inference}"
         )
         ######################
-
 
     def forward(
         self,
@@ -336,17 +336,17 @@ class GPTNeoXAttention(nn.Module):
             mix = alpha
         lt_hidden_states = mix * lt_full + (1.0 - mix) * lt_half
         ######################
-        
+
         qkv = self.query_key_value(hidden_states).view(hidden_shape).transpose(1, 2)
         query_states, key_states, value_states = qkv.chunk(3, dim=-1)
-        
+
         cos, sin = position_embeddings
         query_states, key_states = apply_rotary_pos_emb(query_states, key_states, cos, sin)
 
         lt_qkv = self.query_key_value(lt_hidden_states).view(hidden_shape).transpose(1, 2)
         _, lt_key_states, lt_value_states = lt_qkv.chunk(3, dim=-1)
         lt_key_states = apply_rotary_pos_emb_k(lt_key_states, cos, sin)  # [bs, heads, seq_len, head_dim]
-        
+
         # Cache QKV values
         if layer_past is not None:
             cache_kwargs = {
@@ -365,7 +365,6 @@ class GPTNeoXAttention(nn.Module):
             assert (
                 self.config._attn_implementation == "eager"
             ), "LSKV only supports eager attention for now"
-
 
         kwargs.update(
             {
