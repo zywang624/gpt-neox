@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
 import torch
 import math
 from torch.nn.parameter import Parameter
@@ -171,6 +172,57 @@ class EmbeddingPipe(Embedding):
         attention_mask = args[2]
         embeddings = super().forward(input_ids, position_ids)
         return embeddings, attention_mask
+
+
+class EmbeddingPipeWithFrozenAlpha(EmbeddingPipe):
+    """EmbeddingPipe with a built-in frozen lookup-table alpha router.
+
+    Replaces the (EmbeddingPipe + AlphaRouterPipe) pair when training with a
+    pre-trained, frozen router stored as a length-`padded_vocab_size` numpy
+    array. The router output for token id `i` is simply `alpha_lookup[i]`,
+    independent of the (re-)trained word embeddings.
+
+    Input:  (input_ids [b,s], position_ids [b,s], attention_mask)
+    Output: (embeddings [b,s,h], alpha [b,s,h] (per-token scalar broadcast),
+             attention_mask)
+
+    The broadcast-to-hidden alpha shape mirrors AlphaRouterPipe's contract
+    (see its docstring for the DeepSpeed activation-checkpointing reason).
+    """
+
+    def __init__(self, neox_args, *args, **kwargs):
+        super().__init__(neox_args, *args, **kwargs)
+        path = getattr(neox_args, "alpha_lookup_path", None)
+        assert path is not None, "alpha_lookup_path must be set"
+        alpha_np = np.load(path).astype(np.float32)
+        V = neox_args.padded_vocab_size
+        assert alpha_np.shape == (V,), (
+            f"alpha_lookup shape {alpha_np.shape} != (padded_vocab_size={V},)"
+        )
+        # Buffer (not Parameter) — never trained, but moved with the module.
+        self.register_buffer("alpha_lookup", torch.from_numpy(alpha_np))
+        self._frozen_alpha_hidden_size = neox_args.hidden_size
+        print(
+            f"[EmbeddingPipeWithFrozenAlpha] loaded {V} alpha values from "
+            f"{path}  (min={alpha_np.min():.4f}, max={alpha_np.max():.4f}, "
+            f"mean={alpha_np.mean():.4f})",
+            flush=True,
+        )
+
+    def forward(self, args):
+        assert (
+            len(args) == 3
+        ), f"Expected 3 arguments, got {len(args)}."
+        input_ids = args[0]
+        position_ids = args[1]
+        attention_mask = args[2]
+        # Call grandparent (Embedding.forward) — we don't want EmbeddingPipe's
+        # 2-tuple-returning forward; we need full control of the output tuple.
+        embeddings = Embedding.forward(self, input_ids, position_ids)
+        # Lookup is on a buffer; no autograd state, but we detach defensively.
+        alpha_scalar = self.alpha_lookup[input_ids].unsqueeze(-1).detach()
+        alpha = alpha_scalar.expand(-1, -1, self._frozen_alpha_hidden_size).contiguous()
+        return embeddings, alpha, attention_mask
 
 
 class SoftEmbedding(torch.nn.Module):

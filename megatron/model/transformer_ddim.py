@@ -285,6 +285,7 @@ class ParallelSelfAttention(nn.Module):
         self.alpha_hard_inference = bool(
             getattr(neox_args, "alpha_hard_inference", False)
         )
+        self.alpha_hard_routing = bool(getattr(neox_args, "alpha_hard_routing", False))
 
         self.down_up_proj = nn.Sequential(
             nn.Linear(neox_args.hidden_size, neox_args.lskv_bottleneck_dim, bias=False),
@@ -299,7 +300,8 @@ class ParallelSelfAttention(nn.Module):
         print(
             f"using LSKV attention (alpha-routed) with lskv_st_window_size={self.lskv_st_window_size}, "
             f"lskv_bottleneck_dim={self.lskv_bottleneck_dim} (half={self.lskv_bottleneck_dim_half}), "
-            f"alpha_hard_inference={self.alpha_hard_inference}"
+            f"alpha_hard_inference={self.alpha_hard_inference}, "
+            f"alpha_hard_routing={self.alpha_hard_routing}"
         )
 
         # 手动应用 neox 的初始化逻辑
@@ -634,7 +636,12 @@ class ParallelSelfAttention(nn.Module):
         # weight without slicing. Slicing would introduce a SelectBackward op
         # whose recorded input shape disagrees with what DeepSpeed's
         # activation-checkpointing recomputed forward provides.
-        if self.training or not self.alpha_hard_inference:
+        if self.alpha_hard_routing:
+            # Always-hard route (training + inference). Used with a frozen
+            # alpha_lookup; detach so no gradient is attempted through the
+            # non-differentiable threshold.
+            mix = (alpha > 0.5).to(alpha.dtype).detach()
+        elif self.training or not self.alpha_hard_inference:
             mix = alpha
         else:
             mix = (alpha > 0.5).to(alpha.dtype)

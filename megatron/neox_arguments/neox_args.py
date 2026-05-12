@@ -20,6 +20,8 @@ try:
 except ImportError:
     from template import NeoXArgsTemplate
 
+from typing import Optional
+
 try:
     from typing import Literal
 except ImportError:
@@ -1089,4 +1091,21 @@ class NeoXArgsLSKV(NeoXArgsTemplate):
     If True, at inference time alpha is thresholded at 0.5 to hard-select one
     of the two branches. Training always uses soft mixing for differentiability.
     Only used when use_alpha_routing is True.
+    """
+
+    alpha_lookup_path: str = None
+    """
+    Path to a .npy file of shape [padded_vocab_size] with per-token-id alpha
+    values to be used as a *frozen lookup-table router* (replaces the learned
+    sigmoid(Linear(embedding)) router). When set, EmbeddingPipe is swapped for
+    EmbeddingPipeWithFrozenAlpha and no separate AlphaRouterPipe is added.
+    Only used when use_alpha_routing is True.
+    """
+
+    alpha_hard_routing: bool = False
+    """
+    If True, every forward pass (training AND inference) routes hard:
+    mix = (alpha > 0.5). Implies the router is frozen — gradients are not
+    propagated through the threshold. Typically used together with
+    alpha_lookup_path. Only used when use_alpha_routing is True.
     """

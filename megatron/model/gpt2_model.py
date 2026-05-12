@@ -38,7 +38,12 @@ from megatron.model.transformer import (
 )
 from megatron.model import transformer_ddim
 from megatron.model.gmlp import GMLPBlock
-from megatron.model.word_embeddings import EmbeddingPipe, SoftEmbedding, AlphaRouterPipe
+from megatron.model.word_embeddings import (
+    EmbeddingPipe,
+    EmbeddingPipeWithFrozenAlpha,
+    SoftEmbedding,
+    AlphaRouterPipe,
+)
 
 # Pipeline parallelism
 from deepspeed.pipe import PipelineModule, LayerSpec, TiedLayerSpec
@@ -261,11 +266,23 @@ class GPT2ModelPipe(PipelineModule, torch.nn.Module):
         # Embedding layer
         # input will be (input_ids, position_ids, attention_mask)
 
+        # When use_alpha_routing + alpha_lookup_path are both set, use a single
+        # EmbeddingPipeWithFrozenAlpha that bundles the embedding + a frozen
+        # token-id → α lookup table. No separate AlphaRouterPipe is added; the
+        # lookup is a buffer (non-trainable), independent of the (re-)trained
+        # word embeddings.
+        use_frozen_alpha_lookup = use_alpha and bool(
+            getattr(self.neox_args, "alpha_lookup_path", None)
+        )
+        embedding_cls = (
+            EmbeddingPipeWithFrozenAlpha if use_frozen_alpha_lookup else EmbeddingPipe
+        )
+
         if weight_tying:
             self.specs.append(
                 TiedLayerSpec(
                     "embed",
-                    EmbeddingPipe,
+                    embedding_cls,
                     self.neox_args,
                     self.hidden_size,
                     self.neox_args.padded_vocab_size,
@@ -279,7 +296,7 @@ class GPT2ModelPipe(PipelineModule, torch.nn.Module):
         else:
             self.specs.append(
                 LayerSpec(
-                    EmbeddingPipe,
+                    embedding_cls,
                     self.neox_args,
                     self.hidden_size,
                     self.neox_args.padded_vocab_size,
@@ -290,9 +307,10 @@ class GPT2ModelPipe(PipelineModule, torch.nn.Module):
                 )
             )
 
-        # When alpha-routing is on, compute per-token alpha right after embedding
-        # and thread it through the rest of the pipeline as the second tuple element.
-        if use_alpha:
+        # Add a learned per-token alpha router after EmbeddingPipe, UNLESS the
+        # frozen-lookup variant is being used (in which case alpha is already
+        # produced inside EmbeddingPipeWithFrozenAlpha).
+        if use_alpha and not use_frozen_alpha_lookup:
             self.specs.append(
                 LayerSpec(AlphaRouterPipe, self.neox_args, self.init_method)
             )
