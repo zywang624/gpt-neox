@@ -1102,10 +1102,71 @@ class NeoXArgsLSKV(NeoXArgsTemplate):
     Only used when use_alpha_routing is True.
     """
 
+    alpha_lookup_random_init: bool = False
+    """
+    If True, the per-token-id alpha lookup buffer is randomly initialized as
+    independent Bernoulli(0.5) samples (each token id gets 0.0 or 1.0 with
+    equal probability) instead of being loaded from alpha_lookup_path. Same
+    pipeline layout as the loaded-lookup variant — EmbeddingPipe is swapped
+    for EmbeddingPipeWithFrozenAlpha. Intended as a baseline against the
+    arc1e-3-derived lookup: same architecture, same hard routing, only the
+    α table content differs. Mutually exclusive with alpha_lookup_path. Only
+    used when use_alpha_routing is True.
+    """
+
+    alpha_lookup_random_seed: int = 0
+    """
+    Seed for the numpy RNG used to generate alpha_lookup_random_init. Lets
+    multiple random-init runs be reproduced and contrasted. Only used when
+    alpha_lookup_random_init is True.
+    """
+
+    alpha_lookup_random_p: float = 0.5
+    """
+    Bernoulli parameter for the random alpha lookup: each token id is set to
+    1.0 with probability `alpha_lookup_random_p` and 0.0 otherwise. Because
+    the draw is independent of token frequency, the expected fraction of
+    eval/train *token flow* sent to the full d_down branch equals p, so the
+    expected d_eff is `d_half + (d_full - d_half) * p`. Default 0.5
+    reproduces the historical Bernoulli(0.5) baseline (E[d_eff] = (d_full +
+    d_half) / 2). Set this directly when you want a target d_eff without
+    seed-hunting. Only used when alpha_lookup_random_init is True.
+    """
+
     alpha_hard_routing: bool = False
     """
     If True, every forward pass (training AND inference) routes hard:
     mix = (alpha > 0.5). Implies the router is frozen — gradients are not
     propagated through the threshold. Typically used together with
     alpha_lookup_path. Only used when use_alpha_routing is True.
+    """
+
+    alpha_ste: bool = False
+    """
+    If True, route through a Straight-Through Estimator: the forward pass uses
+    hard routing (mix = (alpha > 0.5)) but gradients flow through alpha as if
+    the soft value had been used (identity STE). Lets the learned alpha router
+    train under the same hard-switch dynamics it will see at inference, with
+    no train/eval mismatch. Mutually exclusive with alpha_hard_routing; when
+    alpha_ste is on, alpha_hard_inference is ignored (forward is always hard).
+    Only used when use_alpha_routing is True.
+    """
+
+    alpha_ste_grad_coef: float = 1.0
+    """
+    Scales the STE backward gradient: forward stays hard, but d mix / d alpha
+    = alpha_ste_grad_coef instead of 1. Use < 1 to dampen STE gradient noise
+    (à la BinaryConnect). Only used when alpha_ste is True; 1.0 reproduces
+    plain identity STE.
+    """
+
+    alpha_hard_threshold: float = 0.5
+    """
+    Threshold used to binarize alpha into the hard routing decision
+    `mix = (alpha > alpha_hard_threshold)`. Applied in all three hard-forward
+    paths: alpha_ste, alpha_hard_routing, and alpha_hard_inference (eval-time).
+    Default 0.5 reproduces the historical hardcoded behavior. Used to sweep
+    the routing split in the two-stage pipeline (stage 1 learns soft alpha;
+    stage 2 freezes a binarized version with this threshold and retrains
+    branch params from scratch). Only used when use_alpha_routing is True.
     """

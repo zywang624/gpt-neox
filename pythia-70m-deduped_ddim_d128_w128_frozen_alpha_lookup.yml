@@ -45,7 +45,7 @@
   },
 
   "train_micro_batch_size_per_gpu": 32,
-  "gradient_accumulation_steps": 2,
+  "gradient_accumulation_steps": 1,
   "data-impl": "mmap",
   "num_workers": 1,
 
@@ -93,8 +93,8 @@
   "launcher": "slurm",
   "deepspeed_slurm": false,
 
-  "save": "/workspace/pythia_70m_ddim_d128_w128_bs256_frozen_alpha_hard_checkpoints",
-  "load": "/workspace/pythia_70m_ddim_d128_w128_bs256_frozen_alpha_hard_checkpoints",
+  "save": "/workspace/pythia_70m_ddim_d128_w128_bs256_frozen_alpha_hard_balanced_checkpoints",
+  "load": "/workspace/pythia_70m_ddim_d128_w128_bs256_frozen_alpha_hard_balanced_checkpoints",
   "checkpoint_validation_with_forward_pass": False,
 
   # ===== existing lskv knobs =====
@@ -109,11 +109,20 @@
   # do not flow through the threshold).
   "alpha_hard_routing": true,
   "alpha_hard_inference": true,
+  # Threshold used by the hard-routing forward to binarize the (soft) alpha
+  # lookup: mix = (alpha > alpha_hard_threshold). Chosen so that the
+  # *training-corpus* token flow splits 50/50 between full and half d_down
+  # (computed from ppl/router_analysis/counts_strict.npy + alpha_arc1e-3.npy
+  # via d_eff_threshold_table.py: target d_eff=96 → t*=0.491937).
+  # Note: 0.5 (the historical hardcoded value) gives only 36% train flow to
+  # full / 64% to half — imbalanced gradient signal between the two branches.
+  "alpha_hard_threshold": 0.491937,
   # Frozen lookup table extracted from arc1e-3 step19073 (length = padded vocab 50304).
   # Inside the container this is mapped to /workspace/pythia/...
   "alpha_lookup_path": "/workspace/pythia/alpha_lookup_from_arc1e-3_step19073.npy",
 
-  "global_num_gpus": 4,
+  "global_num_gpus": 8,
   # "include": "localhost:0,1,2,3",
-  "include": "localhost:4,5,6,7",
+  # "include": "localhost:4,5,6,7",
+  "include": "localhost:0,1,2,3,4,5,6,7",
 }

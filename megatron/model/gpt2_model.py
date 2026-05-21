@@ -266,13 +266,15 @@ class GPT2ModelPipe(PipelineModule, torch.nn.Module):
         # Embedding layer
         # input will be (input_ids, position_ids, attention_mask)
 
-        # When use_alpha_routing + alpha_lookup_path are both set, use a single
+        # When use_alpha_routing is on AND either a lookup .npy path is given
+        # or alpha_lookup_random_init is set, use a single
         # EmbeddingPipeWithFrozenAlpha that bundles the embedding + a frozen
         # token-id → α lookup table. No separate AlphaRouterPipe is added; the
         # lookup is a buffer (non-trainable), independent of the (re-)trained
         # word embeddings.
-        use_frozen_alpha_lookup = use_alpha and bool(
-            getattr(self.neox_args, "alpha_lookup_path", None)
+        use_frozen_alpha_lookup = use_alpha and (
+            bool(getattr(self.neox_args, "alpha_lookup_path", None))
+            or bool(getattr(self.neox_args, "alpha_lookup_random_init", False))
         )
         embedding_cls = (
             EmbeddingPipeWithFrozenAlpha if use_frozen_alpha_lookup else EmbeddingPipe

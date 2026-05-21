@@ -4,9 +4,9 @@
   "model-parallel-size": 1,
 
   # model settings
-  "num-layers": 6,
-  "hidden-size": 512,
-  "num-attention-heads": 8,
+  "num-layers": 12,
+  "hidden-size": 768,
+  "num-attention-heads": 12,
   "seq-length": 2048,
   "max-position-embeddings": 2048,
   "pos-emb": "rotary",
@@ -15,11 +15,11 @@
   "gpt-j-residual": true,
   "output-layer-parallelism": "column",
 
-  # "attention-config": [[["flash"], 6]],
-  "attention-config": [[["global"], 6]],
+  # "attention-config": [[["flash"], 12]],
+  "attention-config": [[["global"], 12]],
 
-  "scaled-upper-triang-masked-softmax-fusion": true,
-  "bias-gelu-fusion": true,
+  "scaled-upper-triang-masked-softmax-fusion": false,
+  "bias-gelu-fusion": false,
 
   # init methods
   "init_method": "small_init",
@@ -28,12 +28,12 @@
   "optimizer": {
     "type": "Adam",
     "params": {
-      "lr": 0.001,
+      "lr": 0.0006,
       "betas": [0.9, 0.95],
       "eps": 1.0e-8
     }
   },
-  "min_lr": 0.0001,
+  "min_lr": 0.00006,
 
   "zero_optimization": {
     "stage": 1,
@@ -46,23 +46,18 @@
     "cpu_offload": false
   },
 
-  # batch size: 32 × 8 × 1 = 256
-  "train_micro_batch_size_per_gpu": 32,
-  "gradient_accumulation_steps": 2,
+  # batch size (trained on 7 gpus)
+  "train_micro_batch_size_per_gpu": 16,
+  # "gas": 4,   # 1
+  "gradient_accumulation_steps": 8,
   "data-impl": "mmap",
   "num_workers": 1,
 
   # activation checkpointing
-  # NOTE: partition-activations / synchronize-each-layer are turned off because
-  # use_alpha_routing threads a 3-tuple (hidden, alpha, mask) through the
-  # pipeline. DeeperSpeed's partition_activations path only restores the first
-  # tensor's shape; alpha gets its dims collapsed and forward fails. With
-  # model-parallel-size=1 these two flags don't actually save any memory
-  # (there's nothing to partition across MP ranks), so disabling them is free.
   "checkpoint-activations": true,
   "checkpoint-num-layers": 1,
-  "partition-activations": false,
-  "synchronize-each-layer": false,
+  "partition-activations": true,
+  "synchronize-each-layer": true,
 
   # regularization
   "gradient_clipping": 1.0,
@@ -81,8 +76,8 @@
     "min_loss_scale": 1
   },
 
-  "train-iters": 19073,                 # original: 143000,
-  "lr-decay-iters": 19073,              # original: 143000,
+  "train-iters": 5450,                 # original: 143000,
+  "lr-decay-iters": 5450,              # original: 143000,
   "distributed-backend": "nccl",
   "lr-decay-style": "cosine",
   "warmup": 0.01,
@@ -106,24 +101,18 @@
   "launcher": "slurm",
   "deepspeed_slurm": false,
 
-  "save": "/workspace/pythia_70m_ddim_d128_w128_bs256_arc1e-3_checkpoints",
-  "load": "/workspace/pythia_70m_ddim_d128_w128_bs256_arc1e-3_checkpoints",
+  # d=148 chosen to match the eval d_eff (~147.45) of the trained DDIM-160M
+  # balanced ckpt (pythia_160m_ddim_d192_w128_bs896_frozen_alpha_hard_balanced).
+  # Provides a uniform-bottleneck baseline at matched eval inference cost for
+  # routing-pattern-vs-ppl comparison.
+  "save": "/workspace/pythia_160m_lskv_d148_w128_checkpoints",
+  # "load": "/workspace/pythia_checkpoints",
   "checkpoint_validation_with_forward_pass": False,
-
-  # ===== existing lskv knobs (must be present for transformer_ddim) =====
   "lskv_window_size": 128,
-  "lskv_bottleneck_dim": 128,
+  "lskv_bottleneck_dim": 148,
 
-  # ===== NEW: alpha-routing knobs =====
-  "use_alpha_routing": true,
-  "alpha_reg_coef": 0.001,
-  "alpha_hard_inference": false,
-  # Unused in this (soft) config — forward never thresholds alpha. Declared
-  # here so every alpha-routing yml carries the same set of knobs and the
-  # field is discoverable regardless of stage.
-  "alpha_hard_threshold": 0.5,
-
-  "global_num_gpus": 4,
-  "include": "localhost:0,1,2,3",
-  # "include": "localhost:4,5,6,7",
+  "global_num_gpus": 7,
+  # "num_gpus": 7,
+  # "train_batch_size": 896,       # ← 加这行，显式写死 16 × 8 × 7 = 896
+  "include": "localhost:1,2,3,4,5,6,7",
 }

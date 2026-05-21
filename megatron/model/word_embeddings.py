@@ -177,10 +177,16 @@ class EmbeddingPipe(Embedding):
 class EmbeddingPipeWithFrozenAlpha(EmbeddingPipe):
     """EmbeddingPipe with a built-in frozen lookup-table alpha router.
 
-    Replaces the (EmbeddingPipe + AlphaRouterPipe) pair when training with a
-    pre-trained, frozen router stored as a length-`padded_vocab_size` numpy
-    array. The router output for token id `i` is simply `alpha_lookup[i]`,
-    independent of the (re-)trained word embeddings.
+    Replaces the (EmbeddingPipe + AlphaRouterPipe) pair when the per-token α
+    router is a frozen length-`padded_vocab_size` table. The router output
+    for token id `i` is simply `alpha_lookup[i]`, independent of the
+    (re-)trained word embeddings. The table is sourced one of two ways:
+      - loaded from `alpha_lookup_path` (.npy on disk) — used to replay a
+        learned router, e.g. arc1e-3's lookup; or
+      - generated in-place as Bernoulli(`alpha_lookup_random_p`) samples
+        seeded by `alpha_lookup_random_seed`, when `alpha_lookup_random_init`
+        is True — random baseline against the loaded variant. Default p=0.5.
+    Exactly one of the two sources must be configured.
 
     Input:  (input_ids [b,s], position_ids [b,s], attention_mask)
     Output: (embeddings [b,s,h], alpha [b,s,h] (per-token scalar broadcast),
@@ -193,19 +199,41 @@ class EmbeddingPipeWithFrozenAlpha(EmbeddingPipe):
     def __init__(self, neox_args, *args, **kwargs):
         super().__init__(neox_args, *args, **kwargs)
         path = getattr(neox_args, "alpha_lookup_path", None)
-        assert path is not None, "alpha_lookup_path must be set"
-        alpha_np = np.load(path).astype(np.float32)
+        random_init = bool(getattr(neox_args, "alpha_lookup_random_init", False))
+        if (path is None) == (not random_init):
+            raise ValueError(
+                "EmbeddingPipeWithFrozenAlpha requires exactly one of "
+                "alpha_lookup_path (load .npy) or alpha_lookup_random_init "
+                "(generate Bernoulli(p)) to be set — got "
+                f"alpha_lookup_path={path!r}, "
+                f"alpha_lookup_random_init={random_init}."
+            )
         V = neox_args.padded_vocab_size
-        assert alpha_np.shape == (V,), (
-            f"alpha_lookup shape {alpha_np.shape} != (padded_vocab_size={V},)"
-        )
-        # Buffer (not Parameter) — never trained, but moved with the module.
+        if random_init:
+            seed = int(getattr(neox_args, "alpha_lookup_random_seed", 0))
+            p = float(getattr(neox_args, "alpha_lookup_random_p", 0.5))
+            if not 0.0 <= p <= 1.0:
+                raise ValueError(
+                    f"alpha_lookup_random_p must be in [0, 1], got {p}."
+                )
+            rng = np.random.default_rng(seed)
+            alpha_np = (rng.random(V) < p).astype(np.float32)
+            source_desc = f"Bernoulli(p={p}) seed={seed}"
+        else:
+            alpha_np = np.load(path).astype(np.float32)
+            assert alpha_np.shape == (V,), (
+                f"alpha_lookup shape {alpha_np.shape} != (padded_vocab_size={V},)"
+            )
+            source_desc = path
+        # Buffer (not Parameter) — never trained, but moved with the module
+        # and saved with the checkpoint, so downstream HF conversion can read
+        # back the exact table regardless of how it was sourced.
         self.register_buffer("alpha_lookup", torch.from_numpy(alpha_np))
         self._frozen_alpha_hidden_size = neox_args.hidden_size
         print(
-            f"[EmbeddingPipeWithFrozenAlpha] loaded {V} alpha values from "
-            f"{path}  (min={alpha_np.min():.4f}, max={alpha_np.max():.4f}, "
-            f"mean={alpha_np.mean():.4f})",
+            f"[EmbeddingPipeWithFrozenAlpha] {V} alpha values from "
+            f"{source_desc}  (min={alpha_np.min():.4f}, "
+            f"max={alpha_np.max():.4f}, mean={alpha_np.mean():.4f})",
             flush=True,
         )
 

@@ -1,12 +1,23 @@
 {
+  # Stage-1 (soft alpha routing) training config for Pythia-160M with the
+  # DDIM LSKV variant. Mirrors `pythia-70m-deduped_ddim_d128_w128.yml` but with
+  # 160M model dims and the batch/iters/lr scaled from the existing
+  # `pythia-160m-deduped_lskv_d256_w128.yml` recipe.
+  #
+  # Two-stage pipeline:
+  #   stage 1 (this file): use_alpha_routing=true, soft mix, learns the router
+  #   stage 2:             frozen alpha lookup extracted from this ckpt + hard
+  #                        forward via alpha_hard_routing=true
+  # See [[project-lskv-ddim-research]] for the full pipeline.
+
   # parallelism settings
   "pipe-parallel-size": 1,
   "model-parallel-size": 1,
 
-  # model settings
-  "num-layers": 6,
-  "hidden-size": 512,
-  "num-attention-heads": 8,
+  # model settings — Pythia-160M
+  "num-layers": 12,
+  "hidden-size": 768,
+  "num-attention-heads": 12,
   "seq-length": 2048,
   "max-position-embeddings": 2048,
   "pos-emb": "rotary",
@@ -15,11 +26,13 @@
   "gpt-j-residual": true,
   "output-layer-parallelism": "column",
 
-  # "attention-config": [[["flash"], 6]],
-  "attention-config": [[["global"], 6]],
+  # "attention-config": [[["flash"], 12]],
+  "attention-config": [[["global"], 12]],
 
-  "scaled-upper-triang-masked-softmax-fusion": true,
-  "bias-gelu-fusion": true,
+  # Disabled to match the working 160M LSKV recipe; 70M-scale enables both
+  # but they have caused issues at 160M for this codebase.
+  "scaled-upper-triang-masked-softmax-fusion": false,
+  "bias-gelu-fusion": false,
 
   # init methods
   "init_method": "small_init",
@@ -28,12 +41,12 @@
   "optimizer": {
     "type": "Adam",
     "params": {
-      "lr": 0.001,
+      "lr": 0.0006,
       "betas": [0.9, 0.95],
       "eps": 1.0e-8
     }
   },
-  "min_lr": 0.0001,
+  "min_lr": 0.00006,
 
   "zero_optimization": {
     "stage": 1,
@@ -46,9 +59,9 @@
     "cpu_offload": false
   },
 
-  # batch size: 32 × 8 × 1 = 256
-  "train_micro_batch_size_per_gpu": 32,
-  "gradient_accumulation_steps": 2,
+  # batch size: 16 × 7 × 8 = 896 (mbs × gpus × gas)
+  "train_micro_batch_size_per_gpu": 16,
+  "gradient_accumulation_steps": 8,
   "data-impl": "mmap",
   "num_workers": 1,
 
@@ -81,8 +94,10 @@
     "min_loss_scale": 1
   },
 
-  "train-iters": 19073,                 # original: 143000,
-  "lr-decay-iters": 19073,              # original: 143000,
+  # ~10B Pile-dedup tokens (896 × 2048 × 5450 ≈ 10.0B) — same token budget as
+  # the 70M arc1e-3 run (256 × 2048 × 19073 ≈ 10.0B).
+  "train-iters": 5450,
+  "lr-decay-iters": 5450,
   "distributed-backend": "nccl",
   "lr-decay-style": "cosine",
   "warmup": 0.01,
@@ -101,20 +116,21 @@
 
   "tokenizer-type": "HFTokenizer",
   "vocab-file": "/workspace/pythia/pythia_pile_idxmaps/20B_tokenizer.json",
-  # "vocab-file": "/data/zhiyuanwang/code/ls_kv/ppl/train_pythia/pythia/pythia_pile_idxmaps/20B_tokenizer.json",
 
   "launcher": "slurm",
   "deepspeed_slurm": false,
 
-  "save": "/workspace/pythia_70m_ddim_d128_w128_bs256_arc1e-3_checkpoints",
-  "load": "/workspace/pythia_70m_ddim_d128_w128_bs256_arc1e-3_checkpoints",
+  "save": "/workspace/pythia_160m_ddim_d192_w128_bs896_arc1e-3_checkpoints",
+  "load": "/workspace/pythia_160m_ddim_d192_w128_bs896_arc1e-3_checkpoints",
   "checkpoint_validation_with_forward_pass": False,
 
   # ===== existing lskv knobs (must be present for transformer_ddim) =====
+  # d=192 keeps the 1/4 bottleneck-to-hidden ratio of the 70M DDIM run
+  # (128 / 512 = 1/4). Half-bottleneck is 96, both even (required).
   "lskv_window_size": 128,
-  "lskv_bottleneck_dim": 128,
+  "lskv_bottleneck_dim": 192,
 
-  # ===== NEW: alpha-routing knobs =====
+  # ===== alpha-routing knobs (stage 1: soft, learn the router) =====
   "use_alpha_routing": true,
   "alpha_reg_coef": 0.001,
   "alpha_hard_inference": false,
@@ -123,7 +139,7 @@
   # field is discoverable regardless of stage.
   "alpha_hard_threshold": 0.5,
 
-  "global_num_gpus": 4,
-  "include": "localhost:0,1,2,3",
-  # "include": "localhost:4,5,6,7",
+  "global_num_gpus": 7,
+  "include": "localhost:1,2,3,4,5,6,7",
+  # "include": "localhost:0,1,2,3,4,5,6",
 }

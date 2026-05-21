@@ -286,6 +286,19 @@ class ParallelSelfAttention(nn.Module):
             getattr(neox_args, "alpha_hard_inference", False)
         )
         self.alpha_hard_routing = bool(getattr(neox_args, "alpha_hard_routing", False))
+        self.alpha_ste = bool(getattr(neox_args, "alpha_ste", False))
+        self.alpha_ste_grad_coef = float(
+            getattr(neox_args, "alpha_ste_grad_coef", 1.0)
+        )
+        self.alpha_hard_threshold = float(
+            getattr(neox_args, "alpha_hard_threshold", 0.5)
+        )
+        if self.alpha_ste and self.alpha_hard_routing:
+            raise ValueError(
+                "alpha_ste and alpha_hard_routing are mutually exclusive: "
+                "STE trains a router with hard forward + soft backward, while "
+                "alpha_hard_routing assumes the router is frozen."
+            )
 
         self.down_up_proj = nn.Sequential(
             nn.Linear(neox_args.hidden_size, neox_args.lskv_bottleneck_dim, bias=False),
@@ -301,7 +314,10 @@ class ParallelSelfAttention(nn.Module):
             f"using LSKV attention (alpha-routed) with lskv_st_window_size={self.lskv_st_window_size}, "
             f"lskv_bottleneck_dim={self.lskv_bottleneck_dim} (half={self.lskv_bottleneck_dim_half}), "
             f"alpha_hard_inference={self.alpha_hard_inference}, "
-            f"alpha_hard_routing={self.alpha_hard_routing}"
+            f"alpha_hard_routing={self.alpha_hard_routing}, "
+            f"alpha_ste={self.alpha_ste}, "
+            f"alpha_ste_grad_coef={self.alpha_ste_grad_coef}, "
+            f"alpha_hard_threshold={self.alpha_hard_threshold}"
         )
 
         # 手动应用 neox 的初始化逻辑
@@ -636,15 +652,23 @@ class ParallelSelfAttention(nn.Module):
         # weight without slicing. Slicing would introduce a SelectBackward op
         # whose recorded input shape disagrees with what DeepSpeed's
         # activation-checkpointing recomputed forward provides.
-        if self.alpha_hard_routing:
+        if self.alpha_ste:
+            # Straight-through estimator: forward is hard (mix == hard exactly),
+            # backward flows gradient through soft alpha scaled by
+            # alpha_ste_grad_coef. coef = 1.0 is plain identity STE; < 1 dampens
+            # gradient noise. Used at both train and eval, so the router learns
+            # under the same hard dynamics it will be deployed with.
+            hard = (alpha > self.alpha_hard_threshold).to(alpha.dtype)
+            mix = hard + self.alpha_ste_grad_coef * (alpha - alpha.detach())
+        elif self.alpha_hard_routing:
             # Always-hard route (training + inference). Used with a frozen
             # alpha_lookup; detach so no gradient is attempted through the
             # non-differentiable threshold.
-            mix = (alpha > 0.5).to(alpha.dtype).detach()
+            mix = (alpha > self.alpha_hard_threshold).to(alpha.dtype).detach()
         elif self.training or not self.alpha_hard_inference:
             mix = alpha
         else:
-            mix = (alpha > 0.5).to(alpha.dtype)
+            mix = (alpha > self.alpha_hard_threshold).to(alpha.dtype)
         lt_hidden_states = mix * lt_full + (1.0 - mix) * lt_half
         lt_mixed_x_layer, _ = self.query_key_value(lt_hidden_states)
 

@@ -3,20 +3,31 @@
 # Convert a DDIM / alpha-routed LSKV NeoX checkpoint to a HuggingFace
 # GPTNeoXForCausalLM model.
 #
-# Differences vs. tools/lskv_convert_to_hf.py:
-#   1. The training pipeline inserts AlphaRouterPipe right after the embedding,
-#      so NeoX layer indices shift by +1 compared to the vanilla layout:
+# Two pipeline layouts are supported, picked by inspecting the yml:
+#   (A) Learned router (no `alpha_lookup_path` in yml):
 #          layer_00          → word_embeddings
 #          layer_01          → router (the alpha router)
-#          layer_02          → dummy _pre_transformer_block_alpha (no weights)
+#          layer_02          → dummy _pre_transformer_block_alpha (no file)
 #          layer_03 ..       → transformer layers (i + 3 for the i-th layer)
 #          layer_(N+4)       → final layernorm (`norm`)
 #          layer_(N+5)       → output linear (`final_linear`)
-#   2. Each attention layer has *two* parallel projections, with bias=False
-#      and no activation: `down_up_proj` (full bottleneck) and
-#      `down_up_proj_half` (half bottleneck). Both are not MP-sharded.
-#   3. The HF config gets an `alpha_hard_inference` field; the value comes
-#      from the yml unless the caller overrides it via --alpha_hard_inference.
+#   (B) Frozen alpha lookup (yml has `alpha_lookup_path` OR
+#       `alpha_lookup_random_init: true`):
+#          layer_00          → embedding + alpha_lookup buffer
+#                              (EmbeddingPipeWithFrozenAlpha replaces the
+#                               embed + router pair, so everything below
+#                               shifts back by 1)
+#          layer_01          → dummy _pre_transformer_block_alpha (no file)
+#          layer_02 ..       → transformer layers (i + 2)
+#          layer_(N+3)       → final layernorm
+#          layer_(N+4)       → output linear
+#
+# Each attention layer has two parallel projections, bias=False and no
+# activation: `down_up_proj` (full) and `down_up_proj_half` (half). Neither
+# is MP-sharded.
+#
+# All alpha-* HF config fields are read verbatim from the yml — no CLI
+# overrides, so HF inference reproduces training-time forward exactly.
 
 import os, sys, yaml, argparse
 from tqdm import tqdm
@@ -58,19 +69,7 @@ def get_key(loaded_config, key, default=None):
             return default
 
 
-def _resolve_alpha_hard_inference(loaded_config, cli_override):
-    """CLI flag wins over yml. CLI value: None | 'true' | 'false'."""
-    if cli_override is None:
-        return bool(get_key(loaded_config, "alpha_hard_inference", False))
-    v = cli_override.strip().lower()
-    if v in ("true", "1", "yes"):
-        return True
-    if v in ("false", "0", "no"):
-        return False
-    raise ValueError(f"--alpha_hard_inference expects true/false, got {cli_override!r}")
-
-
-def create_config(neox_config, alpha_hard_inference_override=None):
+def create_config(neox_config):
     class TokenizerArgs:
         def __init__(self, neox_config):
             self.make_vocab_size_divisible_by = get_key(
@@ -115,23 +114,40 @@ def create_config(neox_config, alpha_hard_inference_override=None):
         use_parallel_residual=get_key(neox_config, "gpt-j-residual", False),
         lskv_st_window_size=get_key(neox_config, "lskv_window_size", None),
         lskv_bottleneck_dim=get_key(neox_config, "lskv_bottleneck_dim", None),
-        alpha_hard_inference=_resolve_alpha_hard_inference(
-            neox_config, alpha_hard_inference_override
+        # All alpha-* flags mirror yml verbatim. `use_alpha_lookup` is derived
+        # from either yml field that triggers the frozen-lookup pipeline
+        # layout (loaded from .npy OR random-init Bernoulli(0.5)); both end
+        # up storing the table as a buffer at layer_00, so HF only needs to
+        # know "is this layout the frozen one" — the path itself no longer
+        # matters once the buffer is in the checkpoint.
+        use_alpha_lookup=(
+            bool(get_key(neox_config, "alpha_lookup_path", None))
+            or bool(get_key(neox_config, "alpha_lookup_random_init", False))
         ),
+        alpha_hard_routing=bool(get_key(neox_config, "alpha_hard_routing", False)),
+        alpha_ste=bool(get_key(neox_config, "alpha_ste", False)),
+        alpha_hard_inference=bool(get_key(neox_config, "alpha_hard_inference", False)),
+        alpha_hard_threshold=float(get_key(neox_config, "alpha_hard_threshold", 0.5)),
     )
     return hf_config
 
 
-def convert(input_checkpoint_path, loaded_config, output_checkpoint_path,
-            alpha_hard_inference_override=None):
-    hf_config = create_config(loaded_config, alpha_hard_inference_override)
+def convert(input_checkpoint_path, loaded_config, output_checkpoint_path):
+    hf_config = create_config(loaded_config)
 
     hf_model = GPTNeoXForCausalLM(hf_config).half()
 
     mp_partitions = get_key(loaded_config, "model-parallel-size")
     num_layers = get_key(loaded_config, "num-layers")
 
-    ### Embedding layer (layer_00) ###
+    # Frozen-lookup mode collapses (embed + router) into layer_00 and shifts
+    # everything below by -1.
+    is_frozen = hf_config.use_alpha_lookup
+    tx_offset = 2 if is_frozen else 3
+    norm_idx = num_layers + (3 if is_frozen else 4)
+    out_idx = num_layers + (4 if is_frozen else 5)
+
+    ### Embedding layer (layer_00) — and the alpha_lookup buffer if frozen ###
     loaded_tp_ranks = load_partitions(input_checkpoint_path, mp_partitions, 0)
     hf_model.gpt_neox.embed_in.load_state_dict(
         {
@@ -145,23 +161,38 @@ def convert(input_checkpoint_path, loaded_config, output_checkpoint_path,
         hf_config.vocab_size == hf_model.gpt_neox.embed_in.weight.shape[0]
     ), f"ERROR: calculated vocab size {hf_config.vocab_size} != embed param size {hf_model.gpt_neox.embed_in.weight.shape[0]}"
 
-    ### Alpha router (layer_01) — not MP-sharded, take rank 0 ###
-    loaded_tp_ranks = load_partitions(input_checkpoint_path, mp_partitions, 1)
-    hf_model.gpt_neox.alpha_router.load_state_dict(
-        {
-            "weight": loaded_tp_ranks[0]["router.weight"],
-            "bias":   loaded_tp_ranks[0]["router.bias"],
-        }
-    )
+    if is_frozen:
+        # alpha_lookup is a buffer, not MP-sharded; take rank 0.
+        alpha_lookup = loaded_tp_ranks[0]["alpha_lookup"]
+        assert alpha_lookup.shape == (hf_config.vocab_size,), (
+            f"alpha_lookup shape {tuple(alpha_lookup.shape)} != "
+            f"(vocab_size={hf_config.vocab_size},)"
+        )
+        # Mirror the saved dtype exactly so the (alpha > 0.5) threshold reads
+        # the same numbers training did. The HF model was .half()-ed above,
+        # but we overwrite the buffer here with whatever dtype training saved
+        # (typically fp16 with NeoX fp16:true, but fp32 is also possible if
+        # the deepspeed path skipped buffer casting). Use-time cast in
+        # GPTNeoXModel.forward then matches the embedding dtype.
+        hf_model.gpt_neox.alpha_lookup = alpha_lookup.clone()
+    else:
+        ### Alpha router (layer_01) — not MP-sharded, take rank 0 ###
+        loaded_tp_ranks = load_partitions(input_checkpoint_path, mp_partitions, 1)
+        hf_model.gpt_neox.alpha_router.load_state_dict(
+            {
+                "weight": loaded_tp_ranks[0]["router.weight"],
+                "bias":   loaded_tp_ranks[0]["router.bias"],
+            }
+        )
     del loaded_tp_ranks
 
-    ### Transformer layers (layer_(i + 3)) ###
+    ### Transformer layers (layer_(i + tx_offset)) ###
     for layer_i in tqdm(range(num_layers)):
         hf_layer = hf_model.gpt_neox.layers[layer_i]
 
-        # +3 because: embed (0) + alpha_router (1) + _pre_transformer_block (2)
+        # Offset depends on whether AlphaRouterPipe occupied layer_01.
         loaded_tp_ranks = load_partitions(
-            input_checkpoint_path, mp_partitions, layer_i + 3
+            input_checkpoint_path, mp_partitions, layer_i + tx_offset
         )
 
         state_dict = {}
@@ -210,9 +241,9 @@ def convert(input_checkpoint_path, loaded_config, output_checkpoint_path,
 
         hf_layer.load_state_dict(state_dict)
 
-    # Final layer norm — layer_(num_layers + 4): +1 vs. vanilla LSKV
+    # Final layer norm — layer_(num_layers + 3) for frozen, +4 for learned.
     loaded_tp_ranks = load_partitions(
-        input_checkpoint_path, mp_partitions, num_layers + 4
+        input_checkpoint_path, mp_partitions, norm_idx
     )
     hf_model.gpt_neox.final_layer_norm.load_state_dict(
         {
@@ -224,9 +255,9 @@ def convert(input_checkpoint_path, loaded_config, output_checkpoint_path,
     )
     del loaded_tp_ranks
 
-    # Output embedding — layer_(num_layers + 5)
+    # Output embedding — layer_(num_layers + 4) for frozen, +5 for learned.
     loaded_tp_ranks = load_partitions(
-        input_checkpoint_path, mp_partitions, num_layers + 5
+        input_checkpoint_path, mp_partitions, out_idx
     )
     hf_model.embed_out.load_state_dict(
         {
@@ -252,9 +283,6 @@ if __name__ == "__main__":
                         help="Path to NeoX yml config for the checkpoint.")
     parser.add_argument("--output_dir", type=str,
                         help="Output dir for the HF model + tokenizer.")
-    parser.add_argument("--alpha_hard_inference", type=str, default=None,
-                        help="Override alpha_hard_inference: 'true' or 'false'. "
-                             "If omitted, the value from the yml is kept.")
     parser.add_argument("--upload", action="store_true",
                         help="Set to true in order to upload to the HF Hub directly.")
     args = parser.parse_args()
@@ -266,7 +294,6 @@ if __name__ == "__main__":
         args.input_dir,
         loaded_config,
         args.output_dir,
-        alpha_hard_inference_override=args.alpha_hard_inference,
     )
 
     hf_model.save_pretrained(args.output_dir)

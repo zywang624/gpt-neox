@@ -297,11 +297,22 @@ class GPTNeoXAttention(nn.Module):
             nn.Linear(self.lskv_bottleneck_dim_half, config.hidden_size, bias=False),
         )
         self.alpha_hard_inference = bool(getattr(config, "alpha_hard_inference", False))
+        self.alpha_hard_routing = bool(getattr(config, "alpha_hard_routing", False))
+        self.alpha_ste = bool(getattr(config, "alpha_ste", False))
+        # No getattr fallback: must mirror the NeoX yml exactly via config (see
+        # `feedback-hf-mirrors-yml` — HF forward must not silently diverge from
+        # training forward). The config class declares 0.5 as its __init__
+        # default, so old config.json files without this field still load
+        # cleanly with the historical hardcoded value.
+        self.alpha_hard_threshold = float(config.alpha_hard_threshold)
         print(
             f"using DDIM LSKV attention (alpha-routed) with "
             f"lskv_st_window_size={self.lskv_st_window_size}, "
             f"lskv_bottleneck_dim={lskv_bottleneck_dim} (half={self.lskv_bottleneck_dim_half}), "
-            f"alpha_hard_inference={self.alpha_hard_inference}"
+            f"alpha_hard_inference={self.alpha_hard_inference}, "
+            f"alpha_hard_routing={self.alpha_hard_routing}, "
+            f"alpha_ste={self.alpha_ste}, "
+            f"alpha_hard_threshold={self.alpha_hard_threshold}"
         )
         ######################
 
@@ -330,10 +341,16 @@ class GPTNeoXAttention(nn.Module):
         )
         lt_full = self.down_up_proj(hidden_states)        # [bs, seq_len, hidden_dim]
         lt_half = self.down_up_proj_half(hidden_states)   # [bs, seq_len, hidden_dim]
-        if (not self.training) and self.alpha_hard_inference:
-            mix = (alpha > 0.5).to(alpha.dtype)
-        else:
-            mix = alpha
+        # Mirrors transformer_ddim.ParallelSelfAttention.forward: alpha_hard_routing
+        # and alpha_ste both force hard forward at training; alpha_hard_inference
+        # forces hard at eval. HF is always in eval, so all three flags collapse
+        # to "use hard mix".
+        use_hard = (
+            self.alpha_hard_routing
+            or self.alpha_ste
+            or ((not self.training) and self.alpha_hard_inference)
+        )
+        mix = (alpha > self.alpha_hard_threshold).to(alpha.dtype) if use_hard else alpha
         lt_hidden_states = mix * lt_full + (1.0 - mix) * lt_half
         ######################
 
@@ -585,9 +602,17 @@ class GPTNeoXModel(GPTNeoXPreTrainedModel):
 
         self.embed_in = nn.Embedding(config.vocab_size, config.hidden_size)
         self.emb_dropout = nn.Dropout(config.hidden_dropout)
-        # DDIM: per-token alpha is computed from the embedding output and fed
-        # to every attention layer. Mirrors AlphaRouterPipe at training time.
-        self.alpha_router = nn.Linear(config.hidden_size, 1, bias=True)
+        # DDIM: per-token alpha is fed to every attention layer. Two sources:
+        #   - learned router: sigmoid(Linear(embed)). Mirrors AlphaRouterPipe.
+        #   - frozen lookup: a per-token-id buffer. Mirrors
+        #     EmbeddingPipeWithFrozenAlpha. Chosen by config.use_alpha_lookup.
+        self.use_alpha_lookup = bool(getattr(config, "use_alpha_lookup", False))
+        if self.use_alpha_lookup:
+            self.register_buffer(
+                "alpha_lookup", torch.zeros(config.vocab_size), persistent=True
+            )
+        else:
+            self.alpha_router = nn.Linear(config.hidden_size, 1, bias=True)
         self.layers = nn.ModuleList([GPTNeoXLayer(config, i) for i in range(config.num_hidden_layers)])
         self.final_layer_norm = nn.LayerNorm(config.hidden_size, eps=config.layer_norm_eps)
         self.rotary_emb = GPTNeoXRotaryEmbedding(config=config)
@@ -693,9 +718,20 @@ class GPTNeoXModel(GPTNeoXPreTrainedModel):
 
         hidden_states = self.emb_dropout(inputs_embeds)
 
-        # DDIM: per-token alpha from raw embeddings (post-embed, pre-dropout
-        # matches AlphaRouterPipe.forward which consumes embed_in output).
-        alpha = torch.sigmoid(self.alpha_router(inputs_embeds))  # [b, s, 1]
+        # DDIM: per-token alpha. Either looked up by token id (frozen) or
+        # computed from raw embeddings via the learned router (post-embed,
+        # pre-dropout matches AlphaRouterPipe.forward).
+        if self.use_alpha_lookup:
+            assert input_ids is not None, (
+                "use_alpha_lookup=True requires input_ids (token-id lookup); "
+                "passing inputs_embeds alone is not supported in this mode."
+            )
+            # Buffer dtype mirrors what training saved (see ddim_convert_to_hf);
+            # cast to embedding dtype here so downstream lt_full/lt_half ops
+            # stay in the model's compute dtype.
+            alpha = self.alpha_lookup[input_ids].unsqueeze(-1).to(inputs_embeds.dtype)
+        else:
+            alpha = torch.sigmoid(self.alpha_router(inputs_embeds))  # [b, s, 1]
 
         # create position embeddings to be shared across the decoder layers
         position_embeddings = self.rotary_emb(hidden_states, position_ids)

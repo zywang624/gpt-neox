@@ -25,11 +25,25 @@ logger = logging.get_logger(__name__)
 class GPTNeoXConfig(PretrainedConfig):
     """GPTNeoX config extended for DDIM / alpha-routed LSKV.
 
-    Adds three knobs on top of the vanilla LSKV config:
+    Adds knobs on top of the vanilla LSKV config (all mirror the NeoX yml
+    fields with the same name; HF inference reproduces training-time forward):
       * lskv_bottleneck_dim: bottleneck dim of the *full* down-up projection
       * lskv_st_window_size: short-term attention window
-      * alpha_hard_inference: at eval time, if True, mix uses (alpha > 0.5)
-        instead of the raw sigmoid alpha. Training always uses the raw value.
+      * use_alpha_lookup: if True, alpha comes from a frozen per-token-id
+        lookup table (registered buffer `alpha_lookup`); if False, alpha is
+        produced by a learned `alpha_router = sigmoid(Linear(embed))`. Mirrors
+        NeoX yml `alpha_lookup_path` being set.
+      * alpha_hard_routing: if True, mix is always thresholded ((alpha > 0.5)),
+        both training and inference. Mirrors yml `alpha_hard_routing`.
+      * alpha_ste: if True, training used the STE (forward = hard); at HF eval
+        we therefore also use hard mix. Mirrors yml `alpha_ste`.
+      * alpha_hard_inference: if True, mix uses (alpha > 0.5) at eval time
+        when neither alpha_hard_routing nor alpha_ste is set.
+      * alpha_hard_threshold: threshold used by all hard-forward paths (STE,
+        alpha_hard_routing, alpha_hard_inference) to binarize alpha:
+        `mix = (alpha > alpha_hard_threshold)`. Mirrors yml
+        `alpha_hard_threshold`. Default 0.5 reproduces the historical
+        hardcoded behavior.
     """
 
     model_type = "gpt_neox"
@@ -72,7 +86,11 @@ class GPTNeoXConfig(PretrainedConfig):
         attention_bias=True,
         lskv_bottleneck_dim=None,
         lskv_st_window_size=None,
+        use_alpha_lookup=False,
+        alpha_hard_routing=False,
+        alpha_ste=False,
         alpha_hard_inference=False,
+        alpha_hard_threshold=0.5,
         **kwargs,
     ):
         super().__init__(bos_token_id=bos_token_id, eos_token_id=eos_token_id, **kwargs)
@@ -99,7 +117,11 @@ class GPTNeoXConfig(PretrainedConfig):
         self.attention_bias = attention_bias
         self.lskv_bottleneck_dim = lskv_bottleneck_dim
         self.lskv_st_window_size = lskv_st_window_size
+        self.use_alpha_lookup = bool(use_alpha_lookup)
+        self.alpha_hard_routing = bool(alpha_hard_routing)
+        self.alpha_ste = bool(alpha_ste)
         self.alpha_hard_inference = bool(alpha_hard_inference)
+        self.alpha_hard_threshold = float(alpha_hard_threshold)
         if self.rope_scaling is not None and "type" in self.rope_scaling:
             self.rope_scaling["rope_type"] = self.rope_scaling["type"]
         rope_config_validation(self)

@@ -1,0 +1,151 @@
+{
+  # Stage-2 (frozen alpha lookup, hard switch) training config for the
+  # Pythia-160M DDIM LSKV variant. Mirrors the stage-1 config
+  # `pythia-160m-deduped_ddim_d192_w128.yml` so the two stages are directly
+  # comparable; only the alpha-routing block differs.
+  #
+  # Pipeline: train stage 1 → extract alpha via
+  #   `ppl/router_analysis/extract_alpha_from_stage1.py --ckpt <HF> --out <npy>`
+  # → copy the npy under the docker /workspace mount → fill
+  #   `alpha_lookup_path` below → run this yml.
+  # See [[project-lskv-ddim-research]] for the full pipeline.
+
+  # parallelism settings
+  "pipe-parallel-size": 1,
+  "model-parallel-size": 1,
+
+  # model settings — identical to stage-1 for fair comparison
+  "num-layers": 12,
+  "hidden-size": 768,
+  "num-attention-heads": 12,
+  "seq-length": 2048,
+  "max-position-embeddings": 2048,
+  "pos-emb": "rotary",
+  "rotary-pct": 0.25,
+  "no-weight-tying": true,
+  "gpt-j-residual": true,
+  "output-layer-parallelism": "column",
+
+  "attention-config": [[["global"], 12]],
+
+  "scaled-upper-triang-masked-softmax-fusion": false,
+  "bias-gelu-fusion": false,
+
+  "init_method": "small_init",
+  "output_layer_init_method": "wang_init",
+
+  "optimizer": {
+    "type": "Adam",
+    "params": {
+      "lr": 0.0006,
+      "betas": [0.9, 0.95],
+      "eps": 1.0e-8
+    }
+  },
+  "min_lr": 0.00006,
+
+  "zero_optimization": {
+    "stage": 1,
+    "allgather_partitions": true,
+    "allgather_bucket_size": 500000000,
+    "overlap_comm": true,
+    "reduce_scatter": true,
+    "reduce_bucket_size": 500000000,
+    "contiguous_gradients": true,
+    "cpu_offload": false
+  },
+
+  # batch size: 16 × 7 × 8 = 896 (mbs × gpus × gas) — identical to stage 1
+  "train_micro_batch_size_per_gpu": 16,
+  "gradient_accumulation_steps": 8,
+  "data-impl": "mmap",
+  "num_workers": 1,
+
+  # NOTE: same as stage 1 — partition-activations / synchronize-each-layer are
+  # off because use_alpha_routing threads a 3-tuple through the pipeline.
+  # (Frozen lookup variant uses EmbeddingPipeWithFrozenAlpha but still threads
+  # the same 3-tuple, so the constraint stays.)
+  "checkpoint-activations": true,
+  "checkpoint-num-layers": 1,
+  "partition-activations": false,
+  "synchronize-each-layer": false,
+
+  "gradient_clipping": 1.0,
+  "weight-decay": 0.1,
+  "hidden-dropout": 0,
+  "attention-dropout": 0,
+
+  "fp16": {
+    "fp16": true,
+    "enabled": true,
+    "loss_scale": 0,
+    "loss_scale_window": 1000,
+    "initial_scale_power": 12,
+    "hysteresis": 2,
+    "min_loss_scale": 1
+  },
+
+  # ~10B Pile-dedup tokens — same token budget as stage 1.
+  "train-iters": 5450,
+  "lr-decay-iters": 5450,
+  "distributed-backend": "nccl",
+  "lr-decay-style": "cosine",
+  "warmup": 0.01,
+  "checkpoint-factor": 1000,
+  "extra-save-iters": [0,1,2,4,8,16,32,64,128,256,512],
+  "eval-interval": 1000,
+  "eval-iters": 10,
+
+  "log-interval": 10,
+  "steps_per_print": 10,
+  "wall_clock_breakdown": true,
+
+  "train-data-paths": ["/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document"],
+  "valid-data-paths": ["/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document"],
+  "test-data-paths":  ["/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document"],
+
+  "tokenizer-type": "HFTokenizer",
+  "vocab-file": "/workspace/pythia/pythia_pile_idxmaps/20B_tokenizer.json",
+
+  "launcher": "slurm",
+  "deepspeed_slurm": false,
+
+  "save": "/workspace/pythia_160m_ddim_d192_w128_bs896_frozen_alpha_hard_balanced_checkpoints",
+  "load": "/workspace/pythia_160m_ddim_d192_w128_bs896_frozen_alpha_hard_balanced_checkpoints",
+  "checkpoint_validation_with_forward_pass": False,
+
+  # ===== existing lskv knobs =====
+  "lskv_window_size": 128,
+  "lskv_bottleneck_dim": 192,
+
+  # ===== alpha-routing knobs =====
+  "use_alpha_routing": true,
+  # No reg — the router is frozen.
+  "alpha_reg_coef": 0.0,
+  # Hard route in both training and inference (router is frozen, gradients
+  # do not flow through the threshold).
+  "alpha_hard_routing": true,
+  "alpha_hard_inference": true,
+  # Threshold used by the hard-routing forward to binarize the (soft) alpha
+  # lookup: mix = (alpha > alpha_hard_threshold). Chosen so that the
+  # *training-corpus* token flow splits 50/50 between full and half d_down
+  # (computed from ppl/router_analysis/counts_strict.npy + alpha_160m_arc1e-3.npy
+  # via d_eff_threshold_table.py: target d_eff=144 → t*=0.505885).
+  # Notes on what NOT to use here:
+  #  - 0.5 (the historical 70M hardcoded value) sends 67% train flow to full.
+  #  - 0.5192 (the unweighted *vocab* median) sends only 16% train flow to
+  #    full (84% to half) — heavily imbalanced because the high-frequency
+  #    functional tokens cluster on the low-α side of the distribution.
+  # The corpus-weighted threshold is always the right one for balanced
+  # gradient signal between the two branches.
+  "alpha_hard_threshold": 0.505885,
+  # Extracted from the 160M stage-1 arc1e-3 ckpt at step 5450 via
+  # `ppl/router_analysis/extract_alpha_from_stage1.py`, then copied under
+  # the docker /workspace mount (host path:
+  # ppl/train_pythia/pythia/alpha_lookup_from_160m_arc1e-3_step5450.npy).
+  "alpha_lookup_path": "/workspace/pythia/alpha_lookup_from_160m_arc1e-3_step5450.npy",
+
+  "global_num_gpus": 7,
+  "include": "localhost:1,2,3,4,5,6,7",
+  # "include": "localhost:0,1,2,3,4,5,6",
+}
