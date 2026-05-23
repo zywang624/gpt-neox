@@ -21,7 +21,7 @@
   # disabled — matches the working 160M+ LSKV/DDIM reference; fusion flags
   # interact poorly with the DDIM 3-tuple pipeline at this scale.
   "scaled-upper-triang-masked-softmax-fusion": false,
-  "bias-gelu-fusion": false,
+  "bias-gelu-fusion": true,
 
   # init methods
   "init_method": "small_init",
