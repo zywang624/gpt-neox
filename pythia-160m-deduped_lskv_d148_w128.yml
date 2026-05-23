@@ -105,8 +105,9 @@
   # balanced ckpt (pythia_160m_ddim_d192_w128_bs896_frozen_alpha_hard_balanced).
   # Provides a uniform-bottleneck baseline at matched eval inference cost for
   # routing-pattern-vs-ppl comparison.
-  "save": "/workspace/pythia_160m_lskv_d148_w128_checkpoints",
-  # "load": "/workspace/pythia_checkpoints",
+  "save": "/workspace/pythia_160m_lskv_d148_w128_no_gelu_act_checkpoints",
+  "load": "/workspace/pythia_160m_lskv_d148_w128_no_gelu_act_checkpoints",
+
   "checkpoint_validation_with_forward_pass": False,
   "lskv_window_size": 128,
   "lskv_bottleneck_dim": 148,
