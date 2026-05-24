@@ -1,0 +1,133 @@
+{
+  # LSKV-410M baseline at d=194, chosen to match the *eval* d_eff (≈ 194.55)
+  # of the trained DDIM-410M balanced ckpt
+  # (`pythia_410m_ddim_d256_w128_bs896_arc1e-3` + stage-2 frozen-α-hard at
+  # τ* = 0.488164, train-corpus-flow-weighted 50/50).
+  #
+  # Provides a uniform-bottleneck LSKV baseline at matched eval inference cost
+  # for routing-pattern-vs-ppl comparison. Mirrors the existing 70M/160M
+  # baselines (`lskv_d100_w128`, `lskv_d148_w128`) which were similarly chosen
+  # to match the corresponding DDIM eval d_eff.
+  #
+  # Reference d_eff at τ* = 0.488164 (from d_eff_threshold_table.py on
+  # alpha_410m_arc1e-3.npy):
+  #   train (Pile-dedup)               192.09  (the 50/50 design target)
+  #   eval_combined (fineweb+wt+c4)    194.55  ← d=194 picked to match this
+  #     fineweb_edu_valid              194.45
+  #     wikitext103_test               195.28
+  #     c4_validation_shard0           194.77
+
+  # parallelism settings
+  "pipe-parallel-size": 1,
+  "model-parallel-size": 1,
+
+  # model settings — identical to pythia-410m-deduped_lskv_d256_w128.yml
+  "num-layers": 24,
+  "hidden-size": 1024,
+  "num-attention-heads": 16,
+  "seq-length": 2048,
+  "max-position-embeddings": 2048,
+  "pos-emb": "rotary",
+  "rotary-pct": 0.25,
+  "no-weight-tying": true,
+  "gpt-j-residual": true,
+  "output-layer-parallelism": "column",
+
+  # "attention-config": [[["flash"], 24]],
+  "attention-config": [[["global"], 24]],
+
+  "scaled-upper-triang-masked-softmax-fusion": true,
+  "bias-gelu-fusion": true,
+
+  # init methods
+  "init_method": "small_init",
+  "output_layer_init_method": "wang_init",
+
+  "optimizer": {
+    "type": "Adam",
+    "params": {
+      "lr": 0.0003,
+      "betas": [0.9, 0.95],
+      "eps": 1.0e-8
+    }
+  },
+  "min_lr": 0.00003,
+
+  "zero_optimization": {
+    "stage": 1,
+    "allgather_partitions": true,
+    "allgather_bucket_size": 500000000,
+    "overlap_comm": true,
+    "reduce_scatter": true,
+    "reduce_bucket_size": 500000000,
+    "contiguous_gradients": true,
+    "cpu_offload": false
+  },
+
+  # batch size: 16 × 8 × 7 = 896 (mbs × gas × gpus) — matches DDIM-410M stage-1
+  "train_micro_batch_size_per_gpu": 16,
+  "gradient_accumulation_steps": 8,
+  "data-impl": "mmap",
+  "num_workers": 1,
+
+  # activation checkpointing
+  # NOTE: partition-activations / synchronize-each-layer are ON for LSKV.
+  # (DDIM had to set both false because the 3-tuple alpha pipeline broke the
+  # partition path; pure LSKV has no such constraint.)
+  "checkpoint-activations": true,
+  "checkpoint-num-layers": 1,
+  "partition-activations": true,
+  "synchronize-each-layer": true,
+
+  # regularization
+  "gradient_clipping": 1.0,
+  "weight-decay": 0.1,
+  "hidden-dropout": 0,
+  "attention-dropout": 0,
+
+  # precision settings
+  "fp16": {
+    "fp16": true,
+    "enabled": true,
+    "loss_scale": 0,
+    "loss_scale_window": 1000,
+    "initial_scale_power": 12,
+    "hysteresis": 2,
+    "min_loss_scale": 1
+  },
+
+  # 5450 iters × bs896 × 2048 ≈ 10B tokens (same budget as DDIM-410M stage-1)
+  "train-iters": 5450,
+  "lr-decay-iters": 5450,
+  "distributed-backend": "nccl",
+  "lr-decay-style": "cosine",
+  "warmup": 0.01,
+  "checkpoint-factor": 1000,
+  "extra-save-iters": [0,1,2,4,8,16,32,64,128,256,512],
+  "eval-interval": 1000,
+  "eval-iters": 10,
+
+  "log-interval": 10,
+  "steps_per_print": 10,
+  "wall_clock_breakdown": true,
+
+  "train-data-paths": ["/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document"],
+  "valid-data-paths": ["/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document"],
+  "test-data-paths": ["/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document"],
+
+  "tokenizer-type": "HFTokenizer",
+  "vocab-file": "/workspace/pythia/pythia_pile_idxmaps/20B_tokenizer.json",
+
+  "launcher": "slurm",
+  "deepspeed_slurm": false,
+
+  "save": "/workspace/pythia_410m_lskv_d194_w128_checkpoints",
+  "load": "/workspace/pythia_410m_lskv_d194_w128_checkpoints",
+  "checkpoint_validation_with_forward_pass": False,
+
+  "lskv_window_size": 128,
+  "lskv_bottleneck_dim": 194,
+
+  "global_num_gpus": 7,
+  "include": "localhost:1,2,3,4,5,6,7",
+}
