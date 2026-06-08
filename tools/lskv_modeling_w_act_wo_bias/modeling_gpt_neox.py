@@ -61,7 +61,7 @@ class LSKVCache(DynamicCache):
         assert self.get_seq_length(layer_idx) == self.long_term_components_cache.get_seq_length(layer_idx), "full kv cache length != long term components cache length"
 
         return key_states, value_states, lt_key_states, lt_value_states
-    
+
 class GPTNeoXMLP(nn.Module):
     def __init__(self, config):
         super().__init__()
@@ -270,7 +270,6 @@ class GPTNeoXAttention(nn.Module):
         self.query_key_value = nn.Linear(config.hidden_size, 3 * config.hidden_size, bias=config.attention_bias)
         self.dense = nn.Linear(config.hidden_size, config.hidden_size, bias=config.attention_bias)
 
-
         #### zhiyuan modified #####
         # 1. lskv的window_size，超出这个window_size开始用分离出来的long-term kv
         self.lskv_st_window_size = getattr(config, "lskv_st_window_size")
@@ -285,10 +284,9 @@ class GPTNeoXAttention(nn.Module):
             nn.Linear(config.lskv_bottleneck_dim, config.hidden_size, bias=False),
         )
         print(
-            f"using LSKV attention with lskv_st_window_size={self.lskv_st_window_size}, lskv_bottleneck_dim={self.config.lskv_bottleneck_dim}, no bias and activation"
+            f"using LSKV attention with lskv_st_window_size={self.lskv_st_window_size}, lskv_bottleneck_dim={self.config.lskv_bottleneck_dim}, without bias and with activation"
         )
         ######################
-
 
     def forward(
         self,
@@ -308,17 +306,17 @@ class GPTNeoXAttention(nn.Module):
         # hidden_states: [bs, seq_len, hidden_dim]
         lt_hidden_states = self.down_up_proj(hidden_states)  # [bs, seq_len, hidden_dim]
         ######################
-        
+
         qkv = self.query_key_value(hidden_states).view(hidden_shape).transpose(1, 2)
         query_states, key_states, value_states = qkv.chunk(3, dim=-1)
-        
+
         cos, sin = position_embeddings
         query_states, key_states = apply_rotary_pos_emb(query_states, key_states, cos, sin)
 
         lt_qkv = self.query_key_value(lt_hidden_states).view(hidden_shape).transpose(1, 2)
         _, lt_key_states, lt_value_states = lt_qkv.chunk(3, dim=-1)
         lt_key_states = apply_rotary_pos_emb_k(lt_key_states, cos, sin)  # [bs, heads, seq_len, head_dim]
-        
+
         # Cache QKV values
         if layer_past is not None:
             cache_kwargs = {
@@ -337,7 +335,6 @@ class GPTNeoXAttention(nn.Module):
             assert (
                 self.config._attn_implementation == "eager"
             ), "LSKV only supports eager attention for now"
-
 
         kwargs.update(
             {

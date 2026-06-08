@@ -37,6 +37,7 @@ from megatron.model.transformer import (
     ParallelLinear,
 )
 from megatron.model import transformer_ddim
+from megatron.model import transformer_vanilla
 from megatron.model.gmlp import GMLPBlock
 from megatron.model.word_embeddings import (
     EmbeddingPipe,
@@ -342,14 +343,14 @@ class GPT2ModelPipe(PipelineModule, torch.nn.Module):
                 heads=self.neox_args.num_attention_heads,
             )
 
-        # Pick the transformer-layer class. The alpha-routing path lives in
-        # transformer_ddim.ParallelTransformerLayerPipe; everything else uses
-        # the stock one from transformer.py.
-        layer_pipe_cls = (
-            transformer_ddim.ParallelTransformerLayerPipe
-            if use_alpha
-            else ParallelTransformerLayerPipe
-        )
+        # Pick the transformer-layer class.
+        # alpha-routing → transformer_ddim; vanilla (no lskv params) → transformer_vanilla; else LSKV
+        if use_alpha:
+            layer_pipe_cls = transformer_ddim.ParallelTransformerLayerPipe
+        elif self.neox_args.lskv_window_size is None:
+            layer_pipe_cls = transformer_vanilla.ParallelTransformerLayerPipe
+        else:
+            layer_pipe_cls = ParallelTransformerLayerPipe
 
         # Transformer layers
         for i in range(self.neox_args.num_layers):

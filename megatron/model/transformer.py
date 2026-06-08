@@ -276,13 +276,19 @@ class ParallelSelfAttention(nn.Module):
                 f"lskv_bottleneck_dim should be a positive integer, but got {self.lskv_bottleneck_dim}"
             )
 
-        self.down_up_proj = nn.Sequential(
-            nn.Linear(neox_args.hidden_size, neox_args.lskv_bottleneck_dim, bias=False),
-            # nn.GELU(),
-            nn.Linear(neox_args.lskv_bottleneck_dim, neox_args.hidden_size, bias=False),
-        )
+        if neox_args.lskv_use_act:
+            self.down_up_proj = nn.Sequential(
+                nn.Linear(neox_args.hidden_size, neox_args.lskv_bottleneck_dim, bias=False),
+                nn.GELU(),
+                nn.Linear(neox_args.lskv_bottleneck_dim, neox_args.hidden_size, bias=False),
+            )
+        else:
+            self.down_up_proj = nn.Sequential(
+                nn.Linear(neox_args.hidden_size, neox_args.lskv_bottleneck_dim, bias=False),
+                nn.Linear(neox_args.lskv_bottleneck_dim, neox_args.hidden_size, bias=False),
+            )
         print(
-            f"using LSKV attention with lskv_st_window_size={self.lskv_st_window_size}, lskv_bottleneck_dim={self.lskv_bottleneck_dim}"
+            f"using LSKV attention with lskv_st_window_size={self.lskv_st_window_size}, lskv_bottleneck_dim={self.lskv_bottleneck_dim}, lskv_use_act={neox_args.lskv_use_act}"
         )
 
         # 手动应用 neox 的初始化逻辑

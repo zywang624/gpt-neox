@@ -65,8 +65,8 @@
   },
 
   # batch size: 16 × 8 × 7 = 896 (mbs × gas × gpus) — matches DDIM-410M stage-1
-  "train_micro_batch_size_per_gpu": 16,
-  "gradient_accumulation_steps": 8,
+  "train_micro_batch_size_per_gpu": 8,
+  "gradient_accumulation_steps": 16,
   "data-impl": "mmap",
   "num_workers": 1,
 
@@ -111,12 +111,13 @@
   "steps_per_print": 10,
   "wall_clock_breakdown": true,
 
-  "train-data-paths": ["/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document"],
-  "valid-data-paths": ["/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document"],
-  "test-data-paths": ["/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document"],
+  "train-data-paths": ["/workspace/pythia/pythia_deduped_pile_idxmaps/pile_0.87_deduped_text_document"],
+  "valid-data-paths": ["/workspace/pythia/pythia_deduped_pile_idxmaps/pile_0.87_deduped_text_document"],
+  "test-data-paths": ["/workspace/pythia/pythia_deduped_pile_idxmaps/pile_0.87_deduped_text_document"],
 
   "tokenizer-type": "HFTokenizer",
-  "vocab-file": "/workspace/pythia/pythia_pile_idxmaps/20B_tokenizer.json",
+  "vocab-file": "/workspace/pythia/pythia_deduped_pile_idxmaps/20B_tokenizer.json",
+  # "vocab-file": "/data/zhiyuanwang/code/ls_kv/ppl/train_pythia/pythia/pythia_pile_idxmaps/20B_tokenizer.json",
 
   "launcher": "slurm",
   "deepspeed_slurm": false,

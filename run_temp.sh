@@ -1,3 +1,6 @@
 TS=$(date +%m%d_%H%M%S)
 
-MASTER_PORT=29638 python deepy.py train.py pythia-70m-deduped_ddim_d128_w128_alpha_ste.yml  2>&1 | tee pythia-70m-deduped_ddim_d128_w128_alpha_ste_output_${TS}.txt
+# nohup bash run_temp.sh > run.log 2>&1 &
+# python deepy.py train.py pythia_no_gelu_act/pythia-70m-deduped_lskv_d128_w128_no_gelu_act.yml   2>&1 | tee pythia_no_gelu_act/pythia-70m-deduped_lskv_d128_w128_no_gelu_act_output_${TS}.txt
+python deepy.py train.py pythia_no_gelu_act/pythia-70m-deduped_lskv_d128_w4_no_gelu_act.yml   2>&1 | tee pythia_no_gelu_act/pythia-70m-deduped_lskv_d128_w4_no_gelu_act_output_${TS}.txt
+
