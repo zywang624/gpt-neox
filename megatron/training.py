@@ -233,6 +233,15 @@ def forward_step(data_iterator, model, neox_args, timers, return_logits=False):
     loss = cross_entropy(
         outputs, (labels, loss_mask), _fp16=neox_args.fp16_lm_cross_entropy
     )
+
+    lar_lambda = getattr(neox_args, "lar_entropy_lambda", 0.0)
+    if getattr(neox_args, "use_lar_routing", False) and lar_lambda > 0.0:
+        from megatron.model.transformer_lar import collect_lar_entropy_reg
+        reg = collect_lar_entropy_reg(getattr(model, "module", model))
+        if torch.distributed.get_rank() == 0:
+            print(f"[LAR-REG] reg={reg.item():.4f}  lambda*reg={lar_lambda * reg.item():.6f}", flush=True)
+        loss = loss + lar_lambda * reg.to(loss.device)
+
     if return_logits:
         return loss, outputs
     return loss
@@ -587,6 +596,20 @@ def train(
         )
         iteration += 1
 
+        # LAR temperature annealing (no-op unless lar_use_annealing is True)
+        if (
+            getattr(neox_args, "use_lar_routing", False)
+            and getattr(neox_args, "lar_use_annealing", False)
+        ):
+            from megatron.model.transformer_lar import compute_lar_tau, update_lar_tau
+            tau = compute_lar_tau(
+                iteration,
+                neox_args.train_iters,
+                getattr(neox_args, "lar_tau_start", 1.0),
+                getattr(neox_args, "lar_tau_end", 0.1),
+            )
+            update_lar_tau(tau)
+
         overflow_monitor.check(skipped_iter)  # check for repeated overflow
         if neox_args.log_gradient_noise_scale:  # log noise scale if applicable
             noise_scale_logger.update()
@@ -652,6 +675,19 @@ def train(
                 )
             )
             sys.exit()
+
+        # Periodic LAR alpha logging (rank 0 only, every log_interval steps)
+        if (
+            getattr(neox_args, "use_lar_routing", False)
+            and iteration % neox_args.log_interval == 0
+            and torch.distributed.get_rank() == 0
+        ):
+            from megatron.model.transformer_lar import log_lar_alphas
+            log_lar_alphas(getattr(model, "module", model), iteration)
+
+    if getattr(neox_args, "use_lar_routing", False):
+        from megatron.model.transformer_lar import print_lar_selections
+        print_lar_selections(getattr(model, "module", model))
 
     return iteration
 

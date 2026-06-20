@@ -1070,9 +1070,60 @@ class NeoXArgsLSKV(NeoXArgsTemplate):
     The dimension of the bottleneck layer in LSKV.
     """
 
+    lskv_bottleneck_dim_per_layer: list = None
+    """
+    Per-layer bottleneck dimensions for LSKV. If set, must be a list of length
+    num_layers; each entry overrides lskv_bottleneck_dim for that layer (0-indexed).
+    When None (default), all layers use lskv_bottleneck_dim unchanged.
+    """
+
     lskv_use_act: bool = False
     """
     Whether to use GELU activation in the LSKV down_up_proj bottleneck.
+    """
+
+    use_lar_routing: bool = False
+    """
+    If True, enables LAR (Layer Adaptive Representation): each LT layer gets a
+    per-layer learnable scalar alpha that selects between a wide (lar_d_high) and
+    a narrow (lar_d_low) bottleneck projection via sigmoid during training and a
+    hard sign-based selection at inference.  Mutually exclusive with use_alpha_routing.
+    """
+
+    lar_d_high: int = 128
+    """
+    Bottleneck dim of the wide branch in LAR. Only used when use_lar_routing is True.
+    """
+
+    lar_d_low: int = 64
+    """
+    Bottleneck dim of the narrow branch in LAR. Only used when use_lar_routing is True.
+    """
+
+    lar_tau_start: float = 1.0
+    """
+    Starting Gumbel temperature for LAR sigmoid annealing. Only used when
+    use_lar_routing is True and tau annealing is enabled in training.py.
+    """
+
+    lar_tau_end: float = 0.1
+    """
+    Ending Gumbel temperature for LAR sigmoid annealing. Only used when
+    use_lar_routing is True and tau annealing is enabled in training.py.
+    """
+
+    lar_use_annealing: bool = False
+    """
+    If True, exponentially anneal the LAR sigmoid temperature from lar_tau_start
+    to lar_tau_end over train_iters steps. If False, temperature stays at 1.0.
+    """
+
+    lar_entropy_lambda: float = 0.0
+    """
+    Coefficient for the per-layer entropy regularisation term added to the
+    training loss: lambda * sum_layers p*(1-p) where p=sigmoid(alpha/tau).
+    Penalises p near 0.5 and encourages each layer to commit to one branch.
+    Set to 0 to disable (default).
     """
 
     use_alpha_routing: bool = False
