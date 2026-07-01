@@ -1,8 +1,8 @@
-# lar_convert_to_hf.py
+# convert_lskv_to_hf.py
 import os, sys, yaml, argparse
 from tqdm import tqdm
 import torch
-from lar_modeling import GPTNeoXConfig, GPTNeoXForCausalLM
+from lskv_modeling_per_layer import GPTNeoXConfig, GPTNeoXForCausalLM
 
 # Copyright (c) 2021, EleutherAI
 #
@@ -127,15 +127,8 @@ def create_config(neox_config):
         tie_word_embeddings=(not get_key(neox_config, "no-weight-tying", False)),
         use_parallel_residual=get_key(neox_config, "gpt-j-residual", False),
         lskv_st_window_size=get_key(neox_config, "lskv_window_size", None),
-        lar_d_high=get_key(neox_config, "lar_d_high", 128),
-        lar_d_low=get_key(neox_config, "lar_d_low", 64),
-        # tau at the final training step: tau_end if annealing was used, else 1.0
-        lar_tau_inference=(
-            get_key(neox_config, "lar_tau_end", 0.1)
-            if get_key(neox_config, "lar_use_annealing", False)
-            else 1.0
-        ),
-        lar_hard_selection=False,  # default: soft mixing; override after convert if needed
+        lskv_bottleneck_dim=get_key(neox_config, "lskv_bottleneck_dim", None),
+        lskv_bottleneck_dim_per_layer=get_key(neox_config, "lskv_bottleneck_dim_per_layer", None),
     )
     return hf_config
 
@@ -170,9 +163,6 @@ def convert(input_checkpoint_path, loaded_config, output_checkpoint_path):
         hf_config.vocab_size == hf_model.gpt_neox.embed_in.weight.shape[0]
     ), f"ERROR: calculated vocab size {hf_config.vocab_size} != embed param size {hf_model.gpt_neox.embed_in.shape[0]}"
     ### End Embedding Layer ###
-
-    # lar_static_low_layers: list of layer_number indices statically routed to L-branch
-    static_low_layers = set(get_key(loaded_config, "lar_static_low_layers", None) or [])
 
     for layer_i in tqdm(range(get_key(loaded_config, "num-layers"))):
 
@@ -218,35 +208,21 @@ def convert(input_checkpoint_path, loaded_config, output_checkpoint_path):
         ]:
             state_dict[key] = sum([t[key] for t in loaded_tp_ranks])
 
-        # LAR weights — not MP-parallel, take rank 0
-        if static_low_layers:
-            # Static routing: one branch per layer, no alpha in checkpoint.
-            # Simulate with large |alpha| so soft-mix ≈ hard selection.
-            rank0 = loaded_tp_ranks[0]
-            hf_sd = hf_layer.state_dict()  # shapes for zero-init
-            if layer_i in static_low_layers:
-                # L-branch layer: load low, zero-init high, alpha → -20
-                state_dict["attention.down_up_proj_low.0.weight"]  = rank0["attention.down_up_proj_low.0.weight"]
-                state_dict["attention.down_up_proj_low.1.weight"]  = rank0["attention.down_up_proj_low.1.weight"]
-                state_dict["attention.down_up_proj_high.0.weight"] = torch.zeros_like(hf_sd["attention.down_up_proj_high.0.weight"])
-                state_dict["attention.down_up_proj_high.1.weight"] = torch.zeros_like(hf_sd["attention.down_up_proj_high.1.weight"])
-                state_dict["attention.alpha"] = torch.full_like(hf_sd["attention.alpha"], -20.0)
-            else:
-                # H-branch layer: load high, zero-init low, alpha → +20
-                state_dict["attention.down_up_proj_high.0.weight"] = rank0["attention.down_up_proj_high.0.weight"]
-                state_dict["attention.down_up_proj_high.1.weight"] = rank0["attention.down_up_proj_high.1.weight"]
-                state_dict["attention.down_up_proj_low.0.weight"]  = torch.zeros_like(hf_sd["attention.down_up_proj_low.0.weight"])
-                state_dict["attention.down_up_proj_low.1.weight"]  = torch.zeros_like(hf_sd["attention.down_up_proj_low.1.weight"])
-                state_dict["attention.alpha"] = torch.full_like(hf_sd["attention.alpha"], 20.0)
-        else:
-            for key in [
-                "attention.down_up_proj_high.0.weight",
-                "attention.down_up_proj_high.1.weight",
-                "attention.down_up_proj_low.0.weight",
-                "attention.down_up_proj_low.1.weight",
-                "attention.alpha",
-            ]:
-                state_dict[key] = loaded_tp_ranks[0][key]
+        # Just take one
+        # state_dict["attention.rotary_emb.inv_freq"] = loaded_tp_ranks[0][
+        #     "attention.rotary_emb.inv_freq"
+        # ]
+        # state_dict["attention.bias"] = hf_layer.state_dict()["attention.bias"]
+        # state_dict["attention.masked_bias"] = hf_layer.state_dict()[
+        #     "attention.masked_bias"
+        # ]
+
+        # ★ 加这几行，down_up_proj 不是 MP 并行的，直接取 rank 0
+        for key in [
+            "attention.down_up_proj.0.weight",
+            "attention.down_up_proj.1.weight",
+        ]:
+            state_dict[key] = loaded_tp_ranks[0][key]
 
         # load state_dict into layer
         hf_layer.load_state_dict(state_dict)

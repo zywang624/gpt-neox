@@ -271,26 +271,25 @@ class GPTNeoXAttention(nn.Module):
         self.dense = nn.Linear(config.hidden_size, config.hidden_size, bias=config.attention_bias)
 
 
-        # LSKV window size
+        #### zhiyuan modified #####
+        # 1. lskv的window_size，超出这个window_size开始用分离出来的long-term kv
         self.lskv_st_window_size = getattr(config, "lskv_st_window_size")
-        assert self.lskv_st_window_size is not None, "lskv_st_window_size can not be None"
-
-        # LAR: two bottleneck branches + per-layer learnable scalar alpha
-        self.lar_d_high = config.lar_d_high
-        self.lar_d_low = config.lar_d_low
-        self.down_up_proj_high = nn.Sequential(
-            nn.Linear(config.hidden_size, self.lar_d_high, bias=False),
-            nn.Linear(self.lar_d_high, config.hidden_size, bias=False),
+        assert (
+            self.lskv_st_window_size is not None
+        ), "lskv_st_window_size can not be None"
+        # 2. 单独的 W_router
+        # token (hidden_size,) => element-wise indicator value (config.num_key_value_heads, config.head_dim)
+        per_layer = getattr(config, "lskv_bottleneck_dim_per_layer", None)
+        bottleneck_dim = per_layer[layer_idx] if per_layer is not None else config.lskv_bottleneck_dim
+        self.down_up_proj = nn.Sequential(
+            nn.Linear(config.hidden_size, bottleneck_dim, bias=False),
+            # nn.GELU(),
+            nn.Linear(bottleneck_dim, config.hidden_size, bias=False),
         )
-        self.down_up_proj_low = nn.Sequential(
-            nn.Linear(config.hidden_size, self.lar_d_low, bias=False),
-            nn.Linear(self.lar_d_low, config.hidden_size, bias=False),
-        )
-        self.alpha = nn.Parameter(torch.zeros(1))
         print(
-            f"[LAR] layer={layer_idx} d_high={self.lar_d_high} d_low={self.lar_d_low} "
-            f"tau_inference={config.lar_tau_inference} hard={config.lar_hard_selection}"
+            f"using LSKV attention layer={layer_idx}, lskv_st_window_size={self.lskv_st_window_size}, lskv_bottleneck_dim={bottleneck_dim}, no bias and activation"
         )
+        ######################
 
 
     def forward(
@@ -307,36 +306,10 @@ class GPTNeoXAttention(nn.Module):
         input_shape = hidden_states.shape[:-1]
         hidden_shape = (*input_shape, -1, 3 * self.head_size)
 
-        # LAR: hard selection or soft mixing depending on config flag
-        if self.config.lar_hard_selection:
-            branch = "H" if self.alpha.item() > 0 else "L"
-            if not getattr(self, "_infer_printed", False):
-                print(
-                    f"[LAR-INFER] layer={self.layer_idx} alpha={self.alpha.item():.4f} "
-                    f"hard={branch}",
-                    flush=True,
-                )
-                self._infer_printed = True
-            lt_hidden_states = (
-                self.down_up_proj_high(hidden_states)
-                if self.alpha.item() > 0
-                else self.down_up_proj_low(hidden_states)
-            )
-        else:
-            p = torch.sigmoid(
-                self.alpha.to(hidden_states.dtype) / self.config.lar_tau_inference
-            )
-            if not getattr(self, "_infer_printed", False):
-                print(
-                    f"[LAR-INFER] layer={self.layer_idx} alpha={self.alpha.item():.4f} "
-                    f"tau={self.config.lar_tau_inference} p={p.item():.6f}",
-                    flush=True,
-                )
-                self._infer_printed = True
-            lt_hidden_states = (
-                p * self.down_up_proj_high(hidden_states)
-                + (1.0 - p) * self.down_up_proj_low(hidden_states)
-            )
+        #### zhiyuan modified #####
+        # hidden_states: [bs, seq_len, hidden_dim]
+        lt_hidden_states = self.down_up_proj(hidden_states)  # [bs, seq_len, hidden_dim]
+        ######################
         
         qkv = self.query_key_value(hidden_states).view(hidden_shape).transpose(1, 2)
         query_states, key_states, value_states = qkv.chunk(3, dim=-1)

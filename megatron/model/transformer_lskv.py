@@ -270,7 +270,10 @@ class ParallelSelfAttention(nn.Module):
             raise ValueError(
                 f"lskv_window_size should be a positive integer, but got {self.lskv_st_window_size}"
             )
-        self.lskv_bottleneck_dim = neox_args.lskv_bottleneck_dim
+        if neox_args.lskv_bottleneck_dim_per_layer is not None:
+            self.lskv_bottleneck_dim = neox_args.lskv_bottleneck_dim_per_layer[layer_number]
+        else:
+            self.lskv_bottleneck_dim = neox_args.lskv_bottleneck_dim
         if self.lskv_bottleneck_dim is None or self.lskv_bottleneck_dim <= 0:
             raise ValueError(
                 f"lskv_bottleneck_dim should be a positive integer, but got {self.lskv_bottleneck_dim}"
@@ -303,7 +306,7 @@ class ParallelSelfAttention(nn.Module):
                 nn.Linear(neox_args.lskv_bottleneck_dim, neox_args.hidden_size, bias=False),
             )
         print(
-            f"using LSKV attention with lskv_st_window_size={self.lskv_st_window_size}, lskv_bottleneck_dim={self.lskv_bottleneck_dim}, lskv_use_act={neox_args.lskv_use_act}"
+            f"using LSKV attention layer={layer_number}, lskv_st_window_size={self.lskv_st_window_size}, lskv_bottleneck_dim={self.lskv_bottleneck_dim}, lskv_use_act={neox_args.lskv_use_act}"
         )
 
         # 手动应用 neox 的初始化逻辑

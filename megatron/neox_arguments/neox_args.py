@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import subprocess
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 try:
     from .template import NeoXArgsTemplate
@@ -1124,6 +1124,90 @@ class NeoXArgsLSKV(NeoXArgsTemplate):
     training loss: lambda * sum_layers p*(1-p) where p=sigmoid(alpha/tau).
     Penalises p near 0.5 and encourages each layer to commit to one branch.
     Set to 0 to disable (default).
+    """
+
+    lar_p_sq_lambda: float = 0.0
+    """
+    Coefficient for the p² regularisation term: lambda * sum_layers p².
+    Gradient always pushes alpha negative → favours L branch (p→0).
+    Unique minimum at p=0 unlike entropy reg which has minima at both ends.
+    Set to 0 to disable (default).
+    """
+
+    lar_p_lambda: float = 0.0
+    """
+    Coefficient for the linear-p regularisation term: lambda * sum_layers p.
+    Gradient d(p)/d(alpha) = p*(1-p)/tau always pushes alpha negative → L branch
+    (p→0).  Unlike p², the regularisation coefficient does not self-attenuate near
+    p=0, giving a clean per-layer equilibrium: CE_H_gradient_i = lambda.
+    Set to 0 to disable (default).
+    """
+
+    lar_logp_lambda: float = 0.0
+    """
+    Coefficient for the log-p regularisation term: lambda * sum_layers log(p).
+    Gradient (1-p)/tau pushes L. Because log is concave, minimising this term
+    favours polarised p distributions (e.g. 0.1, 0.7) over uniform (0.4, 0.4),
+    creating clearer H vs L differentiation than linear Sigma-p.
+    Set to 0 to disable (default).
+    """
+
+    lar_routing_entropy_lambda: float = 0.0
+    """
+    Coefficient for the true routing-entropy regularisation term:
+    lambda * sum_layers H(p) where H(p) = -p*log(p) - (1-p)*log(1-p).
+    Symmetric around p=0.5; same direction as lar_entropy_lambda but uses
+    the standard information-theoretic form.  Set to 0 to disable (default).
+    """
+
+    lar_use_ste: bool = False
+    """
+    If True, use Straight-Through Estimator (STE) in the LAR forward pass:
+    hard branch selection in forward, soft-mix gradient in backward.
+    Incompatible with use_lar_routing=False.  tau annealing is a no-op when
+    STE is enabled (hard selection is already discrete).
+    """
+
+    lar_reg_start_step: int = 0
+    """
+    Training step at which LAR regularisation terms (lar_entropy_lambda,
+    lar_p_sq_lambda, lar_routing_entropy_lambda) begin to be applied.
+    Before this step the model trains with CE loss only, allowing both branches
+    to develop before the routing search begins.  Default 0 = apply from step 1
+    (original behaviour).  Temperature annealing is controlled separately by
+    lar_anneal_start_step.
+    Example: set to int(0.1 * train_iters) to delay reg for the first 10%.
+    """
+
+    lar_anneal_start_step: int = 0
+    """
+    Training step at which LAR temperature annealing begins.  Before this step
+    tau is held at lar_tau_start.  After this step tau decays exponentially
+    from lar_tau_start to lar_tau_end over the remaining (train_iters -
+    lar_anneal_start_step) steps.  Default 0 = anneal from the very first step
+    (original behaviour).
+    Tip: set equal to lar_reg_start_step so that tau is still near 1.0 when
+    regularisation kicks in (avoids reg acting on an already-frozen sigmoid).
+    """
+
+    lar_static_low_layers: list = field(default_factory=list)
+    """
+    If non-empty, specifies layer_number indices (0-based) that are statically
+    routed to the low-rank branch (d_low) throughout training and inference.
+    All other LAR layers are statically routed to the high-rank branch (d_high).
+    No alpha parameter is created; the routing is fixed from initialisation.
+    Only active when use_lar_routing is True.
+    Example: [4, 5] routes the last two layers of a 6-layer model to d_low.
+    """
+
+    lar_freeze_alpha: bool = False
+    """
+    If True, freeze all per-layer alpha parameters at 0 during training.
+    The forward pass uses a fixed p=0.5, so both branches contribute equally
+    and receive equal gradients.  Alpha is still saved in the checkpoint so
+    phase 2 can unfreeze and continue from the same checkpoint.
+    All reg terms are also skipped when this flag is set.
+    Use for phase-1 training in the two-stage pipeline.
     """
 
     use_alpha_routing: bool = False

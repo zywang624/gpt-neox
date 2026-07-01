@@ -38,6 +38,7 @@ from megatron.model.transformer import (
 )
 from megatron.model import transformer_ddim
 from megatron.model import transformer_vanilla
+from megatron.model import transformer_lar
 from megatron.model.gmlp import GMLPBlock
 from megatron.model.word_embeddings import (
     EmbeddingPipe,
@@ -71,13 +72,16 @@ def pop_alpha_mean_history():
     return vals
 
 
-def cross_entropy(output, labels, _fp16=False, alpha_reg_coef=0.0):
+def cross_entropy(output, labels, _fp16=False, alpha_reg_coef=0.0, lar_p_sq_lambda=0.0, lar_p_lambda=0.0, lar_logp_lambda=0.0, lar_entropy_lambda=0.0, lar_routing_entropy_lambda=0.0):
     """From pretrain_gpt2:forward_step()
 
     When alpha-routing is on, the pipeline's last stage emits
     ``(logits, alpha_mean)`` instead of just logits; we add
     ``alpha_reg_coef * alpha_mean`` to the cross-entropy loss and stash
     alpha_mean for the per-iteration logger to surface.
+
+    When LAR p² reg is enabled, reads the pre-computed reg tensor from the
+    global cache set by train_step_pipe before model.train_batch().
     """
     alpha_mean = None
     if isinstance(output, (tuple, list)):
@@ -101,6 +105,38 @@ def cross_entropy(output, labels, _fp16=False, alpha_reg_coef=0.0):
             pass
         if alpha_reg_coef != 0.0:
             loss = loss + alpha_reg_coef * alpha_mean.to(loss.dtype)
+
+    if lar_entropy_lambda > 0.0 or lar_p_sq_lambda > 0.0 or lar_p_lambda > 0.0 or lar_logp_lambda > 0.0 or lar_routing_entropy_lambda > 0.0:
+        from megatron.model.transformer_lar import (
+            get_lar_model_ref, collect_lar_entropy_reg, collect_lar_p_sq_reg,
+            collect_lar_p_reg, collect_lar_logp_reg, collect_lar_routing_entropy_reg, record_lar_loss, get_lar_reg_active,
+        )
+        lar_model = get_lar_model_ref()
+        if lar_model is not None and get_lar_reg_active():
+            ce_val = loss.item()
+            total_reg = 0.0
+            if lar_entropy_lambda > 0.0:
+                lar_entropy = collect_lar_entropy_reg(lar_model)
+                total_reg += (lar_entropy_lambda * lar_entropy).item()
+                loss = loss + lar_entropy_lambda * lar_entropy.to(loss.dtype)
+            if lar_p_sq_lambda > 0.0:
+                lar_p_sq = collect_lar_p_sq_reg(lar_model)
+                total_reg += (lar_p_sq_lambda * lar_p_sq).item()
+                loss = loss + lar_p_sq_lambda * lar_p_sq.to(loss.dtype)
+            if lar_p_lambda > 0.0:
+                lar_p = collect_lar_p_reg(lar_model)
+                total_reg += (lar_p_lambda * lar_p).item()
+                loss = loss + lar_p_lambda * lar_p.to(loss.dtype)
+            if lar_logp_lambda > 0.0:
+                lar_logp = collect_lar_logp_reg(lar_model)
+                total_reg += (lar_logp_lambda * lar_logp).item()
+                loss = loss + lar_logp_lambda * lar_logp.to(loss.dtype)
+            if lar_routing_entropy_lambda > 0.0:
+                lar_routing_entropy = collect_lar_routing_entropy_reg(lar_model)
+                total_reg += (lar_routing_entropy_lambda * lar_routing_entropy).item()
+                loss = loss + lar_routing_entropy_lambda * lar_routing_entropy.to(loss.dtype)
+            record_lar_loss(ce_val, total_reg)
+
     return loss
 
 
@@ -217,6 +253,11 @@ class GPT2ModelPipe(PipelineModule, torch.nn.Module):
                     if getattr(self.neox_args, "use_alpha_routing", False)
                     else 0.0
                 ),
+                lar_p_sq_lambda=float(getattr(self.neox_args, "lar_p_sq_lambda", 0.0)),
+                lar_p_lambda=float(getattr(self.neox_args, "lar_p_lambda", 0.0)),
+                lar_logp_lambda=float(getattr(self.neox_args, "lar_logp_lambda", 0.0)),
+                lar_entropy_lambda=float(getattr(self.neox_args, "lar_entropy_lambda", 0.0)),
+                lar_routing_entropy_lambda=float(getattr(self.neox_args, "lar_routing_entropy_lambda", 0.0)),
             ),
             topology=topology,
             activation_checkpoint_interval=self.neox_args.checkpoint_num_layers
@@ -344,9 +385,15 @@ class GPT2ModelPipe(PipelineModule, torch.nn.Module):
             )
 
         # Pick the transformer-layer class.
-        # alpha-routing → transformer_ddim; vanilla (no lskv params) → transformer_vanilla; else LSKV
+        # alpha-routing → transformer_ddim; LAR → transformer_lar;
+        # vanilla (no lskv) → transformer_vanilla; else stock LSKV.
+        use_lar = bool(getattr(self.neox_args, "use_lar_routing", False))
+        if use_alpha and use_lar:
+            raise ValueError("use_alpha_routing and use_lar_routing are mutually exclusive.")
         if use_alpha:
             layer_pipe_cls = transformer_ddim.ParallelTransformerLayerPipe
+        elif use_lar:
+            layer_pipe_cls = transformer_lar.ParallelTransformerLayerPipe
         elif self.neox_args.lskv_window_size is None:
             layer_pipe_cls = transformer_vanilla.ParallelTransformerLayerPipe
         else:

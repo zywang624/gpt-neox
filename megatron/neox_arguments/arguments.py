@@ -1038,6 +1038,12 @@ class NeoXArgs(*BASE_CLASSES):
         if self.test_data_paths is not None:
             assert len(self.test_data_paths) == len(self.test_data_weights)
 
+        if self.lskv_bottleneck_dim_per_layer is not None:
+            assert len(self.lskv_bottleneck_dim_per_layer) == self.num_layers, (
+                f"lskv_bottleneck_dim_per_layer length ({len(self.lskv_bottleneck_dim_per_layer)}) "
+                f"must equal num_layers ({self.num_layers})"
+            )
+
         return True
 
     def validate_types(self):

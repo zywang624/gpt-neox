@@ -1,0 +1,114 @@
+{
+  "pipe-parallel-size": 1,
+  "model-parallel-size": 1,
+
+  "num-layers": 12,
+  "hidden-size": 768,
+  "num-attention-heads": 12,
+  "seq-length": 2048,
+  "max-position-embeddings": 2048,
+  "pos-emb": "rotary",
+  "rotary-pct": 0.25,
+  "no-weight-tying": true,
+  "gpt-j-residual": true,
+  "output-layer-parallelism": "column",
+
+  "attention-config": [[["global"], 12]],
+
+  "scaled-upper-triang-masked-softmax-fusion": false,
+  "bias-gelu-fusion": false,
+
+  "init_method": "small_init",
+  "output_layer_init_method": "wang_init",
+
+  "optimizer": {
+    "type": "Adam",
+    "params": {
+      "lr": 0.00006,
+      "betas": [0.9, 0.95],
+      "eps": 1.0e-8
+    }
+  },
+  "min_lr": 0.000006,
+
+  "zero_optimization": {
+    "stage": 1,
+    "allgather_partitions": true,
+    "allgather_bucket_size": 500000000,
+    "overlap_comm": true,
+    "reduce_scatter": true,
+    "reduce_bucket_size": 500000000,
+    "contiguous_gradients": true,
+    "cpu_offload": false
+  },
+
+  "train_micro_batch_size_per_gpu": 8,
+  "gradient_accumulation_steps": 16,
+  "data-impl": "mmap",
+  "num_workers": 1,
+
+  "checkpoint-activations": true,
+  "checkpoint-num-layers": 1,
+  "partition-activations": true,
+  "synchronize-each-layer": true,
+
+  "gradient_clipping": 1.0,
+  "weight-decay": 0.1,
+  "hidden-dropout": 0,
+  "attention-dropout": 0,
+
+  "fp16": {
+    "fp16": true,
+    "enabled": true,
+    "loss_scale": 0,
+    "loss_scale_window": 1000,
+    "initial_scale_power": 12,
+    "hysteresis": 2,
+    "min_loss_scale": 1
+  },
+
+  "train-iters": 5000,
+  "lr-decay-iters": 500,
+  "distributed-backend": "nccl",
+  "lr-decay-style": "constant",
+  "warmup": 0,
+  "checkpoint-factor": 500,
+  "extra-save-iters": [0, 100, 200, 300, 400, 500],
+  "eval-interval": 100,
+  "eval-iters": 10,
+
+  "log-interval": 10,
+  "steps_per_print": 10,
+  "wall_clock_breakdown": true,
+
+  "train-data-paths": ["/workspace/pythia/pythia_deduped_pile_idxmaps/pile_0.87_deduped_text_document"],
+  "valid-data-paths": ["/workspace/pythia/pythia_deduped_pile_idxmaps/pile_0.87_deduped_text_document"],
+  "test-data-paths":  ["/workspace/pythia/pythia_deduped_pile_idxmaps/pile_0.87_deduped_text_document"],
+
+  "tokenizer-type": "HFTokenizer",
+  "vocab-file": "/workspace/pythia/pythia_deduped_pile_idxmaps/20B_tokenizer.json",
+
+  "launcher": "slurm",
+  "deepspeed_slurm": false,
+
+  "save": "/workspace/pythia_160m_lar_d192_d96_w128_phase2_p002_checkpoints",
+  "load": "/workspace/pythia_160m_lar_d192_d96_w128_phase1_checkpoints",
+  "override_lr_scheduler": true,
+  "checkpoint_validation_with_forward_pass": False,
+
+  "lskv_window_size": 128,
+
+  # ===== LAR phase 2: linear-p regularisation, no entropy =====
+  "use_lar_routing": true,
+  "lar_d_high": 192,
+  "lar_d_low": 96,
+  "lar_freeze_alpha": false,
+  "lar_use_annealing": true,
+  "lar_tau_start": 1.0,
+  "lar_tau_end": 0.01,
+  "lar_anneal_start_step": 4500,
+  "lar_p_lambda": 0.02,
+
+  "global_num_gpus": 8,
+  "include": "localhost:0,1,2,3,4,5,6,7",
+}

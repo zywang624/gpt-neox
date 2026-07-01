@@ -41,11 +41,42 @@ from megatron.model.transformer import build_st_mask, ParallelMLP
 # Global Gumbel temperature — updated by training.py after each iteration.
 # ---------------------------------------------------------------------------
 _LAR_TAU: float = 1.0
+_LAR_USE_STE: bool = False
+_LAR_MODEL_REF = None  # set once in train_step_pipe; cross_entropy recomputes reg each micro-batch
+_LAR_LOSS_LOG: list = []  # [(ce_loss, reg_loss), ...] buffered across micro-batches, drained by log_lar_alphas
+_LAR_REG_ACTIVE: bool = True  # set each step by training.py; False suppresses all reg terms
+
+
+def record_lar_loss(ce: float, reg: float) -> None:
+    _LAR_LOSS_LOG.append((ce, reg))
 
 
 def update_lar_tau(tau: float) -> None:
     global _LAR_TAU
     _LAR_TAU = float(tau)
+
+
+def update_lar_use_ste(use_ste: bool) -> None:
+    global _LAR_USE_STE
+    _LAR_USE_STE = bool(use_ste)
+
+
+def set_lar_model_ref(model) -> None:
+    global _LAR_MODEL_REF
+    _LAR_MODEL_REF = model
+
+
+def get_lar_model_ref():
+    return _LAR_MODEL_REF
+
+
+def update_lar_reg_active(active: bool) -> None:
+    global _LAR_REG_ACTIVE
+    _LAR_REG_ACTIVE = bool(active)
+
+
+def get_lar_reg_active() -> bool:
+    return _LAR_REG_ACTIVE
 
 
 def compute_lar_tau(
@@ -73,9 +104,13 @@ def print_lar_selections(model) -> None:
     found = False
     for name, module in model.named_modules():
         if isinstance(module, ParallelSelfAttention):
-            val = module.alpha.item()
-            chosen = module.d_high if val > 0 else module.d_low
-            print(f"[LAR] {_layer_label(name)}.alpha={val:+.4f} → d_down={chosen}", flush=True)
+            if module.lar_static_branch is not None:
+                chosen = module.d_high if module.lar_static_branch == "H" else module.d_low
+                print(f"[LAR] {_layer_label(name)}.static={module.lar_static_branch} → d_down={chosen}", flush=True)
+            else:
+                val = module.alpha.item()
+                chosen = module.d_high if val > 0 else module.d_low
+                print(f"[LAR] {_layer_label(name)}.alpha={val:+.4f} → d_down={chosen}", flush=True)
             found = True
     if not found:
         print("[LAR] no ParallelSelfAttention (LAR) modules found.", flush=True)
@@ -84,17 +119,103 @@ def print_lar_selections(model) -> None:
 def collect_lar_entropy_reg(model) -> torch.Tensor:
     """Return sum_layers p*(1-p) where p=sigmoid(alpha/_LAR_TAU).
 
-    Adding lambda * this term to the loss penalises p near 0.5 and pushes
-    each layer toward committing to one branch.  Gradient is zero at p=0.5
-    but the task-loss gradient provides the seed direction; regularisation
-    then amplifies it as alpha grows away from zero.
+    Penalises p near 0.5; gradient is zero at p=0.5 but task-loss gradient
+    provides seed direction.  Both p=0 and p=1 are minima → combine with
+    collect_lar_p_sq_reg to break the symmetry and favour L branch (p=0).
     """
     total = None
     for module in model.modules():
         if isinstance(module, ParallelSelfAttention):
-            a = module.alpha.float()
+            if module.lar_static_branch is not None:
+                continue  # static layers have no alpha
+            a = module.alpha.float().squeeze()
             p = torch.sigmoid(a / _LAR_TAU)
             reg = p * (1.0 - p)
+            total = reg if total is None else total + reg
+    if total is None:
+        return torch.tensor(0.0)
+    return total
+
+
+def collect_lar_p_sq_reg(model) -> torch.Tensor:
+    """Return sum_layers p² where p=sigmoid(alpha/_LAR_TAU).
+
+    Gradient d(p²)/d(alpha) = 2p*(1-p)/tau is always positive for p in (0,1),
+    so it always pushes alpha negative → L branch (p→0).  Unique minimum at
+    p=0 (unlike entropy reg which also has a minimum at p=1).
+    """
+    total = None
+    for module in model.modules():
+        if isinstance(module, ParallelSelfAttention):
+            if module.lar_static_branch is not None:
+                continue  # static layers have no alpha
+            a = module.alpha.float().squeeze()
+            p = torch.sigmoid(a / _LAR_TAU)
+            reg = p * p
+            total = reg if total is None else total + reg
+    if total is None:
+        return torch.tensor(0.0)
+    return total
+
+
+def collect_lar_p_reg(model) -> torch.Tensor:
+    """Return sum_layers p where p=sigmoid(alpha/_LAR_TAU).
+
+    Gradient d(p)/d(alpha) = p*(1-p)/tau is always positive, so it always
+    pushes alpha negative → L branch (p→0).  Unlike p², the gradient is
+    constant w.r.t. the regularisation coefficient (no self-attenuation near
+    p=0), making the per-layer equilibrium a clean function of CE H-preference.
+    """
+    total = None
+    for module in model.modules():
+        if isinstance(module, ParallelSelfAttention):
+            if module.lar_static_branch is not None:
+                continue  # static layers have no alpha
+            a = module.alpha.float().squeeze()
+            p = torch.sigmoid(a / _LAR_TAU)
+            total = p if total is None else total + p
+    if total is None:
+        return torch.tensor(0.0)
+    return total
+
+
+def collect_lar_logp_reg(model) -> torch.Tensor:
+    """Return sum_layers log(p) where p=sigmoid(alpha/tau).
+
+    Gradient d(log p)/d(alpha) = (1-p)/tau, which pushes alpha negative (L).
+    Because log is concave, minimising this term favours polarised p distributions
+    (e.g. 0.1, 0.7) over uniform ones (e.g. 0.4, 0.4) — layers with strong CE
+    preference for H stay at high p while others collapse to near 0.
+    """
+    total = None
+    for module in model.modules():
+        if isinstance(module, ParallelSelfAttention):
+            if module.lar_static_branch is not None:
+                continue
+            a = module.alpha.float().squeeze()
+            p = torch.sigmoid(a / _LAR_TAU)
+            logp = torch.log(p.clamp(min=1e-8))
+            total = logp if total is None else total + logp
+    if total is None:
+        return torch.tensor(0.0)
+    return total
+
+
+def collect_lar_routing_entropy_reg(model) -> torch.Tensor:
+    """Return sum_layers H(p) = -p*log(p) - (1-p)*log(1-p), true routing entropy.
+
+    Symmetric around p=0.5, same direction as p*(1-p) but standard information-
+    theoretic form.  Minimising this loss pushes each layer toward p=0 or p=1;
+    CE loss determines which attractor wins per layer.
+    """
+    total = None
+    for module in model.modules():
+        if isinstance(module, ParallelSelfAttention):
+            if module.lar_static_branch is not None:
+                continue  # static layers have no alpha
+            a = module.alpha.float().squeeze()
+            p = torch.sigmoid(a / _LAR_TAU).clamp(1e-6, 1.0 - 1e-6)
+            reg = -p * torch.log(p) - (1.0 - p) * torch.log(1.0 - p)
             total = reg if total is None else total + reg
     if total is None:
         return torch.tensor(0.0)
@@ -105,18 +226,36 @@ def log_lar_alphas(model, iteration: int) -> None:
     """Log per-layer alpha and p=sigmoid(alpha/tau); tau shown to separate model vs temperature."""
     import math
     entries = []
+    p_sq_sum = 0.0
     for name, module in model.named_modules():
         if isinstance(module, ParallelSelfAttention):
+            label = f"{_layer_label(name)}(idx={module.layer_number})"
+            if module.lar_static_branch is not None:
+                entries.append((label, None, module.lar_static_branch))
+                continue
             a = module.alpha.item()
             p = 1.0 / (1.0 + math.exp(-a / _LAR_TAU))
-            entries.append((_layer_label(name), a, p))
+            p_sq_sum += p * p
+            entries.append((label, a, p))
     if not entries:
         return
+
+    loss_info = ""
+    if _LAR_LOSS_LOG:
+        ces = [x[0] for x in _LAR_LOSS_LOG]
+        regs = [x[1] for x in _LAR_LOSS_LOG]
+        _LAR_LOSS_LOG.clear()
+        avg_ce = sum(ces) / len(ces)
+        avg_reg = sum(regs) / len(regs)
+        pct = avg_reg / avg_ce * 100 if avg_ce > 0 else 0.0
+        loss_info = f"  CE={avg_ce:.3f}  reg={avg_reg:.4f}({pct:.1f}%)"
+
     vals = "  ".join(
+        f"{label}(static={p})" if a is None else
         f"{label}(a={a:+.4f},p={p:.3f},{'H' if a > 0 else 'L'})"
         for label, a, p in entries
     )
-    print(f"[LAR @ step {iteration} tau={_LAR_TAU:.3f}]  {vals}", flush=True)
+    print(f"[LAR @ step {iteration} tau={_LAR_TAU:.3f}  p²_sum={p_sq_sum:.3f}{loss_info}]  {vals}", flush=True)
 
 
 # ---------------------------------------------------------------------------
@@ -179,22 +318,45 @@ class ParallelSelfAttention(nn.Module):
                 f"lar_d_high ({self.d_high}) must be > lar_d_low ({self.d_low}) > 0"
             )
 
-        # Initialised to 0 → 50/50 soft mix at the start of training.
-        self.alpha = nn.Parameter(torch.zeros(1))
-
-        self.down_up_proj_high = nn.Sequential(
-            nn.Linear(neox_args.hidden_size, self.d_high, bias=False),
-            nn.Linear(self.d_high, neox_args.hidden_size, bias=False),
-        )
-        self.down_up_proj_low = nn.Sequential(
-            nn.Linear(neox_args.hidden_size, self.d_low, bias=False),
-            nn.Linear(self.d_low, neox_args.hidden_size, bias=False),
-        )
-        print(
-            f"[LAR] layer={layer_number} d_high={self.d_high} d_low={self.d_low} "
-            f"window={self.lskv_st_window_size}",
-            flush=True,
-        )
+        static_low_layers = list(getattr(neox_args, "lar_static_low_layers", None) or [])
+        if static_low_layers:
+            # Static routing: fix branch at init, no alpha parameter.
+            self.lar_static_branch = "L" if layer_number in static_low_layers else "H"
+            self.alpha = None
+            if self.lar_static_branch == "H":
+                self.down_up_proj_high = nn.Sequential(
+                    nn.Linear(neox_args.hidden_size, self.d_high, bias=False),
+                    nn.Linear(self.d_high, neox_args.hidden_size, bias=False),
+                )
+            else:
+                self.down_up_proj_low = nn.Sequential(
+                    nn.Linear(neox_args.hidden_size, self.d_low, bias=False),
+                    nn.Linear(self.d_low, neox_args.hidden_size, bias=False),
+                )
+            print(
+                f"[LAR] layer={layer_number} static={self.lar_static_branch} "
+                f"d={'high=' + str(self.d_high) if self.lar_static_branch == 'H' else 'low=' + str(self.d_low)} "
+                f"window={self.lskv_st_window_size}",
+                flush=True,
+            )
+        else:
+            # Dynamic LAR: learnable alpha, both branches.
+            self.lar_static_branch = None
+            self.lar_freeze_alpha = getattr(neox_args, "lar_freeze_alpha", False)
+            self.alpha = nn.Parameter(torch.zeros(1))
+            self.down_up_proj_high = nn.Sequential(
+                nn.Linear(neox_args.hidden_size, self.d_high, bias=False),
+                nn.Linear(self.d_high, neox_args.hidden_size, bias=False),
+            )
+            self.down_up_proj_low = nn.Sequential(
+                nn.Linear(neox_args.hidden_size, self.d_low, bias=False),
+                nn.Linear(self.d_low, neox_args.hidden_size, bias=False),
+            )
+            print(
+                f"[LAR] layer={layer_number} d_high={self.d_high} d_low={self.d_low} "
+                f"window={self.lskv_st_window_size}",
+                flush=True,
+            )
 
         # ---- Standard QKV projection ----
         self.query_key_value = mpu.ColumnParallelLinear(
@@ -282,11 +444,25 @@ class ParallelSelfAttention(nn.Module):
     # ------------------------------------------------------------------
 
     def _lt_hidden(self, hidden_states):
+        # Static routing: single branch, no alpha.
+        if self.lar_static_branch == "H":
+            return self.down_up_proj_high(hidden_states)
+        if self.lar_static_branch == "L":
+            return self.down_up_proj_low(hidden_states)
+        # Dynamic LAR.
         h_high = self.down_up_proj_high(hidden_states)
         h_low  = self.down_up_proj_low(hidden_states)
         if self.training:
+            if self.lar_freeze_alpha:
+                # Phase-1: alpha frozen at 0, p fixed at 0.5, no gradient through alpha.
+                return 0.5 * h_high + 0.5 * h_low
             p = torch.sigmoid(self.alpha.to(hidden_states.dtype) / _LAR_TAU)
-            return p * h_high + (1.0 - p) * h_low
+            h_soft = p * h_high + (1.0 - p) * h_low
+            if _LAR_USE_STE:
+                # STE: hard selection in forward, soft gradient in backward
+                h_hard = h_high if self.alpha.item() > 0 else h_low
+                return h_hard + (h_soft - h_soft.detach())
+            return h_soft
         else:
             return h_high if self.alpha.item() > 0 else h_low
 

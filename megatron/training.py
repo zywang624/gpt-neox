@@ -234,13 +234,53 @@ def forward_step(data_iterator, model, neox_args, timers, return_logits=False):
         outputs, (labels, loss_mask), _fp16=neox_args.fp16_lm_cross_entropy
     )
 
-    lar_lambda = getattr(neox_args, "lar_entropy_lambda", 0.0)
-    if getattr(neox_args, "use_lar_routing", False) and lar_lambda > 0.0:
-        from megatron.model.transformer_lar import collect_lar_entropy_reg
-        reg = collect_lar_entropy_reg(getattr(model, "module", model))
-        if torch.distributed.get_rank() == 0:
-            print(f"[LAR-REG] reg={reg.item():.4f}  lambda*reg={lar_lambda * reg.item():.6f}", flush=True)
-        loss = loss + lar_lambda * reg.to(loss.device)
+    if getattr(neox_args, "use_lar_routing", False):
+        lar_entropy_lambda         = getattr(neox_args, "lar_entropy_lambda", 0.0)
+        lar_p_sq_lambda            = getattr(neox_args, "lar_p_sq_lambda", 0.0)
+        lar_p_lambda               = getattr(neox_args, "lar_p_lambda", 0.0)
+        lar_logp_lambda            = getattr(neox_args, "lar_logp_lambda", 0.0)
+        lar_routing_entropy_lambda = getattr(neox_args, "lar_routing_entropy_lambda", 0.0)
+        lar_reg_start_step         = getattr(neox_args, "lar_reg_start_step", 0)
+        current_step               = getattr(neox_args, "iteration", 0)
+        # Phase-1: alpha frozen → loss is pure CE, skip all reg regardless of lambdas.
+        if getattr(neox_args, "lar_freeze_alpha", False):
+            reg_active = False
+        else:
+            reg_active = current_step >= lar_reg_start_step
+        if not reg_active and lar_reg_start_step > 0 and torch.distributed.get_rank() == 0:
+            print(f"[LAR-REG] step {current_step} < lar_reg_start_step {lar_reg_start_step}, skipping reg", flush=True)
+        if reg_active and (lar_entropy_lambda > 0.0 or lar_p_sq_lambda > 0.0 or lar_p_lambda > 0.0 or lar_logp_lambda > 0.0 or lar_routing_entropy_lambda > 0.0):
+            from megatron.model.transformer_lar import (
+                collect_lar_entropy_reg,
+                collect_lar_p_sq_reg,
+                collect_lar_p_reg,
+                collect_lar_logp_reg,
+                collect_lar_routing_entropy_reg,
+            )
+            base_model = getattr(model, "module", model)
+            reg_entropy         = collect_lar_entropy_reg(base_model)         if lar_entropy_lambda         > 0.0 else None
+            reg_p_sq            = collect_lar_p_sq_reg(base_model)            if lar_p_sq_lambda            > 0.0 else None
+            reg_p               = collect_lar_p_reg(base_model)               if lar_p_lambda               > 0.0 else None
+            reg_logp            = collect_lar_logp_reg(base_model)            if lar_logp_lambda            > 0.0 else None
+            reg_routing_entropy = collect_lar_routing_entropy_reg(base_model) if lar_routing_entropy_lambda > 0.0 else None
+            if torch.distributed.get_rank() == 0:
+                ce_str   = f"ce_loss={loss.item():.4f}"
+                e_str    = f"entropy_reg={reg_entropy.item():.4f} λ*e={lar_entropy_lambda*reg_entropy.item():.6f}"                           if reg_entropy         is not None else ""
+                p_str    = f"p_sq_reg={reg_p_sq.item():.4f} λ*p²={lar_p_sq_lambda*reg_p_sq.item():.6f}"                                     if reg_p_sq            is not None else ""
+                pl_str   = f"p_reg={reg_p.item():.4f} λ*p={lar_p_lambda*reg_p.item():.6f}"                                                   if reg_p               is not None else ""
+                logp_str = f"logp_reg={reg_logp.item():.4f} λ*logp={lar_logp_lambda*reg_logp.item():.6f}"                                    if reg_logp            is not None else ""
+                re_str   = f"routing_entropy={reg_routing_entropy.item():.4f} λ*H={lar_routing_entropy_lambda*reg_routing_entropy.item():.6f}" if reg_routing_entropy is not None else ""
+                print(f"[LAR-REG] {ce_str}  {e_str}  {p_str}  {pl_str}  {logp_str}  {re_str}", flush=True)
+            if reg_entropy is not None:
+                loss = loss + lar_entropy_lambda * reg_entropy.to(loss.device)
+            if reg_p_sq is not None:
+                loss = loss + lar_p_sq_lambda * reg_p_sq.to(loss.device)
+            if reg_p is not None:
+                loss = loss + lar_p_lambda * reg_p.to(loss.device)
+            if reg_logp is not None:
+                loss = loss + lar_logp_lambda * reg_logp.to(loss.device)
+            if reg_routing_entropy is not None:
+                loss = loss + lar_routing_entropy_lambda * reg_routing_entropy.to(loss.device)
 
     if return_logits:
         return loss, outputs
@@ -542,7 +582,19 @@ def train_step_pipe(neox_args, timers, model, data_iterator):
     """Single training step with DeepSpeed's pipeline parallel engine."""
 
     assert neox_args.deepspeed
+
+    # Store model ref so cross_entropy can recompute reg fresh each micro-batch.
+    # (Caching the tensor itself causes "backward through graph twice" with grad_accum > 1.)
+    if getattr(neox_args, "use_lar_routing", False):
+        from megatron.model.transformer_lar import set_lar_model_ref
+        set_lar_model_ref(getattr(model, "module", model))
+
     loss = model.train_batch(data_iter=data_iterator)
+
+    if getattr(neox_args, "use_lar_routing", False):
+        from megatron.model.transformer_lar import set_lar_model_ref
+        set_lar_model_ref(None)
+
     loss_dict = {"lm_loss": loss}
     # Don't break Megatron's timers because we changed code paths.
     for t in [
@@ -568,6 +620,13 @@ def train(
 ):
     """Train the model function."""
 
+    # Initialise LAR STE global flag once at training start.
+    if getattr(neox_args, "use_lar_routing", False) and getattr(neox_args, "lar_use_ste", False):
+        from megatron.model.transformer_lar import update_lar_use_ste
+        update_lar_use_ste(True)
+        if torch.distributed.get_rank() == 0:
+            print("[LAR] STE mode enabled", flush=True)
+
     # Turn on training mode which enables dropout.
     model.train()
 
@@ -586,6 +645,11 @@ def train(
     # to monitor if we've skipped many iterations in a row and trigger an early exit
     overflow_monitor = OverflowMonitor(optimizer)
     while iteration < neox_args.train_iters:
+        neox_args.iteration = iteration  # expose current step to forward_step for lar_reg_start_step
+        if getattr(neox_args, "use_lar_routing", False):
+            from megatron.model.transformer_lar import update_lar_reg_active
+            lar_reg_start = getattr(neox_args, "lar_reg_start_step", 0)
+            update_lar_reg_active(iteration >= lar_reg_start)
         loss_dict, skipped_iter = train_step(
             neox_args=neox_args,
             timers=timers,
@@ -602,12 +666,18 @@ def train(
             and getattr(neox_args, "lar_use_annealing", False)
         ):
             from megatron.model.transformer_lar import compute_lar_tau, update_lar_tau
-            tau = compute_lar_tau(
-                iteration,
-                neox_args.train_iters,
-                getattr(neox_args, "lar_tau_start", 1.0),
-                getattr(neox_args, "lar_tau_end", 0.1),
-            )
+            anneal_start = getattr(neox_args, "lar_anneal_start_step", 0)
+            tau_start    = getattr(neox_args, "lar_tau_start", 1.0)
+            tau_end      = getattr(neox_args, "lar_tau_end", 0.1)
+            if iteration < anneal_start:
+                tau = tau_start
+            else:
+                tau = compute_lar_tau(
+                    iteration - anneal_start,
+                    neox_args.train_iters - anneal_start,
+                    tau_start,
+                    tau_end,
+                )
             update_lar_tau(tau)
 
         overflow_monitor.check(skipped_iter)  # check for repeated overflow

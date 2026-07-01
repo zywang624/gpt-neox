@@ -150,3 +150,7 @@ test_logs/
 logs/
 tensorboard/
 src/
+
+# LAR training output logs
+pythia_layer_wise/*_output_*.txt
+pythia-*_output_*.txt
