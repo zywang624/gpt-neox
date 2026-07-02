@@ -46,8 +46,8 @@
 
   # batch size: 8 × 16 × 8 GPUs = 1024 sequences × 2048 = 2.1M tokens/step
   # 5000 steps × 2.1M ≈ 10.5B tokens  (matches vanilla 5000-step checkpoint)
-  "train_micro_batch_size_per_gpu": 8,
-  "gradient_accumulation_steps": 16,
+  "train_micro_batch_size_per_gpu": 16,
+  "gradient_accumulation_steps": 8,
   "data-impl": "mmap",
   "num_workers": 1,
 
@@ -71,8 +71,8 @@
     "min_loss_scale": 1
   },
 
-  "train-iters": 5000,
-  "lr-decay-iters": 5000,
+  "train-iters": 5450,
+  "lr-decay-iters": 5450,
   "distributed-backend": "nccl",
   "lr-decay-style": "cosine",
   "warmup": 0.01,
@@ -85,12 +85,12 @@
   "steps_per_print": 10,
   "wall_clock_breakdown": true,
 
-  "train-data-paths": ["/workspace/pythia/pythia_deduped_pile_idxmaps/pile_0.87_deduped_text_document"],
-  "valid-data-paths": ["/workspace/pythia/pythia_deduped_pile_idxmaps/pile_0.87_deduped_text_document"],
-  "test-data-paths":  ["/workspace/pythia/pythia_deduped_pile_idxmaps/pile_0.87_deduped_text_document"],
+  "train-data-paths": ["/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document"],
+  "valid-data-paths": ["/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document"],
+  "test-data-paths": ["/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document"],
 
   "tokenizer-type": "HFTokenizer",
-  "vocab-file": "/workspace/pythia/pythia_deduped_pile_idxmaps/20B_tokenizer.json",
+  "vocab-file": "/workspace/pythia/pythia_pile_idxmaps/20B_tokenizer.json",
 
   "launcher": "slurm",
   "deepspeed_slurm": false,
@@ -113,6 +113,6 @@
   "lar_d_low": 96,
   "lar_static_low_layers": [0, 1, 2, 3, 5, 6, 7, 9],
 
-  "global_num_gpus": 8,
-  "include": "localhost:0,1,2,3,4,5,6,7",
+  "global_num_gpus": 7,
+  "include": "localhost:1,2,3,4,5,6,7",
 }
