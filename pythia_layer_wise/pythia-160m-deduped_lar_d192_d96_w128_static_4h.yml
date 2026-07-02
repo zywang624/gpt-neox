@@ -95,8 +95,8 @@
   "launcher": "slurm",
   "deepspeed_slurm": false,
 
-  "save": "/workspace/pythia_160m_lar_d192_d96_w128_static_4h_checkpoints",
-  "load": "/workspace/pythia_160m_lar_d192_d96_w128_static_4h_checkpoints",
+  "save": "/workspace/pythia_160m_lar_d192_d96_w128_static_4h_iee_checkpoints",
+  "load": "/workspace/pythia_160m_lar_d192_d96_w128_static_4h_iee_checkpoints",
   "checkpoint_validation_with_forward_pass": False,
 
   # ===== LSKV window =====
