@@ -1,4 +1,0 @@
-Traceback (most recent call last):
-  File "/share/edc/home/zwang796/code/ls_kv/ppl/train_pythia/gpt-neox/deepy.py", line 19, in <module>
-    import deepspeed
-ModuleNotFoundError: No module named 'deepspeed'
