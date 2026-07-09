@@ -172,7 +172,9 @@ def convert(input_checkpoint_path, loaded_config, output_checkpoint_path):
     ### End Embedding Layer ###
 
     # lar_static_low_layers: list of layer_number indices statically routed to L-branch
-    static_low_layers = set(get_key(loaded_config, "lar_static_low_layers", None) or [])
+    _raw_static_low_layers = get_key(loaded_config, "lar_static_low_layers", None)
+    static_low_layers = set(_raw_static_low_layers or [])
+    is_static = _raw_static_low_layers is not None
 
     for layer_i in tqdm(range(get_key(loaded_config, "num-layers"))):
 
@@ -219,7 +221,7 @@ def convert(input_checkpoint_path, loaded_config, output_checkpoint_path):
             state_dict[key] = sum([t[key] for t in loaded_tp_ranks])
 
         # LAR weights — not MP-parallel, take rank 0
-        if static_low_layers:
+        if is_static:
             # Static routing: one branch per layer, no alpha in checkpoint.
             # Simulate with large |alpha| so soft-mix ≈ hard selection.
             rank0 = loaded_tp_ranks[0]

@@ -318,8 +318,9 @@ class ParallelSelfAttention(nn.Module):
                 f"lar_d_high ({self.d_high}) must be > lar_d_low ({self.d_low}) > 0"
             )
 
-        static_low_layers = list(getattr(neox_args, "lar_static_low_layers", None) or [])
-        if static_low_layers:
+        _raw_static_low_layers = getattr(neox_args, "lar_static_low_layers", None)
+        static_low_layers = list(_raw_static_low_layers or [])
+        if _raw_static_low_layers is not None:
             # Static routing: fix branch at init, no alpha parameter.
             self.lar_static_branch = "L" if layer_number in static_low_layers else "H"
             self.alpha = None
