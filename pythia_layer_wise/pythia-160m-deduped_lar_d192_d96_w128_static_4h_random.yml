@@ -1,0 +1,122 @@
+{
+  # parallelism
+  "pipe-parallel-size": 1,
+  "model-parallel-size": 1,
+
+  # model settings (160M)
+  "num-layers": 12,
+  "hidden-size": 768,
+  "num-attention-heads": 12,
+  "seq-length": 2048,
+  "max-position-embeddings": 2048,
+  "pos-emb": "rotary",
+  "rotary-pct": 0.25,
+  "no-weight-tying": true,
+  "gpt-j-residual": true,
+  "output-layer-parallelism": "column",
+
+  "attention-config": [[["global"], 12]],
+
+  "scaled-upper-triang-masked-softmax-fusion": false,
+  "bias-gelu-fusion": false,
+
+  "init_method": "small_init",
+  "output_layer_init_method": "wang_init",
+
+  "optimizer": {
+    "type": "Adam",
+    "params": {
+      "lr": 0.0006,
+      "betas": [0.9, 0.95],
+      "eps": 1.0e-8
+    }
+  },
+  "min_lr": 0.00006,
+
+  "zero_optimization": {
+    "stage": 1,
+    "allgather_partitions": true,
+    "allgather_bucket_size": 500000000,
+    "overlap_comm": true,
+    "reduce_scatter": true,
+    "reduce_bucket_size": 500000000,
+    "contiguous_gradients": true,
+    "cpu_offload": false
+  },
+
+  # batch size: 8 × 16 × 8 GPUs = 1024 sequences × 2048 = 2.1M tokens/step
+  # 5000 steps × 2.1M ≈ 10.5B tokens  (matches vanilla 5000-step checkpoint)
+  "train_micro_batch_size_per_gpu": 8,
+  "gradient_accumulation_steps": 16,
+  "data-impl": "mmap",
+  "num_workers": 1,
+
+  "checkpoint-activations": true,
+  "checkpoint-num-layers": 1,
+  "partition-activations": true,
+  "synchronize-each-layer": true,
+
+  "gradient_clipping": 1.0,
+  "weight-decay": 0.1,
+  "hidden-dropout": 0,
+  "attention-dropout": 0,
+
+  "fp16": {
+    "fp16": true,
+    "enabled": true,
+    "loss_scale": 0,
+    "loss_scale_window": 1000,
+    "initial_scale_power": 12,
+    "hysteresis": 2,
+    "min_loss_scale": 1
+  },
+
+  "train-iters": 5000,
+  "lr-decay-iters": 5000,
+  "distributed-backend": "nccl",
+  "lr-decay-style": "cosine",
+  "warmup": 0.01,
+  "checkpoint-factor": 1000,
+  "extra-save-iters": [0,1,2,4,8,16,32,64,128,256,512],
+  "eval-interval": 1000,
+  "eval-iters": 10,
+
+  "log-interval": 10,
+  "steps_per_print": 10,
+  "wall_clock_breakdown": true,
+
+  "train-data-paths": ["/workspace/pythia/pythia_deduped_pile_idxmaps/pile_0.87_deduped_text_document"],
+  "valid-data-paths": ["/workspace/pythia/pythia_deduped_pile_idxmaps/pile_0.87_deduped_text_document"],
+  "test-data-paths":  ["/workspace/pythia/pythia_deduped_pile_idxmaps/pile_0.87_deduped_text_document"],
+
+  "tokenizer-type": "HFTokenizer",
+  "vocab-file": "/workspace/pythia/pythia_deduped_pile_idxmaps/20B_tokenizer.json",
+
+  "launcher": "slurm",
+  "deepspeed_slurm": false,
+
+  "save": "/workspace/pythia_160m_lar_d192_d96_w128_static_4h_random_checkpoints",
+  "load": "/workspace/pythia_160m_lar_d192_d96_w128_static_4h_random_checkpoints",
+  "checkpoint_validation_with_forward_pass": False,
+
+  # ===== LSKV window =====
+  "lskv_window_size": 128,
+
+  # ===== LAR — static routing: 4H + 8L, FULLY RANDOM layer choice (baseline) =====
+  # Same 4H/8L ratio as the ranking-based static_4h run, but which 4 layers
+  # go H was chosen with random.seed(42); random.sample(range(12), 4) --
+  # completely dissociated from the phase-2 stable ranking {L5, L9, L11, L12},
+  # unlike shift1 (systematic -1 shift) or swap_l5 (single-layer swap).
+  # H layers (1-indexed): L1, L2, L5, L11 →  0-indexed layer_number 0, 1, 4, 10
+  # L layers (1-indexed): L3,L4,L6-L10,L12 → 0-indexed layer_number 2, 3, 5, 6, 7, 8, 9, 11
+  # lar_static_low_layers is checked against layer_number (0-indexed transformer
+  # layer index, see neox_args.py docstring), NOT the pipeline stage number;
+  # any layer_number NOT listed automatically goes H.
+  "use_lar_routing": true,
+  "lar_d_high": 192,
+  "lar_d_low": 96,
+  "lar_static_low_layers": [2, 3, 5, 6, 7, 8, 9, 11],
+
+  "global_num_gpus": 8,
+  "include": "localhost:0,1,2,3,4,5,6,7",
+}
