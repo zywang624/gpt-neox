@@ -150,3 +150,6 @@ test_logs/
 logs/
 tensorboard/
 src/
+
+# LSKV training output logs
+pythia_lskv_configs/*_output_*.txt

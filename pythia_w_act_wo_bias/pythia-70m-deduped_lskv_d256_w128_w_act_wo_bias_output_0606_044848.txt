@@ -1,0 +1,1635 @@
+fatal: detected dubious ownership in repository at '/workspace/gpt-neox'
+To add an exception for this directory, call:
+
+	git config --global --add safe.directory /workspace/gpt-neox
+NeoXArgs.from_ymls() ['pythia_w_act_wo_bias/pythia-70m-deduped_lskv_d256_w128_w_act_wo_bias.yml']
+INFO:root:NeoXArgs.calculate_derived() Total number of GPUs determined to be: 8
+-------------------- arguments --------------------
+  attention_config ................ ['global', 'global', 'global', 'global', 'global', 'global']updated
+  attention_dropout ............... 0...........................updated
+  batch_size ...................... 16..........................updated
+  bias_gelu_fusion ................ True........................updated
+  checkpoint_activations .......... True........................updated
+  checkpoint_factor ............... 1000........................updated
+  clip_grad ....................... 1.0.........................updated
+  config_files .................... {'pythia-70m-deduped_lskv_d256_w128_w_act_wo_bias.yml': '{\n  # parallelism settings\n  "pipe-parallel-size": 1,\n  "model-parallel-size": 1,\n\n  # model settings (pythia-70m)\n  "num-layers": 6,\n  "hidden-size": 512,\n  "num-attention-heads": 8,\n  "seq-length": 2048,\n  "max-position-embeddings": 2048,\n  "pos-emb": "rotary",\n  "rotary-pct": 0.25,\n  "no-weight-tying": true,\n  "gpt-j-residual": true,\n  "output-layer-parallelism": "column",\n\n  "attention-config": [[["global"], 6]],\n\n  "scaled-upper-triang-masked-softmax-fusion": true,\n  "bias-gelu-fusion": true,\n\n  # init methods\n  "init_method": "small_init",\n  "output_layer_init_method": "wang_init",\n\n  "optimizer": {\n    "type": "Adam",\n    "params": {\n      "lr": 0.001,\n      "betas": [0.9, 0.95],\n      "eps": 1.0e-8\n    }\n  },\n  "min_lr": 0.0001,\n\n  "zero_optimization": {\n    "stage": 1,\n    "allgather_partitions": true,\n    "allgather_bucket_size": 500000000,\n    "overlap_comm": true,\n    "reduce_scatter": true,\n    "reduce_bucket_size": 500000000,\n    "contiguous_gradients": true,\n    "cpu_offload": false\n  },\n\n  # batch size: 16 × 2 × 8 = 256\n  "train_micro_batch_size_per_gpu": 16,\n  "gradient_accumulation_steps": 2,\n  "data-impl": "mmap",\n  "num_workers": 1,\n\n  # activation checkpointing\n  "checkpoint-activations": true,\n  "checkpoint-num-layers": 1,\n  "partition-activations": true,\n  "synchronize-each-layer": true,\n\n  # regularization\n  "gradient_clipping": 1.0,\n  "weight-decay": 0.1,\n  "hidden-dropout": 0,\n  "attention-dropout": 0,\n\n  # precision settings\n  "fp16": {\n    "fp16": true,\n    "enabled": true,\n    "loss_scale": 0,\n    "loss_scale_window": 1000,\n    "initial_scale_power": 12,\n    "hysteresis": 2,\n    "min_loss_scale": 1\n  },\n\n  # ~10B tokens: 19073 × 256 × 2048 ≈ 10B\n  "train-iters": 19073,\n  "lr-decay-iters": 19073,\n  "distributed-backend": "nccl",\n  "lr-decay-style": "cosine",\n  "warmup": 0.01,\n  "checkpoint-factor": 1000,\n  "extra-save-iters": [0,1,2,4,8,16,32,64,128,256,512],\n  "eval-interval": 1000,\n  "eval-iters": 10,\n\n  "log-interval": 10,\n  "steps_per_print": 10,\n  "wall_clock_breakdown": true,\n\n  "train-data-paths": ["/workspace/pythia/pythia_deduped_pile_idxmaps/pile_0.87_deduped_text_document"],\n  "valid-data-paths": ["/workspace/pythia/pythia_deduped_pile_idxmaps/pile_0.87_deduped_text_document"],\n  "test-data-paths":  ["/workspace/pythia/pythia_deduped_pile_idxmaps/pile_0.87_deduped_text_document"],\n\n  "tokenizer-type": "HFTokenizer",\n  "vocab-file": "/workspace/pythia/pythia_deduped_pile_idxmaps/20B_tokenizer.json",\n\n  "launcher": "slurm",\n  "deepspeed_slurm": false,\n\n  "save": "/workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints",\n  "load": "/workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints",\n\n  "checkpoint_validation_with_forward_pass": False,\n  "lskv_window_size": 128,\n  "lskv_bottleneck_dim": 256,\n  "lskv_use_act": true,\n\n  "global_num_gpus": 8,\n  "include": "localhost:0,1,2,3,4,5,6,7",\n}\n'}updated
+  data_impl ....................... mmap........................updated
+  dynamic_loss_scale .............. True........................updated
+  eval_iters ...................... 10..........................updated
+  extra_save_iters ................ [0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512]updated
+  fp16 ............................ {'fp16': True, 'enabled': True, 'loss_scale': 0, 'loss_scale_window': 1000, 'initial_scale_power': 12, 'hysteresis': 2, 'min_loss_scale': 1}updated
+  gas ............................. 2...........................updated
+  global_num_gpus ................. 8...........................updated
+  gpt_j_residual .................. True........................updated
+  gradient_accumulation_steps ..... 2...........................updated
+  gradient_clipping ............... 1.0.........................updated
+  hidden_dropout .................. 0...........................updated
+  hidden_size ..................... 512.........................updated
+  include ......................... localhost:0,1,2,3,4,5,6,7...updated
+  init_method ..................... small_init..................updated
+  is_pipe_parallel ................ True........................updated
+  launcher ........................ slurm.......................updated
+  load ............................ /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpointsupdated
+  log_interval .................... 10..........................updated
+  lr .............................. 0.001.......................updated
+  lr_decay_iters .................. 19073.......................updated
+  lr_decay_style .................. cosine......................updated
+  lskv_bottleneck_dim ............. 256.........................updated
+  lskv_use_act .................... True........................updated
+  lskv_window_size ................ 128.........................updated
+  max_position_embeddings ......... 2048........................updated
+  min_lr .......................... 0.0001......................updated
+  no_weight_tying ................. True........................updated
+  num_attention_heads ............. 8...........................updated
+  num_layers ...................... 6...........................updated
+  num_workers ..................... 1...........................updated
+  optimizer ....................... {'type': 'Adam', 'params': {'lr': 0.001, 'betas': [0.9, 0.95], 'eps': 1e-08}}updated
+  optimizer_type .................. Adam........................updated
+  output_layer_init_method ........ wang_init...................updated
+  output_layer_parallelism ........ column......................updated
+  partition_activations ........... True........................updated
+  pipe_parallel_size .............. 1...........................updated
+  pos_emb ......................... rotary......................updated
+  precision ....................... fp16........................updated
+  rotary_pct ...................... 0.25........................updated
+  save ............................ /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpointsupdated
+  save_iters ...................... [0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 11000, 12000, 13000, 14000, 15000, 16000, 17000, 18000, 19000]updated
+  scaled_upper_triang_masked_softmax_fusion  True...............updated
+  seq_length ...................... 2048........................updated
+  sparsity_config ................. {}..........................updated
+  synchronize_each_layer .......... True........................updated
+  test_data_paths ................. ['/workspace/pythia/pythia_deduped_pile_idxmaps/pile_0.87_deduped_text_document']updated
+  test_data_weights ............... [1.0].......................updated
+  text_gen_type ................... unconditional...............updated
+  tokenizer_type .................. HFTokenizer.................updated
+  train_batch_size ................ 256.........................updated
+  train_data_paths ................ ['/workspace/pythia/pythia_deduped_pile_idxmaps/pile_0.87_deduped_text_document']updated
+  train_data_weights .............. [1.0].......................updated
+  train_iters ..................... 19073.......................updated
+  train_micro_batch_size_per_gpu .. 16..........................updated
+  user_script ..................... train.py....................updated
+  valid_data_paths ................ ['/workspace/pythia/pythia_deduped_pile_idxmaps/pile_0.87_deduped_text_document']updated
+  valid_data_weights .............. [1.0].......................updated
+  vocab_file ...................... /workspace/pythia/pythia_deduped_pile_idxmaps/20B_tokenizer.jsonupdated
+  wall_clock_breakdown ............ True........................updated
+  wandb_group ..................... Qh8USyopY6CRRUYPee4C8P_mdh5mdq6updated
+  weight_decay .................... 0.1.........................updated
+  zero_allgather_bucket_size ...... 500000000...................updated
+  zero_contiguous_gradients ....... True........................updated
+  zero_optimization ............... {'stage': 1, 'allgather_partitions': True, 'allgather_bucket_size': 500000000, 'overlap_comm': True, 'reduce_scatter': True, 'reduce_bucket_size': 500000000, 'contiguous_gradients': True, 'cpu_offload': False}updated
+  zero_reduce_bucket_size ......... 500000000...................updated
+  zero_reduce_scatter ............. True........................updated
+  zero_stage ...................... 1...........................updated
+  activation ...................... gelu........................default
+  adlr_autoresume ................. False.......................default
+  adlr_autoresume_interval ........ 1000........................default
+  alpha_hard_inference ............ False.......................default
+  alpha_hard_routing .............. False.......................default
+  alpha_hard_threshold ............ 0.5.........................default
+  alpha_lookup_path ............... None........................default
+  alpha_lookup_random_init ........ False.......................default
+  alpha_lookup_random_p ........... 0.5.........................default
+  alpha_lookup_random_seed ........ 0...........................default
+  alpha_reg_coef .................. 0.0.........................default
+  alpha_ste ....................... False.......................default
+  alpha_ste_grad_coef ............. 1.0.........................default
+  amp ............................. None........................default
+  apply_query_key_layer_scaling ... False.......................default
+  attention_softmax_in_fp32 ....... False.......................default
+  bias_dropout_fusion ............. False.......................default
+  char_level_ppl .................. False.......................default
+  checkpoint_in_cpu ............... False.......................default
+  checkpoint_num_layers ........... 1...........................default
+  checkpoint_scale ................ linear......................default
+  checkpoint_validation_with_forward_pass  False................default
+  comment ......................... None........................default
+  contiguous_checkpointing ........ False.......................default
+  data_path ....................... None........................default
+  deepscale ....................... False.......................default
+  deepscale_config ................ None........................default
+  deepspeed ....................... True........................default
+  deepspeed_activation_checkpointing  True......................default
+  deepspeed_mpi ................... False.......................default
+  deepspeed_slurm ................. False.......................default
+  detect_nvlink_pairs ............. False.......................default
+  distributed_backend ............. nccl........................default
+  do_test ......................... None........................default
+  do_train ........................ None........................default
+  do_valid ........................ None........................default
+  dump_state ...................... False.......................default
+  eod_mask_loss ................... False.......................default
+  eval_interval ................... 1000........................default
+  eval_results_prefix ............. ............................default
+  eval_tasks ...................... None........................default
+  exclude ......................... None........................default
+  exit_interval ................... None........................default
+  finetune ........................ False.......................default
+  flops_profiler .................. None........................default
+  fp16_lm_cross_entropy ........... False.......................default
+  fp32_allreduce .................. False.......................default
+  git_hash ........................ None........................default
+  gmlp_attn_dim ................... 64..........................default
+  gpt_j_tied ...................... False.......................default
+  gradient_noise_scale_cpu_offload  False.......................default
+  gradient_noise_scale_n_batches .. 5...........................default
+  gradient_predivide_factor ....... 1.0.........................default
+  hostfile ........................ None........................default
+  hysteresis ...................... 2...........................default
+  init_method_std ................. 0.02........................default
+  iteration ....................... None........................default
+  keep_last_n_checkpoints ......... None........................default
+  layernorm_epsilon ............... 1e-05.......................default
+  lazy_mpu_init ................... False.......................default
+  local_rank ...................... None........................default
+  log_dir ......................... None........................default
+  log_grad_norm ................... False.......................default
+  log_grad_pct_zeros .............. False.......................default
+  log_gradient_noise_scale ........ False.......................default
+  log_optimizer_states ............ False.......................default
+  log_param_norm .................. False.......................default
+  loss_scale ...................... None........................default
+  loss_scale_window ............... 1000.0......................default
+  make_vocab_size_divisible_by .... 128.........................default
+  master_addr ..................... None........................default
+  master_port ..................... 29500.......................default
+  maximum_tokens .................. 64..........................default
+  merge_file ...................... None........................default
+  min_scale ....................... 1.0.........................default
+  mmap_warmup ..................... False.......................default
+  model_parallel_size ............. 1...........................default
+  no_load_optim ................... False.......................default
+  no_load_rng ..................... False.......................default
+  no_save_optim ................... False.......................default
+  no_save_rng ..................... False.......................default
+  norm ............................ layernorm...................default
+  num_gpus ........................ None........................default
+  num_nodes ....................... -1..........................default
+  num_samples ..................... 1...........................default
+  num_unique_layers ............... None........................default
+  onnx_safe ....................... False.......................default
+  opt_pos_emb_offset .............. 0...........................default
+  override_lr_scheduler ........... False.......................default
+  padded_vocab_size ............... None........................default
+  param_sharing_style ............. grouped.....................default
+  pipe_partition_method ........... type:transformer|mlp........default
+  prescale_gradients .............. False.......................default
+  profile_backward ................ False.......................default
+  prompt_end ...................... 
+...........................default
+  rank ............................ None........................default
+  recompute ....................... False.......................default
+  return_logits ................... False.......................default
+  rms_norm_epsilon ................ 1e-08.......................default
+  rotary_emb_base ................. 10000.......................default
+  rpe_max_distance ................ 128.........................default
+  rpe_num_buckets ................. 32..........................default
+  sample_input_file ............... None........................default
+  sample_output_file .............. samples.txt.................default
+  scaled_masked_softmax_fusion .... False.......................default
+  scalenorm_epsilon ............... 1e-08.......................default
+  scheduler ....................... None........................default
+  seed ............................ 1234........................default
+  short_seq_prob .................. 0.1.........................default
+  soft_prompt_tuning .............. None........................default
+  sparse_gradients ................ False.......................default
+  split ........................... 969, 30, 1..................default
+  steps_per_print ................. 10..........................default
+  temperature ..................... 0.0.........................default
+  tensorboard_dir ................. None........................default
+  top_k ........................... 0...........................default
+  top_p ........................... 0.0.........................default
+  use_alpha_routing ............... False.......................default
+  use_bnb_optimizer ............... False.......................default
+  use_checkpoint_lr_scheduler ..... False.......................default
+  use_cpu_initialization .......... False.......................default
+  use_shared_fs ................... True........................default
+  use_wandb ....................... None........................default
+  wandb_host ...................... https://api.wandb.ai........default
+  wandb_init_all_ranks ............ False.......................default
+  wandb_project ................... neox........................default
+  wandb_team ...................... None........................default
+  warmup .......................... 0.01........................default
+  weight_by_num_documents ......... False.......................default
+  weighted_sampler_alpha .......... 0.3.........................default
+  world_size ...................... None........................default
+  zero_allow_untested_optimizer ... False.......................default
+---------------- end of arguments ----------------
+[2026-06-06 04:48:52,137] [WARNING] [runner.py:126:fetch_hostfile] Unable to find hostfile, will proceed with training with local resources only.
+[2026-06-06 04:48:52,137] [INFO] [runner.py:366:main] cmd = /usr/bin/python -u -m deepspeed.launcher.launch --world_info=eyJsb2NhbGhvc3QiOiBbMCwgMSwgMiwgMywgNCwgNSwgNiwgN119 --master_addr=127.0.0.1 --master_port=29500 train.py --deepspeed_config {"train_batch_size": 256, "train_micro_batch_size_per_gpu": 16, "gradient_accumulation_steps": 2, "optimizer": {"type": "Adam", "params": {"lr": 0.001, "betas": [0.9, 0.95], "eps": 1e-08}}, "fp16": {"fp16": true, "enabled": true, "loss_scale": 0, "loss_scale_window": 1000, "initial_scale_power": 12, "hysteresis": 2, "min_loss_scale": 1}, "gradient_clipping": 1.0, "zero_optimization": {"stage": 1, "allgather_partitions": true, "allgather_bucket_size": 500000000, "overlap_comm": true, "reduce_scatter": true, "reduce_bucket_size": 500000000, "contiguous_gradients": true, "cpu_offload": false}, "wall_clock_breakdown": true} --megatron_config {"include": "localhost:0,1,2,3,4,5,6,7", "launcher": "slurm", "train_batch_size": 256, "train_micro_batch_size_per_gpu": 16, "gradient_accumulation_steps": 2, "optimizer": {"type": "Adam", "params": {"lr": 0.001, "betas": [0.9, 0.95], "eps": 1e-08}}, "fp16": {"fp16": true, "enabled": true, "loss_scale": 0, "loss_scale_window": 1000, "initial_scale_power": 12, "hysteresis": 2, "min_loss_scale": 1}, "gradient_clipping": 1.0, "zero_optimization": {"stage": 1, "allgather_partitions": true, "allgather_bucket_size": 500000000, "overlap_comm": true, "reduce_scatter": true, "reduce_bucket_size": 500000000, "contiguous_gradients": true, "cpu_offload": false}, "wall_clock_breakdown": true, "precision": "fp16", "num_layers": 6, "hidden_size": 512, "num_attention_heads": 8, "seq_length": 2048, "max_position_embeddings": 2048, "pos_emb": "rotary", "no_weight_tying": true, "attention_config": ["global", "global", "global", "global", "global", "global"], "sparsity_config": {}, "scaled_upper_triang_masked_softmax_fusion": true, "bias_gelu_fusion": true, "rotary_pct": 0.25, "init_method": "small_init", "output_layer_init_method": "wang_init", "gpt_j_residual": true, "output_layer_parallelism": "column", "lr_decay_style": "cosine", "lr_decay_iters": 19073, "min_lr": 0.0001, "optimizer_type": "Adam", "zero_stage": 1, "zero_reduce_scatter": true, "zero_contiguous_gradients": true, "zero_reduce_bucket_size": 500000000, "zero_allgather_bucket_size": 500000000, "lr": 0.001, "tokenizer_type": "HFTokenizer", "train_data_paths": ["/workspace/pythia/pythia_deduped_pile_idxmaps/pile_0.87_deduped_text_document"], "test_data_paths": ["/workspace/pythia/pythia_deduped_pile_idxmaps/pile_0.87_deduped_text_document"], "valid_data_paths": ["/workspace/pythia/pythia_deduped_pile_idxmaps/pile_0.87_deduped_text_document"], "train_data_weights": [1.0], "valid_data_weights": [1.0], "test_data_weights": [1.0], "data_impl": "mmap", "save": "/workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints", "config_files": {"pythia-70m-deduped_lskv_d256_w128_w_act_wo_bias.yml": "{\n  # parallelism settings\n  \"pipe-parallel-size\": 1,\n  \"model-parallel-size\": 1,\n\n  # model settings (pythia-70m)\n  \"num-layers\": 6,\n  \"hidden-size\": 512,\n  \"num-attention-heads\": 8,\n  \"seq-length\": 2048,\n  \"max-position-embeddings\": 2048,\n  \"pos-emb\": \"rotary\",\n  \"rotary-pct\": 0.25,\n  \"no-weight-tying\": true,\n  \"gpt-j-residual\": true,\n  \"output-layer-parallelism\": \"column\",\n\n  \"attention-config\": [[[\"global\"], 6]],\n\n  \"scaled-upper-triang-masked-softmax-fusion\": true,\n  \"bias-gelu-fusion\": true,\n\n  # init methods\n  \"init_method\": \"small_init\",\n  \"output_layer_init_method\": \"wang_init\",\n\n  \"optimizer\": {\n    \"type\": \"Adam\",\n    \"params\": {\n      \"lr\": 0.001,\n      \"betas\": [0.9, 0.95],\n      \"eps\": 1.0e-8\n    }\n  },\n  \"min_lr\": 0.0001,\n\n  \"zero_optimization\": {\n    \"stage\": 1,\n    \"allgather_partitions\": true,\n    \"allgather_bucket_size\": 500000000,\n    \"overlap_comm\": true,\n    \"reduce_scatter\": true,\n    \"reduce_bucket_size\": 500000000,\n    \"contiguous_gradients\": true,\n    \"cpu_offload\": false\n  },\n\n  # batch size: 16 \u00d7 2 \u00d7 8 = 256\n  \"train_micro_batch_size_per_gpu\": 16,\n  \"gradient_accumulation_steps\": 2,\n  \"data-impl\": \"mmap\",\n  \"num_workers\": 1,\n\n  # activation checkpointing\n  \"checkpoint-activations\": true,\n  \"checkpoint-num-layers\": 1,\n  \"partition-activations\": true,\n  \"synchronize-each-layer\": true,\n\n  # regularization\n  \"gradient_clipping\": 1.0,\n  \"weight-decay\": 0.1,\n  \"hidden-dropout\": 0,\n  \"attention-dropout\": 0,\n\n  # precision settings\n  \"fp16\": {\n    \"fp16\": true,\n    \"enabled\": true,\n    \"loss_scale\": 0,\n    \"loss_scale_window\": 1000,\n    \"initial_scale_power\": 12,\n    \"hysteresis\": 2,\n    \"min_loss_scale\": 1\n  },\n\n  # ~10B tokens: 19073 \u00d7 256 \u00d7 2048 \u2248 10B\n  \"train-iters\": 19073,\n  \"lr-decay-iters\": 19073,\n  \"distributed-backend\": \"nccl\",\n  \"lr-decay-style\": \"cosine\",\n  \"warmup\": 0.01,\n  \"checkpoint-factor\": 1000,\n  \"extra-save-iters\": [0,1,2,4,8,16,32,64,128,256,512],\n  \"eval-interval\": 1000,\n  \"eval-iters\": 10,\n\n  \"log-interval\": 10,\n  \"steps_per_print\": 10,\n  \"wall_clock_breakdown\": true,\n\n  \"train-data-paths\": [\"/workspace/pythia/pythia_deduped_pile_idxmaps/pile_0.87_deduped_text_document\"],\n  \"valid-data-paths\": [\"/workspace/pythia/pythia_deduped_pile_idxmaps/pile_0.87_deduped_text_document\"],\n  \"test-data-paths\":  [\"/workspace/pythia/pythia_deduped_pile_idxmaps/pile_0.87_deduped_text_document\"],\n\n  \"tokenizer-type\": \"HFTokenizer\",\n  \"vocab-file\": \"/workspace/pythia/pythia_deduped_pile_idxmaps/20B_tokenizer.json\",\n\n  \"launcher\": \"slurm\",\n  \"deepspeed_slurm\": false,\n\n  \"save\": \"/workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints\",\n  \"load\": \"/workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints\",\n\n  \"checkpoint_validation_with_forward_pass\": False,\n  \"lskv_window_size\": 128,\n  \"lskv_bottleneck_dim\": 256,\n  \"lskv_use_act\": true,\n\n  \"global_num_gpus\": 8,\n  \"include\": \"localhost:0,1,2,3,4,5,6,7\",\n}\n"}, "load": "/workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints", "checkpoint_factor": 1000, "extra_save_iters": [0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512], "batch_size": 16, "train_iters": 19073, "eval_iters": 10, "vocab_file": "/workspace/pythia/pythia_deduped_pile_idxmaps/20B_tokenizer.json", "num_workers": 1, "attention_dropout": 0, "hidden_dropout": 0, "weight_decay": 0.1, "checkpoint_activations": true, "synchronize_each_layer": true, "partition_activations": true, "gas": 2, "clip_grad": 1.0, "dynamic_loss_scale": true, "pipe_parallel_size": 1, "is_pipe_parallel": true, "wandb_group": "Qh8USyopY6CRRUYPee4C8P_mdh5mdq6", "log_interval": 10, "text_gen_type": "unconditional", "user_script": "train.py", "save_iters": [0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 11000, 12000, 13000, 14000, 15000, 16000, 17000, 18000, 19000], "global_num_gpus": 8, "lskv_window_size": 128, "lskv_bottleneck_dim": 256, "lskv_use_act": true}
+[2026-06-06 04:48:53,315] [INFO] [launch.py:75:main] 0 NV_LIBNCCL_DEV_PACKAGE libnccl-dev=2.8.4-1+cuda11.1
+[2026-06-06 04:48:53,315] [INFO] [launch.py:75:main] 0 NV_LIBNCCL_DEV_PACKAGE_VERSION 2.8.4-1
+[2026-06-06 04:48:53,315] [INFO] [launch.py:75:main] 0 NCCL_VERSION 2.8.4-1
+[2026-06-06 04:48:53,315] [INFO] [launch.py:75:main] 0 NV_LIBNCCL_DEV_PACKAGE_NAME libnccl-dev
+[2026-06-06 04:48:53,315] [INFO] [launch.py:75:main] 0 NV_LIBNCCL_PACKAGE libnccl2=2.8.4-1+cuda11.1
+[2026-06-06 04:48:53,315] [INFO] [launch.py:75:main] 0 NV_LIBNCCL_PACKAGE_NAME libnccl2
+[2026-06-06 04:48:53,315] [INFO] [launch.py:75:main] 0 NV_LIBNCCL_PACKAGE_VERSION 2.8.4-1
+[2026-06-06 04:48:53,315] [INFO] [launch.py:82:main] WORLD INFO DICT: {'localhost': [0, 1, 2, 3, 4, 5, 6, 7]}
+[2026-06-06 04:48:53,315] [INFO] [launch.py:88:main] nnodes=1, num_local_procs=8, node_rank=0
+[2026-06-06 04:48:53,315] [INFO] [launch.py:103:main] global_rank_mapping=defaultdict(<class 'list'>, {'localhost': [0, 1, 2, 3, 4, 5, 6, 7]})
+[2026-06-06 04:48:53,315] [INFO] [launch.py:104:main] dist_world_size=8
+[2026-06-06 04:48:53,315] [INFO] [launch.py:112:main] Setting CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
+fatal: detected dubious ownership in repository at '/workspace/gpt-neox'
+To add an exception for this directory, call:
+
+	git config --global --add safe.directory /workspace/gpt-neox
+fatal: detected dubious ownership in repository at '/workspace/gpt-neox'
+To add an exception for this directory, call:
+
+	git config --global --add safe.directory /workspace/gpt-neox
+fatal: detected dubious ownership in repository at '/workspace/gpt-neox'
+To add an exception for this directory, call:
+
+	git config --global --add safe.directory /workspace/gpt-neox
+fatal: detected dubious ownership in repository at '/workspace/gpt-neox'
+To add an exception for this directory, call:
+
+	git config --global --add safe.directory /workspace/gpt-neox
+fatal: detected dubious ownership in repository at '/workspace/gpt-neox'
+To add an exception for this directory, call:
+
+	git config --global --add safe.directory /workspace/gpt-neox
+fatal: detected dubious ownership in repository at '/workspace/gpt-neox'
+To add an exception for this directory, call:
+
+	git config --global --add safe.directory /workspace/gpt-neox
+fatal: detected dubious ownership in repository at '/workspace/gpt-neox'
+To add an exception for this directory, call:
+
+	git config --global --add safe.directory /workspace/gpt-neox
+fatal: detected dubious ownership in repository at '/workspace/gpt-neox'
+To add an exception for this directory, call:
+
+	git config --global --add safe.directory /workspace/gpt-neox
+NeoXArgs.configure_distributed_args() using world size: 8 and model-parallel size: 1 
+> building HFTokenizer tokenizer ...
+ > padded vocab (size: 50277) with 27 dummy tokens (new size: 50304)
+> initializing torch distributed ...
+[2026-06-06 04:48:58,944] [INFO] [distributed.py:46:init_distributed] Initializing torch distributed with backend: nccl
+[2026-06-06 04:48:58,945] [INFO] [distributed.py:46:init_distributed] Initializing torch distributed with backend: nccl
+[2026-06-06 04:48:58,947] [INFO] [distributed.py:46:init_distributed] Initializing torch distributed with backend: nccl
+[2026-06-06 04:48:58,948] [INFO] [distributed.py:46:init_distributed] Initializing torch distributed with backend: nccl
+[2026-06-06 04:48:58,949] [INFO] [distributed.py:46:init_distributed] Initializing torch distributed with backend: nccl
+[2026-06-06 04:48:58,951] [INFO] [distributed.py:46:init_distributed] Initializing torch distributed with backend: nccl
+[2026-06-06 04:48:58,952] [INFO] [distributed.py:46:init_distributed] Initializing torch distributed with backend: nccl
+[2026-06-06 04:48:58,953] [INFO] [distributed.py:46:init_distributed] Initializing torch distributed with backend: nccl
+> initializing model parallel with size 1
+MPU DP: [0, 1, 2, 3, 4, 5, 6, 7]
+MPU PP: [0]
+MPU PP: [1]
+MPU PP: [2]
+MPU PP: [3]
+MPU PP: [4]
+MPU PP: [5]
+MPU PP: [6]
+MPU PP: [7]
+MPU MP: [0]
+MPU MP: [1]
+MPU MP: [2]
+MPU MP: [3]
+MPU MP: [4]
+MPU MP: [5]
+MPU MP: [6]
+MPU MP: [7]
+> setting random seeds to 1234 ...
+[2026-06-06 04:49:00,109] [INFO] [checkpointing.py:223:model_parallel_cuda_manual_seed] > initializing model parallel cuda seeds on global rank 0, model parallel rank 0, and data parallel rank 0 with model parallel seed: 3952 and data parallel seed: 1234
+make: Entering directory '/workspace/gpt-neox/megatron/data'
+make: Nothing to be done for 'default'.
+make: Leaving directory '/workspace/gpt-neox/megatron/data'
+building GPT2 model ...
+SEED_LAYERS=False BASE_SEED=1234 SEED_FN=None
+Using topology: {ProcessCoord(pipe=0, data=0, model=0): 0, ProcessCoord(pipe=0, data=1, model=0): 1, ProcessCoord(pipe=0, data=2, model=0): 2, ProcessCoord(pipe=0, data=3, model=0): 3, ProcessCoord(pipe=0, data=4, model=0): 4, ProcessCoord(pipe=0, data=5, model=0): 5, ProcessCoord(pipe=0, data=6, model=0): 6, ProcessCoord(pipe=0, data=7, model=0): 7}
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+[2026-06-06 04:49:07,128] [INFO] [module.py:363:_partition_layers] Partitioning pipeline stages with method type:transformer|mlp
+stage=0 layers=11
+     0: EmbeddingPipe
+     1: _pre_transformer_block
+     2: ParallelTransformerLayerPipe
+     3: ParallelTransformerLayerPipe
+     4: ParallelTransformerLayerPipe
+     5: ParallelTransformerLayerPipe
+     6: ParallelTransformerLayerPipe
+     7: ParallelTransformerLayerPipe
+     8: _post_transformer_block
+     9: NormPipe
+    10: ParallelLinearPipe
+  loss: partial
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+[2026-06-06 04:49:07,154] [WARNING] [config.py:77:_sanity_check] DeepSpeedConfig: cpu_offload is deprecated. Please use offload_optimizer.
+[2026-06-06 04:49:07,154] [WARNING] [config.py:77:_sanity_check] DeepSpeedConfig: cpu_offload is deprecated. Please use offload_optimizer.
+[2026-06-06 04:49:07,155] [WARNING] [config.py:77:_sanity_check] DeepSpeedConfig: cpu_offload is deprecated. Please use offload_optimizer.
+[2026-06-06 04:49:07,155] [WARNING] [config.py:77:_sanity_check] DeepSpeedConfig: cpu_offload is deprecated. Please use offload_optimizer.
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+using LSKV attention with lskv_st_window_size=128, lskv_bottleneck_dim=256, lskv_use_act=True
+[2026-06-06 04:49:07,156] [WARNING] [config.py:77:_sanity_check] DeepSpeedConfig: cpu_offload is deprecated. Please use offload_optimizer.
+[2026-06-06 04:49:07,161] [WARNING] [config.py:77:_sanity_check] DeepSpeedConfig: cpu_offload is deprecated. Please use offload_optimizer.
+Configuring Optimizer type: Adam with params: {'lr': 0.001, 'betas': [0.9, 0.95], 'eps': 1e-08}
+> learning rate decay style: cosine
+DeepSpeed is enabled.
+[2026-06-06 04:49:07,163] [INFO] [logging.py:60:log_dist] [Rank 0] DeepSpeed info: version=0.3.15+eb7f5cff, git-hash=eb7f5cff, git-branch=HEAD
+[2026-06-06 04:49:07,164] [WARNING] [config.py:77:_sanity_check] DeepSpeedConfig: cpu_offload is deprecated. Please use offload_optimizer.
+[2026-06-06 04:49:07,165] [WARNING] [config.py:77:_sanity_check] DeepSpeedConfig: cpu_offload is deprecated. Please use offload_optimizer.
+[2026-06-06 04:49:08,692] [INFO] [engine.py:654:_configure_optimizer] Removing param_group that has no 'params' in the client Optimizer
+[2026-06-06 04:49:08,692] [INFO] [engine.py:659:_configure_optimizer] Using client Optimizer as basic optimizer
+[2026-06-06 04:49:08,692] [INFO] [engine.py:668:_configure_optimizer] DeepSpeed Basic Optimizer = FusedAdam
+Checking ZeRO support for optimizer=FusedAdam type=<class 'apex.optimizers.fused_adam.FusedAdam'>
+[2026-06-06 04:49:08,692] [INFO] [logging.py:60:log_dist] [Rank 0] Creating fp16 ZeRO stage 1 optimizer
+Using /root/.cache/torch_extensions as PyTorch extensions root...
+Creating extension directory /root/.cache/torch_extensions/utils...
+Using /root/.cache/torch_extensions as PyTorch extensions root...
+Using /root/.cache/torch_extensions as PyTorch extensions root...
+Using /root/.cache/torch_extensions as PyTorch extensions root...
+Using /root/.cache/torch_extensions as PyTorch extensions root...
+Using /root/.cache/torch_extensions as PyTorch extensions root...
+Using /root/.cache/torch_extensions as PyTorch extensions root...
+Using /root/.cache/torch_extensions as PyTorch extensions root...
+Emitting ninja build file /root/.cache/torch_extensions/utils/build.ninja...
+Building extension module utils...
+Allowing ninja to set a default number of workers... (overridable by setting the environment variable MAX_JOBS=N)
+[1/2] c++ -MMD -MF flatten_unflatten.o.d -DTORCH_EXTENSION_NAME=utils -DTORCH_API_INCLUDE_EXTENSION_H -DPYBIND11_COMPILER_TYPE=\"_gcc\" -DPYBIND11_STDLIB=\"_libstdcpp\" -DPYBIND11_BUILD_ABI=\"_cxxabi1011\" -isystem /usr/local/lib/python3.8/dist-packages/torch/include -isystem /usr/local/lib/python3.8/dist-packages/torch/include/torch/csrc/api/include -isystem /usr/local/lib/python3.8/dist-packages/torch/include/TH -isystem /usr/local/lib/python3.8/dist-packages/torch/include/THC -isystem /usr/include/python3.8 -D_GLIBCXX_USE_CXX11_ABI=0 -fPIC -std=c++14 -c /usr/local/lib/python3.8/dist-packages/deepspeed/ops/csrc/utils/flatten_unflatten.cpp -o flatten_unflatten.o 
+[2/2] c++ flatten_unflatten.o -shared -L/usr/local/lib/python3.8/dist-packages/torch/lib -lc10 -ltorch_cpu -ltorch -ltorch_python -o utils.so
+Loading extension module utils...
+Time to load utils op: 11.671650648117065 seconds
+[2026-06-06 04:49:20,366] [INFO] [stage1.py:160:__init__] ZeRO Elastic Checkpoint = True
+Using /root/.cache/torch_extensions as PyTorch extensions root...
+No modifications detected for re-loaded extension module utils, skipping build step...
+Loading extension module utils...
+Time to load utils op: 0.0006303787231445312 seconds
+Loading extension module utils...
+Loading extension module utils...Loading extension module utils...
+
+Time to load utils op: 11.724117517471313 seconds
+[2026-06-06 04:49:20,419] [INFO] [stage1.py:160:__init__] ZeRO Elastic Checkpoint = True
+[2026-06-06 04:49:20,419] [INFO] [logging.py:60:log_dist] [Rank 0] Using default max_elements_per_comm 500000000
+Loading extension module utils...
+[2026-06-06 04:49:20,419] [INFO] [logging.py:60:log_dist] [Rank 0] Total number of elements in model: 71958528, max elements per com: 500000000
+[2026-06-06 04:49:20,419] [INFO] [logging.py:60:log_dist] [Rank 0] sub_partition_count: 1, sub_partition_size: 8994816, padding: 0
+[2026-06-06 04:49:20,419] [INFO] [logging.py:60:log_dist] [Rank 0] number of elements with padding: 71958528 + 0 = 71958528
+Loading extension module utils...
+Loading extension module utils...
+Time to load utils op: 11.724368333816528 seconds
+Time to load utils op: 11.724619388580322 seconds
+[2026-06-06 04:49:20,420] [INFO] [stage1.py:160:__init__] ZeRO Elastic Checkpoint = True
+[2026-06-06 04:49:20,420] [INFO] [stage1.py:160:__init__] ZeRO Elastic Checkpoint = True
+Loading extension module utils...
+Time to load utils op: 11.724841594696045 secondsTime to load utils op: 11.724866390228271 seconds
+
+[2026-06-06 04:49:20,420] [INFO] [stage1.py:160:__init__] ZeRO Elastic Checkpoint = True
+[2026-06-06 04:49:20,420] [INFO] [stage1.py:160:__init__] ZeRO Elastic Checkpoint = True
+[2026-06-06 04:49:20,420] [INFO] [stage1.py:375:get_data_parallel_sub_partitions] **** partition info:
+[2026-06-06 04:49:20,421] [INFO] [stage1.py:376:get_data_parallel_sub_partitions] 	 total_num_elements=71958528
+Time to load utils op: 11.725549936294556 seconds
+[2026-06-06 04:49:20,421] [INFO] [stage1.py:377:get_data_parallel_sub_partitions] 	 world_size=8
+[2026-06-06 04:49:20,421] [INFO] [stage1.py:378:get_data_parallel_sub_partitions] 	 max_elements_per_comm=71958528
+[2026-06-06 04:49:20,421] [INFO] [stage1.py:379:get_data_parallel_sub_partitions] 	 sub_partition_size=8994816
+[2026-06-06 04:49:20,421] [INFO] [stage1.py:380:get_data_parallel_sub_partitions] 	 num_sub_partitions=8
+[2026-06-06 04:49:20,421] [INFO] [stage1.py:160:__init__] ZeRO Elastic Checkpoint = True
+[2026-06-06 04:49:20,422] [INFO] [stage1.py:381:get_data_parallel_sub_partitions] 	 num_comm_intervals=1
+[2026-06-06 04:49:20,422] [INFO] [stage1.py:382:get_data_parallel_sub_partitions] ****
+[2026-06-06 04:49:20,422] [INFO] [logging.py:60:log_dist] [Rank 0] Using default max_elements_per_comm 500000000
+[2026-06-06 04:49:20,422] [INFO] [logging.py:60:log_dist] [Rank 0] Total number of elements in model: 40960, max elements per com: 500000000
+[2026-06-06 04:49:20,422] [INFO] [logging.py:60:log_dist] [Rank 0] sub_partition_count: 1, sub_partition_size: 5120, padding: 0
+[2026-06-06 04:49:20,422] [INFO] [logging.py:60:log_dist] [Rank 0] number of elements with padding: 40960 + 0 = 40960
+Time to load utils op: 11.727305889129639 seconds
+[2026-06-06 04:49:20,423] [INFO] [stage1.py:160:__init__] ZeRO Elastic Checkpoint = True
+[2026-06-06 04:49:20,423] [INFO] [stage1.py:375:get_data_parallel_sub_partitions] **** partition info:
+[2026-06-06 04:49:20,423] [INFO] [stage1.py:376:get_data_parallel_sub_partitions] 	 total_num_elements=40960
+[2026-06-06 04:49:20,423] [INFO] [stage1.py:377:get_data_parallel_sub_partitions] 	 world_size=8
+[2026-06-06 04:49:20,423] [INFO] [stage1.py:378:get_data_parallel_sub_partitions] 	 max_elements_per_comm=40960
+[2026-06-06 04:49:20,423] [INFO] [stage1.py:379:get_data_parallel_sub_partitions] 	 sub_partition_size=5120
+[2026-06-06 04:49:20,423] [INFO] [stage1.py:380:get_data_parallel_sub_partitions] 	 num_sub_partitions=8
+[2026-06-06 04:49:20,423] [INFO] [stage1.py:381:get_data_parallel_sub_partitions] 	 num_comm_intervals=1
+[2026-06-06 04:49:20,423] [INFO] [stage1.py:382:get_data_parallel_sub_partitions] ****
+Using /root/.cache/torch_extensions as PyTorch extensions root...
+No modifications detected for re-loaded extension module utils, skipping build step...
+Loading extension module utils...
+Time to load utils op: 0.0004782676696777344 seconds
+[2026-06-06 04:49:20,593] [INFO] [logging.py:60:log_dist] [Rank 0] DeepSpeed Final Optimizer = FusedAdam
+[2026-06-06 04:49:20,594] [INFO] [engine.py:498:_configure_lr_scheduler] DeepSpeed using client LR scheduler
+[2026-06-06 04:49:20,594] [INFO] [logging.py:60:log_dist] [Rank 0] DeepSpeed LR Scheduler = <megatron.learning_rates.AnnealingLR object at 0x7f7f4dfc1fd0>
+[2026-06-06 04:49:20,594] [INFO] [logging.py:60:log_dist] [Rank 0] step=0, skipped=0, lr=[0.0, 0.0], mom=[[0.9, 0.95], [0.9, 0.95]]
+[2026-06-06 04:49:20,594] [INFO] [config.py:759:print] DeepSpeedEngine configuration:
+[2026-06-06 04:49:20,594] [INFO] [config.py:763:print]   activation_checkpointing_config  {
+    "partition_activations": false, 
+    "contiguous_memory_optimization": false, 
+    "cpu_checkpointing": false, 
+    "number_checkpoints": null, 
+    "synchronize_checkpoint_boundary": false, 
+    "profile": false
+}
+[2026-06-06 04:49:20,595] [INFO] [config.py:763:print]   aio_config ................... {'block_size': 1048576, 'queue_depth': 8, 'thread_count': 1, 'single_submit': False, 'overlap_events': True}
+[2026-06-06 04:49:20,595] [INFO] [config.py:763:print]   allreduce_always_fp32 ........ False
+[2026-06-06 04:49:20,595] [INFO] [config.py:763:print]   amp_enabled .................. False
+[2026-06-06 04:49:20,595] [INFO] [config.py:763:print]   amp_params ................... False
+[2026-06-06 04:49:20,595] [INFO] [config.py:763:print]   checkpoint_tag_validation_enabled  True
+[2026-06-06 04:49:20,595] [INFO] [config.py:763:print]   checkpoint_tag_validation_fail  False
+[2026-06-06 04:49:20,595] [INFO] [config.py:763:print]   disable_allgather ............ False
+[2026-06-06 04:49:20,595] [INFO] [config.py:763:print]   dump_state ................... False
+[2026-06-06 04:49:20,595] [INFO] [config.py:763:print]   dynamic_loss_scale_args ...... {'init_scale': 4096, 'scale_window': 1000, 'delayed_shift': 2, 'min_scale': 1}
+[2026-06-06 04:49:20,595] [INFO] [config.py:763:print]   elasticity_enabled ........... False
+[2026-06-06 04:49:20,595] [INFO] [config.py:763:print]   flops_profiler_config ........ {
+    "enabled": false, 
+    "profile_step": 1, 
+    "module_depth": -1, 
+    "top_modules": 3, 
+    "detailed": true
+}
+[2026-06-06 04:49:20,595] [INFO] [config.py:763:print]   fp16_enabled ................. True
+[2026-06-06 04:49:20,595] [INFO] [config.py:763:print]   fp16_type .................... fp16
+[2026-06-06 04:49:20,595] [INFO] [config.py:763:print]   global_rank .................. 0
+[2026-06-06 04:49:20,595] [INFO] [config.py:763:print]   gradient_accumulation_steps .. 2
+[2026-06-06 04:49:20,595] [INFO] [config.py:763:print]   gradient_clipping ............ 1.0
+[2026-06-06 04:49:20,595] [INFO] [config.py:763:print]   gradient_predivide_factor .... 1.0
+[2026-06-06 04:49:20,595] [INFO] [config.py:763:print]   initial_dynamic_scale ........ 4096
+[2026-06-06 04:49:20,595] [INFO] [config.py:763:print]   loss_scale ................... 0
+[2026-06-06 04:49:20,595] [INFO] [config.py:763:print]   memory_breakdown ............. False
+[2026-06-06 04:49:20,595] [INFO] [config.py:763:print]   optimizer_legacy_fusion ...... False
+[2026-06-06 04:49:20,595] [INFO] [config.py:763:print]   optimizer_name ............... adam
+[2026-06-06 04:49:20,595] [INFO] [config.py:763:print]   optimizer_params ............. {'lr': 0.001, 'betas': [0.9, 0.95], 'eps': 1e-08}
+[2026-06-06 04:49:20,595] [INFO] [config.py:763:print]   pipeline ..................... {'stages': 'auto', 'partition': 'best', 'seed_layers': False, 'activation_checkpoint_interval': 0}
+[2026-06-06 04:49:20,595] [INFO] [config.py:763:print]   pld_enabled .................. False
+[2026-06-06 04:49:20,595] [INFO] [config.py:763:print]   pld_params ................... False
+[2026-06-06 04:49:20,595] [INFO] [config.py:763:print]   precision .................... torch.float16
+[2026-06-06 04:49:20,595] [INFO] [config.py:763:print]   prescale_gradients ........... False
+[2026-06-06 04:49:20,596] [INFO] [config.py:763:print]   scheduler_name ............... None
+[2026-06-06 04:49:20,596] [INFO] [config.py:763:print]   scheduler_params ............. None
+[2026-06-06 04:49:20,596] [INFO] [config.py:763:print]   sparse_attention ............. None
+[2026-06-06 04:49:20,596] [INFO] [config.py:763:print]   sparse_gradients_enabled ..... False
+[2026-06-06 04:49:20,596] [INFO] [config.py:763:print]   steps_per_print .............. 10
+[2026-06-06 04:49:20,596] [INFO] [config.py:763:print]   tensorboard_enabled .......... False
+[2026-06-06 04:49:20,596] [INFO] [config.py:763:print]   tensorboard_job_name ......... DeepSpeedJobName
+[2026-06-06 04:49:20,596] [INFO] [config.py:763:print]   tensorboard_output_path ...... 
+[2026-06-06 04:49:20,596] [INFO] [config.py:763:print]   train_batch_size ............. 256
+[2026-06-06 04:49:20,596] [INFO] [config.py:763:print]   train_micro_batch_size_per_gpu  16
+[2026-06-06 04:49:20,596] [INFO] [config.py:763:print]   wall_clock_breakdown ......... True
+[2026-06-06 04:49:20,596] [INFO] [config.py:763:print]   world_size ................... 8
+[2026-06-06 04:49:20,596] [INFO] [config.py:763:print]   zero_allow_untested_optimizer  False
+[2026-06-06 04:49:20,596] [INFO] [config.py:763:print]   zero_config .................. {
+    "stage": 1, 
+    "contiguous_gradients": true, 
+    "reduce_scatter": true, 
+    "reduce_bucket_size": 5.000000e+08, 
+    "allgather_partitions": true, 
+    "allgather_bucket_size": 5.000000e+08, 
+    "overlap_comm": true, 
+    "load_from_fp32_weights": true, 
+    "elastic_checkpoint": true, 
+    "offload_param": null, 
+    "offload_optimizer": null, 
+    "sub_group_size": 1.000000e+12, 
+    "prefetch_bucket_size": 5.000000e+07, 
+    "param_persistence_threshold": 1.000000e+05, 
+    "max_live_parameters": 1.000000e+09, 
+    "max_reuse_distance": 1.000000e+09, 
+    "gather_fp16_weights_on_model_save": false
+}
+[2026-06-06 04:49:20,596] [INFO] [config.py:763:print]   zero_enabled ................. True
+[2026-06-06 04:49:20,596] [INFO] [config.py:763:print]   zero_optimization_stage ...... 1
+[2026-06-06 04:49:20,597] [INFO] [config.py:765:print]   json = {
+    "train_batch_size": 256, 
+    "train_micro_batch_size_per_gpu": 16, 
+    "gradient_accumulation_steps": 2, 
+    "optimizer": {
+        "type": "Adam", 
+        "params": {
+            "lr": 0.001, 
+            "betas": [0.9, 0.95], 
+            "eps": 1e-08
+        }
+    }, 
+    "fp16": {
+        "fp16": true, 
+        "enabled": true, 
+        "loss_scale": 0, 
+        "loss_scale_window": 1000, 
+        "initial_scale_power": 12, 
+        "hysteresis": 2, 
+        "min_loss_scale": 1
+    }, 
+    "gradient_clipping": 1.0, 
+    "zero_optimization": {
+        "stage": 1, 
+        "allgather_partitions": true, 
+        "allgather_bucket_size": 5.000000e+08, 
+        "overlap_comm": true, 
+        "reduce_scatter": true, 
+        "reduce_bucket_size": 5.000000e+08, 
+        "contiguous_gradients": true, 
+        "cpu_offload": false
+    }, 
+    "wall_clock_breakdown": true
+}
+Using /root/.cache/torch_extensions as PyTorch extensions root...
+No modifications detected for re-loaded extension module utils, skipping build step...
+Loading extension module utils...
+Time to load utils op: 0.00044608116149902344 seconds
+[2026-06-06 04:49:20,598] [INFO] [engine.py:84:__init__] CONFIG: micro_batches=2 micro_batch_size=16
+Using /root/.cache/torch_extensions as PyTorch extensions root...
+No modifications detected for re-loaded extension module utils, skipping build step...
+Loading extension module utils...
+Time to load utils op: 0.0004723072052001953 seconds
+Using /root/.cache/torch_extensions as PyTorch extensions root...
+No modifications detected for re-loaded extension module utils, skipping build step...
+Loading extension module utils...
+Time to load utils op: 0.005254983901977539 seconds
+Using /root/.cache/torch_extensions as PyTorch extensions root...
+No modifications detected for re-loaded extension module utils, skipping build step...
+Loading extension module utils...
+Time to load utils op: 0.0004975795745849609 seconds
+[2026-06-06 04:49:20,698] [INFO] [engine.py:141:__init__] RANK=0 STAGE=0 LAYERS=11 [0, 11) STAGE_PARAMS=71999488 (71.999M) TOTAL_PARAMS=71999488 (71.999M) UNIQUE_PARAMS=71999488 (71.999M)
+ > number of parameters on model parallel rank 0: 71999488
+Using /root/.cache/torch_extensions as PyTorch extensions root...
+No modifications detected for re-loaded extension module utils, skipping build step...
+Loading extension module utils...
+Using /root/.cache/torch_extensions as PyTorch extensions root...
+Time to load utils op: 0.0005822181701660156 seconds
+No modifications detected for re-loaded extension module utils, skipping build step...
+Loading extension module utils...
+Time to load utils op: 0.0006144046783447266 seconds
+ > total params: 71,999,488
+[2026-06-06 04:49:22,063] [WARNING] [engine.py:1519:load_checkpoint] Unable to find latest file at /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/latest, if trying to load latest checkpoint please ensure this file exists or pass an explicit checkpoint tag when loading a checkpoint.
+[2026-06-06 04:49:22,063] [WARNING] [engine.py:1519:load_checkpoint] Unable to find latest file at /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/latest, if trying to load latest checkpoint please ensure this file exists or pass an explicit checkpoint tag when loading a checkpoint.
+[2026-06-06 04:49:22,063] [WARNING] [engine.py:1519:load_checkpoint] Unable to find latest file at /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/latest, if trying to load latest checkpoint please ensure this file exists or pass an explicit checkpoint tag when loading a checkpoint.
+[2026-06-06 04:49:22,063] [WARNING] [engine.py:1519:load_checkpoint] Unable to find latest file at /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/latest, if trying to load latest checkpoint please ensure this file exists or pass an explicit checkpoint tag when loading a checkpoint.
+[2026-06-06 04:49:22,063] [WARNING] [engine.py:1519:load_checkpoint] Unable to find latest file at /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/latest, if trying to load latest checkpoint please ensure this file exists or pass an explicit checkpoint tag when loading a checkpoint.
+[2026-06-06 04:49:22,063] [WARNING] [engine.py:1519:load_checkpoint] Unable to find latest file at /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/latest, if trying to load latest checkpoint please ensure this file exists or pass an explicit checkpoint tag when loading a checkpoint.
+[2026-06-06 04:49:22,064] [WARNING] [engine.py:1519:load_checkpoint] Unable to find latest file at /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/latest, if trying to load latest checkpoint please ensure this file exists or pass an explicit checkpoint tag when loading a checkpoint.
+[2026-06-06 04:49:22,064] [WARNING] [engine.py:1519:load_checkpoint] Unable to find latest file at /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/latest, if trying to load latest checkpoint please ensure this file exists or pass an explicit checkpoint tag when loading a checkpoint.
+Unable to load checkpoint.
+Loading checkpoint and starting from iteration 0
+> building train, validation, and test datasets ...
+    reading sizes...
+    reading pointers...
+    reading document index...
+    creating numpy buffer of mmap...
+    creating memory view of numpy buffer...
+    train_0:
+     no. of documents:134318121
+ > loading doc-idx mapping from /workspace/pythia/pythia_deduped_pile_idxmaps/pile_0.87_deduped_text_document_train_0_indexmap_4907102ns_2048sl_1234s_doc_idx.npy
+ > loading sample-idx mapping from /workspace/pythia/pythia_deduped_pile_idxmaps/pile_0.87_deduped_text_document_train_0_indexmap_4907102ns_2048sl_1234s_sample_idx.npy
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+ > loading shuffle-idx mapping from /workspace/pythia/pythia_deduped_pile_idxmaps/pile_0.87_deduped_text_document_train_0_indexmap_4907102ns_2048sl_1234s_shuffle_idx.npy
+    loaded indexed file in 0.050 seconds
+    total number of samples: 101157429
+    total number of epochs: 1
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+    reading sizes...
+    reading pointers...
+    reading document index...
+    creating numpy buffer of mmap...
+    creating memory view of numpy buffer...
+    valid_0:
+     no. of documents:134318121
+ > loading doc-idx mapping from /workspace/pythia/pythia_deduped_pile_idxmaps/pile_0.87_deduped_text_document_valid_0_indexmap_51456ns_2048sl_1234s_doc_idx.npy
+ > loading sample-idx mapping from /workspace/pythia/pythia_deduped_pile_idxmaps/pile_0.87_deduped_text_document_valid_0_indexmap_51456ns_2048sl_1234s_sample_idx.npy
+ > loading shuffle-idx mapping from /workspace/pythia/pythia_deduped_pile_idxmaps/pile_0.87_deduped_text_document_valid_0_indexmap_51456ns_2048sl_1234s_shuffle_idx.npy
+    loaded indexed file in 0.057 seconds
+    total number of samples: 101157429
+    total number of epochs: 1
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+    reading sizes...
+    reading pointers...
+    reading document index...
+    creating numpy buffer of mmap...
+    creating memory view of numpy buffer...
+    test_0:
+     no. of documents:134318121
+ > loading doc-idx mapping from /workspace/pythia/pythia_deduped_pile_idxmaps/pile_0.87_deduped_text_document_test_0_indexmap_2573ns_2048sl_1234s_doc_idx.npy
+ > loading sample-idx mapping from /workspace/pythia/pythia_deduped_pile_idxmaps/pile_0.87_deduped_text_document_test_0_indexmap_2573ns_2048sl_1234s_sample_idx.npy
+ > loading shuffle-idx mapping from /workspace/pythia/pythia_deduped_pile_idxmaps/pile_0.87_deduped_text_document_test_0_indexmap_2573ns_2048sl_1234s_shuffle_idx.npy
+    loaded indexed file in 0.047 seconds
+    total number of samples: 101157429
+    total number of epochs: 1
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+> building indices for blendable datasets ...
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+
+
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+WARNING: shuffle index length (101157427) is not equal to sample index length (101157428)
+ > sample ratios:
+   dataset 0, input: 1, achieved: 1
+> RANK 0 elapsed time for building blendable dataset indices: 0.44 (sec)
+> building indices for blendable datasets ...
+> RANK 4 elapsed time for building blendable dataset indices: 0.43 (sec)
+> RANK 6 elapsed time for building blendable dataset indices: 0.43 (sec)
+> RANK 5 elapsed time for building blendable dataset indices: 0.43 (sec)
+> RANK 2 elapsed time for building blendable dataset indices: 0.43 (sec)
+> RANK 1 elapsed time for building blendable dataset indices: 0.43 (sec)
+> RANK 3 elapsed time for building blendable dataset indices: 0.43 (sec)
+> RANK 7 elapsed time for building blendable dataset indices: 0.60 (sec)
+ > sample ratios:
+   dataset 0, input: 1, achieved: 1
+> RANK 0 elapsed time for building blendable dataset indices: 0.43 (sec)
+> building indices for blendable datasets ...
+> RANK 4 elapsed time for building blendable dataset indices: 0.43 (sec)> RANK 5 elapsed time for building blendable dataset indices: 0.43 (sec)
+
+> RANK 6 elapsed time for building blendable dataset indices: 0.43 (sec)
+> RANK 2 elapsed time for building blendable dataset indices: 0.43 (sec)
+> RANK 1 elapsed time for building blendable dataset indices: 0.43 (sec)
+> RANK 3 elapsed time for building blendable dataset indices: 0.43 (sec)
+> RANK 7 elapsed time for building blendable dataset indices: 0.85 (sec)
+ > sample ratios:
+   dataset 0, input: 1, achieved: 1
+> RANK 0 elapsed time for building blendable dataset indices: 0.65 (sec)
+setting training data start iteration to 0
+setting validation data start iteration to 0
+> RANK 6 elapsed time for building blendable dataset indices: 0.66 (sec)
+> RANK 4 elapsed time for building blendable dataset indices: 0.66 (sec)
+> RANK 2 elapsed time for building blendable dataset indices: 0.66 (sec)
+> RANK 1 elapsed time for building blendable dataset indices: 0.66 (sec)
+> RANK 5 elapsed time for building blendable dataset indices: 0.66 (sec)
+> RANK 3 elapsed time for building blendable dataset indices: 0.66 (sec)
+done with setups ...
+time (ms) | model and optimizer: 15659.86 | train/valid/test data iterators: 9058.53
+training ...
+> RANK 7 elapsed time for building blendable dataset indices: 0.98 (sec)
+[2026-06-06 04:49:32,610] [INFO] [logging.py:60:log_dist] [Rank 0] Saving model checkpoint: /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step0/mp_rank_00_model_states.pt
+[2026-06-06 04:49:33,066] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:33,069] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step0/zero_pp_rank_6_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:33,077] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:33,081] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step0/zero_pp_rank_4_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:33,090] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:33,093] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step0/zero_pp_rank_3_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:33,098] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:33,100] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step0/zero_pp_rank_7_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:33,128] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:33,130] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:33,136] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step0/zero_pp_rank_1_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:33,136] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step0/zero_pp_rank_2_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:33,150] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:33,151] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:33,156] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step0/zero_pp_rank_0_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:33,158] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step0/zero_pp_rank_5_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:33,510] [INFO] [checkpointing.py:405:forward] Activation Checkpointing Information
+[2026-06-06 04:49:33,510] [INFO] [checkpointing.py:406:forward] ----Partition Activations True, CPU CHECKPOINTING False
+[2026-06-06 04:49:33,510] [INFO] [checkpointing.py:409:forward] ----contiguous Memory Checkpointing False with 6 total layers
+[2026-06-06 04:49:33,510] [INFO] [checkpointing.py:412:forward] ----Synchronization True
+[2026-06-06 04:49:33,511] [INFO] [checkpointing.py:413:forward] ----Profiling False
+[2026-06-06 04:49:37,581] [INFO] [logging.py:60:log_dist] [Rank 0] Saving model checkpoint: /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step1/mp_rank_00_model_states.pt
+[2026-06-06 04:49:37,854] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:37,857] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step1/zero_pp_rank_0_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:37,875] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:37,876] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:37,876] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:37,876] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:37,877] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:37,878] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:37,882] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step1/zero_pp_rank_2_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:37,883] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step1/zero_pp_rank_1_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:37,883] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step1/zero_pp_rank_4_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:37,883] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step1/zero_pp_rank_5_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:37,883] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step1/zero_pp_rank_7_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:37,883] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step1/zero_pp_rank_6_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:37,935] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:37,938] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step1/zero_pp_rank_3_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:39,841] [INFO] [logging.py:60:log_dist] [Rank 0] Saving model checkpoint: /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step2/mp_rank_00_model_states.pt
+[2026-06-06 04:49:40,134] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:40,138] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step2/zero_pp_rank_7_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:40,147] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:40,148] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:40,149] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:40,149] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:40,149] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:40,149] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:40,152] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:40,154] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step2/zero_pp_rank_3_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:40,156] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step2/zero_pp_rank_2_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:40,156] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step2/zero_pp_rank_5_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:40,156] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step2/zero_pp_rank_0_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:40,156] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step2/zero_pp_rank_6_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:40,156] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step2/zero_pp_rank_1_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:40,156] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step2/zero_pp_rank_4_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:43,387] [INFO] [logging.py:60:log_dist] [Rank 0] Saving model checkpoint: /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step4/mp_rank_00_model_states.pt
+[2026-06-06 04:49:43,676] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:43,679] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step4/zero_pp_rank_1_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:43,680] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:43,685] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step4/zero_pp_rank_0_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:43,703] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:43,704] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step4/zero_pp_rank_6_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:43,705] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:43,707] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step4/zero_pp_rank_5_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:43,710] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:43,711] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:43,713] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:43,716] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:43,719] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step4/zero_pp_rank_3_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:43,721] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step4/zero_pp_rank_4_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:43,721] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step4/zero_pp_rank_2_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:43,721] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step4/zero_pp_rank_7_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:49,884] [INFO] [logging.py:60:log_dist] [Rank 0] Saving model checkpoint: /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step8/mp_rank_00_model_states.pt
+[2026-06-06 04:49:50,190] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:50,192] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:50,193] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:50,194] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:50,194] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:50,196] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:50,197] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:50,202] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:49:50,230] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step8/zero_pp_rank_7_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:50,230] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step8/zero_pp_rank_4_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:50,245] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step8/zero_pp_rank_3_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:50,245] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step8/zero_pp_rank_1_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:50,245] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step8/zero_pp_rank_0_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:50,245] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step8/zero_pp_rank_5_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:50,245] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step8/zero_pp_rank_2_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:50,245] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step8/zero_pp_rank_6_mp_rank_00_optim_states.pt
+[2026-06-06 04:49:53,245] [INFO] [logging.py:60:log_dist] [Rank 0] step=10, skipped=0, lr=[5.2430136842657165e-05, 5.2430136842657165e-05], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 10 loss: 9.2611 iter time (s): 1.731 samples/sec: 147.866
+%comms: 11.260059197897206 
+ %optimizer_step 0.9606455238260623 
+ %forward: 23.19806493783615 
+ %backward: 46.05113724976074
+[2026-06-06 04:49:53,246] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2133.32 | forward: 4016.27 | backward_microstep: 7973.82 | backward: 7972.81 | backward_inner_microstep: 7971.15 | backward_inner: 7970.52 | backward_allreduce_microstep: 0.77 | backward_allreduce: 0.26 | reduce_tied_grads: 0.37 | comms: 1949.45 | reduce_grads: 1921.23 | step: 166.32 | _step_clipping: 0.14 | _step_step: 163.06 | _step_zero_grad: 0.38 | _step_check_overflow: 1.92
+ samples/sec: 127.467 | iteration       10/   19073 | elapsed time per iteration (ms): 2008.4 | learning rate: 5.243E-05 | approx flops per GPU: 26.4TFLOPS | lm_loss: 1.024335E+01 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+after 10 iterations memory (MB) | allocated: 6539.830078125 | max allocated: 16373.09765625 | reserved: 21844.0 | max reserved: 21844.0
+time (ms)
+[2026-06-06 04:50:02,460] [INFO] [logging.py:60:log_dist] [Rank 0] Saving model checkpoint: /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step16/mp_rank_00_model_states.pt
+[2026-06-06 04:50:02,749] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:50:02,749] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:50:02,749] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:50:02,750] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:50:02,750] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:50:02,754] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step16/zero_pp_rank_0_mp_rank_00_optim_states.pt
+[2026-06-06 04:50:02,755] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step16/zero_pp_rank_2_mp_rank_00_optim_states.pt
+[2026-06-06 04:50:02,755] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step16/zero_pp_rank_4_mp_rank_00_optim_states.pt
+[2026-06-06 04:50:02,755] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step16/zero_pp_rank_1_mp_rank_00_optim_states.pt
+[2026-06-06 04:50:02,755] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step16/zero_pp_rank_7_mp_rank_00_optim_states.pt
+[2026-06-06 04:50:02,851] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:50:02,852] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:50:02,857] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step16/zero_pp_rank_6_mp_rank_00_optim_states.pt
+[2026-06-06 04:50:02,857] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step16/zero_pp_rank_3_mp_rank_00_optim_states.pt
+[2026-06-06 04:50:02,873] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:50:02,876] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step16/zero_pp_rank_5_mp_rank_00_optim_states.pt
+[2026-06-06 04:50:08,587] [INFO] [logging.py:60:log_dist] [Rank 0] step=20, skipped=0, lr=[0.00010486027368531433, 0.00010486027368531433], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 20 loss: 8.4899 iter time (s): 1.458 samples/sec: 175.641
+%comms: 6.451294821828293 
+ %optimizer_step 1.1966713438175713 
+ %forward: 17.78539549188259 
+ %backward: 49.10284941315655
+[2026-06-06 04:50:08,588] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2759.09 | forward: 2592.25 | backward_microstep: 7157.43 | backward: 7156.82 | backward_inner_microstep: 7155.34 | backward_inner: 7154.81 | backward_allreduce_microstep: 0.73 | backward_allreduce: 0.25 | reduce_tied_grads: 0.39 | comms: 940.29 | reduce_grads: 908.16 | step: 174.42 | _step_clipping: 0.14 | _step_step: 172.61 | _step_zero_grad: 0.38 | _step_check_overflow: 0.53
+ samples/sec: 166.867 | iteration       20/   19073 | elapsed time per iteration (ms): 1534.2 | learning rate: 1.049E-04 | approx flops per GPU: 34.6TFLOPS | lm_loss: 8.632114E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:50:22,844] [INFO] [logging.py:60:log_dist] [Rank 0] step=30, skipped=0, lr=[0.0001572904105279715, 0.0001572904105279715], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 30 loss: 7.8329 iter time (s): 1.425 samples/sec: 179.636
+%comms: 14.921133174671283 
+ %optimizer_step 1.238744782608812 
+ %forward: 15.80856313321054 
+ %backward: 49.72654954477233
+[2026-06-06 04:50:22,845] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 1650.79 | forward: 2252.88 | backward_microstep: 7087.19 | backward: 7086.55 | backward_inner_microstep: 7084.91 | backward_inner: 7084.31 | backward_allreduce_microstep: 0.80 | backward_allreduce: 0.27 | reduce_tied_grads: 0.39 | comms: 2126.42 | reduce_grads: 2099.79 | step: 176.53 | _step_clipping: 0.18 | _step_step: 174.31 | _step_zero_grad: 0.40 | _step_check_overflow: 0.76
+ samples/sec: 179.559 | iteration       30/   19073 | elapsed time per iteration (ms): 1425.7 | learning rate: 1.573E-04 | approx flops per GPU: 37.2TFLOPS | lm_loss: 8.054735E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:50:26,061] [INFO] [logging.py:60:log_dist] [Rank 0] Saving model checkpoint: /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step32/mp_rank_00_model_states.pt
+[2026-06-06 04:50:26,355] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:50:26,357] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:50:26,357] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:50:26,358] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:50:26,358] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:50:26,362] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step32/zero_pp_rank_3_mp_rank_00_optim_states.pt
+[2026-06-06 04:50:26,363] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step32/zero_pp_rank_7_mp_rank_00_optim_states.pt
+[2026-06-06 04:50:26,363] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step32/zero_pp_rank_1_mp_rank_00_optim_states.pt
+[2026-06-06 04:50:26,363] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step32/zero_pp_rank_4_mp_rank_00_optim_states.pt
+[2026-06-06 04:50:26,363] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step32/zero_pp_rank_0_mp_rank_00_optim_states.pt
+[2026-06-06 04:50:26,453] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:50:26,457] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:50:26,468] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:50:26,553] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step32/zero_pp_rank_2_mp_rank_00_optim_states.pt
+[2026-06-06 04:50:26,571] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step32/zero_pp_rank_5_mp_rank_00_optim_states.pt
+[2026-06-06 04:50:26,571] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step32/zero_pp_rank_6_mp_rank_00_optim_states.pt
+[2026-06-06 04:50:37,907] [INFO] [logging.py:60:log_dist] [Rank 0] step=40, skipped=0, lr=[0.00020972054737062866, 0.00020972054737062866], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 40 loss: 6.9534 iter time (s): 1.417 samples/sec: 180.696
+%comms: 9.239199743261931 
+ %optimizer_step 1.1342501476294389 
+ %forward: 17.063435473776483 
+ %backward: 50.31387642679709
+[2026-06-06 04:50:37,908] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2171.45 | forward: 2417.45 | backward_microstep: 7128.83 | backward: 7128.17 | backward_inner_microstep: 7126.62 | backward_inner: 7126.05 | backward_allreduce_microstep: 0.75 | backward_allreduce: 0.26 | reduce_tied_grads: 0.35 | comms: 1308.96 | reduce_grads: 1292.61 | step: 160.69 | _step_clipping: 0.16 | _step_step: 158.52 | _step_zero_grad: 0.41 | _step_check_overflow: 0.73
+ samples/sec: 169.951 | iteration       40/   19073 | elapsed time per iteration (ms): 1506.3 | learning rate: 2.097E-04 | approx flops per GPU: 35.2TFLOPS | lm_loss: 7.381538E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:50:52,061] [INFO] [logging.py:60:log_dist] [Rank 0] step=50, skipped=0, lr=[0.0002621506842132858, 0.0002621506842132858], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 50 loss: 6.5511 iter time (s): 1.415 samples/sec: 180.947
+%comms: 10.2508131155031 
+ %optimizer_step 1.134517772228839 
+ %forward: 18.149950359180995 
+ %backward: 50.15608622527855
+[2026-06-06 04:50:52,062] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 1915.66 | forward: 2567.82 | backward_microstep: 7096.68 | backward: 7096.00 | backward_inner_microstep: 7094.52 | backward_inner: 7093.97 | backward_allreduce_microstep: 0.70 | backward_allreduce: 0.24 | reduce_tied_grads: 0.34 | comms: 1450.27 | reduce_grads: 1424.38 | step: 160.51 | _step_clipping: 0.14 | _step_step: 158.61 | _step_zero_grad: 0.38 | _step_check_overflow: 0.59
+ samples/sec: 180.871 | iteration       50/   19073 | elapsed time per iteration (ms): 1415.4 | learning rate: 2.622E-04 | approx flops per GPU: 37.5TFLOPS | lm_loss: 6.796195E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:51:06,373] [INFO] [logging.py:60:log_dist] [Rank 0] step=60, skipped=0, lr=[0.000314580821055943, 0.000314580821055943], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 60 loss: 6.3228 iter time (s): 1.431 samples/sec: 178.935
+%comms: 8.16100952363526 
+ %optimizer_step 1.1375828643856982 
+ %forward: 18.867645505334334 
+ %backward: 49.74021215075856
+[2026-06-06 04:51:06,374] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2200.66 | forward: 2699.36 | backward_microstep: 7116.95 | backward: 7116.25 | backward_inner_microstep: 7114.74 | backward_inner: 7114.19 | backward_allreduce_microstep: 0.73 | backward_allreduce: 0.25 | reduce_tied_grads: 0.33 | comms: 1167.58 | reduce_grads: 1146.19 | step: 162.75 | _step_clipping: 0.14 | _step_step: 160.82 | _step_zero_grad: 0.42 | _step_check_overflow: 0.56
+ samples/sec: 178.870 | iteration       60/   19073 | elapsed time per iteration (ms): 1431.2 | learning rate: 3.146E-04 | approx flops per GPU: 37.1TFLOPS | lm_loss: 6.515611E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:51:12,412] [INFO] [logging.py:60:log_dist] [Rank 0] Saving model checkpoint: /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step64/mp_rank_00_model_states.pt
+[2026-06-06 04:51:12,697] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:51:12,698] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:51:12,699] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:51:12,700] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:51:12,700] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:51:12,706] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step64/zero_pp_rank_4_mp_rank_00_optim_states.pt
+[2026-06-06 04:51:12,706] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step64/zero_pp_rank_7_mp_rank_00_optim_states.pt
+[2026-06-06 04:51:12,706] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step64/zero_pp_rank_2_mp_rank_00_optim_states.pt
+[2026-06-06 04:51:12,706] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step64/zero_pp_rank_0_mp_rank_00_optim_states.pt
+[2026-06-06 04:51:12,706] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step64/zero_pp_rank_6_mp_rank_00_optim_states.pt
+[2026-06-06 04:51:12,798] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:51:12,798] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:51:12,799] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:51:12,803] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step64/zero_pp_rank_5_mp_rank_00_optim_states.pt
+[2026-06-06 04:51:12,804] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step64/zero_pp_rank_1_mp_rank_00_optim_states.pt
+[2026-06-06 04:51:12,804] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step64/zero_pp_rank_3_mp_rank_00_optim_states.pt
+[2026-06-06 04:51:21,297] [INFO] [logging.py:60:log_dist] [Rank 0] step=70, skipped=0, lr=[0.00036701095789860015, 0.00036701095789860015], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 70 loss: 5.8867 iter time (s): 1.419 samples/sec: 180.376
+%comms: 3.427196290076891 
+ %optimizer_step 1.0810552200409977 
+ %forward: 19.04072954814945 
+ %backward: 50.31525933603093
+[2026-06-06 04:51:21,297] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2746.49 | forward: 2702.38 | backward_microstep: 7141.65 | backward: 7141.05 | backward_inner_microstep: 7139.57 | backward_inner: 7139.05 | backward_allreduce_microstep: 0.71 | backward_allreduce: 0.25 | reduce_tied_grads: 0.32 | comms: 486.41 | reduce_grads: 465.68 | step: 153.43 | _step_clipping: 0.13 | _step_step: 151.76 | _step_zero_grad: 0.36 | _step_check_overflow: 0.44
+ samples/sec: 171.543 | iteration       70/   19073 | elapsed time per iteration (ms): 1492.3 | learning rate: 3.670E-04 | approx flops per GPU: 35.5TFLOPS | lm_loss: 6.189871E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:51:35,806] [INFO] [logging.py:60:log_dist] [Rank 0] step=80, skipped=0, lr=[0.0004194410947412573, 0.0004194410947412573], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 80 loss: 5.6995 iter time (s): 1.450 samples/sec: 176.505
+%comms: 10.482293304073199 
+ %optimizer_step 1.096462688192591 
+ %forward: 16.19953438579404 
+ %backward: 49.39687878208803
+[2026-06-06 04:51:35,806] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2356.48 | forward: 2349.56 | backward_microstep: 7165.14 | backward: 7164.46 | backward_inner_microstep: 7162.93 | backward_inner: 7162.36 | backward_allreduce_microstep: 0.72 | backward_allreduce: 0.25 | reduce_tied_grads: 0.32 | comms: 1520.34 | reduce_grads: 1490.00 | step: 159.03 | _step_clipping: 0.13 | _step_step: 157.23 | _step_zero_grad: 0.37 | _step_check_overflow: 0.56
+ samples/sec: 176.444 | iteration       80/   19073 | elapsed time per iteration (ms): 1450.9 | learning rate: 4.194E-04 | approx flops per GPU: 36.6TFLOPS | lm_loss: 5.885234E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:51:50,100] [INFO] [logging.py:60:log_dist] [Rank 0] step=90, skipped=0, lr=[0.00047187123158391443, 0.00047187123158391443], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 90 loss: 5.6203 iter time (s): 1.429 samples/sec: 179.154
+%comms: 5.880586689667012 
+ %optimizer_step 1.1430724171333773 
+ %forward: 16.42212532072479 
+ %backward: 50.563817740506735
+[2026-06-06 04:51:50,101] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2754.19 | forward: 2346.63 | backward_microstep: 7225.91 | backward: 7225.28 | backward_inner_microstep: 7223.70 | backward_inner: 7223.15 | backward_allreduce_microstep: 0.77 | backward_allreduce: 0.26 | reduce_tied_grads: 0.34 | comms: 840.30 | reduce_grads: 814.42 | step: 163.34 | _step_clipping: 0.14 | _step_step: 161.47 | _step_zero_grad: 0.39 | _step_check_overflow: 0.57
+ samples/sec: 179.089 | iteration       90/   19073 | elapsed time per iteration (ms): 1429.5 | learning rate: 4.719E-04 | approx flops per GPU: 37.1TFLOPS | lm_loss: 5.792427E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:52:04,080] [INFO] [logging.py:60:log_dist] [Rank 0] step=100, skipped=0, lr=[0.0005243013684265716, 0.0005243013684265716], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 100 loss: 5.6036 iter time (s): 1.397 samples/sec: 183.190
+%comms: 8.363975385039755 
+ %optimizer_step 1.2622168058098029 
+ %forward: 17.43026360953664 
+ %backward: 51.324698014316574
+[2026-06-06 04:52:04,081] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2055.57 | forward: 2435.81 | backward_microstep: 7173.02 | backward: 7172.41 | backward_inner_microstep: 7170.93 | backward_inner: 7170.38 | backward_allreduce_microstep: 0.72 | backward_allreduce: 0.25 | reduce_tied_grads: 0.34 | comms: 1168.83 | reduce_grads: 1144.77 | step: 176.39 | _step_clipping: 0.15 | _step_step: 174.22 | _step_zero_grad: 0.44 | _step_check_overflow: 0.72
+ samples/sec: 183.115 | iteration      100/   19073 | elapsed time per iteration (ms): 1398.0 | learning rate: 5.243E-04 | approx flops per GPU: 37.9TFLOPS | lm_loss: 5.587536E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:52:18,370] [INFO] [logging.py:60:log_dist] [Rank 0] step=110, skipped=0, lr=[0.0005767315052692288, 0.0005767315052692288], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 110 loss: 5.5197 iter time (s): 1.428 samples/sec: 179.218
+%comms: 9.079544833945802 
+ %optimizer_step 1.1406808249492495 
+ %forward: 16.961851578516004 
+ %backward: 50.135361888378704
+[2026-06-06 04:52:18,371] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2282.61 | forward: 2422.88 | backward_microstep: 7162.09 | backward: 7161.49 | backward_inner_microstep: 7160.02 | backward_inner: 7159.48 | backward_allreduce_microstep: 0.71 | backward_allreduce: 0.25 | reduce_tied_grads: 0.34 | comms: 1296.95 | reduce_grads: 1270.43 | step: 162.94 | _step_clipping: 0.13 | _step_step: 161.04 | _step_zero_grad: 0.38 | _step_check_overflow: 0.63
+ samples/sec: 179.151 | iteration      110/   19073 | elapsed time per iteration (ms): 1429.0 | learning rate: 5.767E-04 | approx flops per GPU: 37.1TFLOPS | lm_loss: 5.480386E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:52:32,655] [INFO] [logging.py:60:log_dist] [Rank 0] step=120, skipped=0, lr=[0.000629161642111886, 0.000629161642111886], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 120 loss: 5.3838 iter time (s): 1.428 samples/sec: 179.282
+%comms: 16.663338963213164 
+ %optimizer_step 1.0266357532533101 
+ %forward: 16.44216940618643 
+ %backward: 49.91980451737497
+[2026-06-06 04:52:32,656] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 1304.51 | forward: 2347.80 | backward_microstep: 7128.78 | backward: 7128.13 | backward_inner_microstep: 7126.60 | backward_inner: 7126.03 | backward_allreduce_microstep: 0.74 | backward_allreduce: 0.25 | reduce_tied_grads: 0.35 | comms: 2379.39 | reduce_grads: 2361.16 | step: 146.60 | _step_clipping: 0.15 | _step_step: 144.65 | _step_zero_grad: 0.37 | _step_check_overflow: 0.65
+ samples/sec: 179.213 | iteration      120/   19073 | elapsed time per iteration (ms): 1428.5 | learning rate: 6.292E-04 | approx flops per GPU: 37.1TFLOPS | lm_loss: 5.389281E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:52:44,534] [INFO] [logging.py:60:log_dist] [Rank 0] Saving model checkpoint: /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step128/mp_rank_00_model_states.pt
+[2026-06-06 04:52:44,825] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:52:44,825] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:52:44,825] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:52:44,826] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:52:44,826] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:52:44,826] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:52:44,832] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step128/zero_pp_rank_7_mp_rank_00_optim_states.pt
+[2026-06-06 04:52:44,832] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step128/zero_pp_rank_6_mp_rank_00_optim_states.pt
+[2026-06-06 04:52:44,832] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step128/zero_pp_rank_2_mp_rank_00_optim_states.pt
+[2026-06-06 04:52:44,832] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step128/zero_pp_rank_1_mp_rank_00_optim_states.pt
+[2026-06-06 04:52:44,832] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step128/zero_pp_rank_4_mp_rank_00_optim_states.pt
+[2026-06-06 04:52:44,832] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step128/zero_pp_rank_5_mp_rank_00_optim_states.pt
+[2026-06-06 04:52:44,931] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:52:44,935] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step128/zero_pp_rank_0_mp_rank_00_optim_states.pt
+[2026-06-06 04:52:44,935] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:52:44,937] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step128/zero_pp_rank_3_mp_rank_00_optim_states.pt
+[2026-06-06 04:52:47,902] [INFO] [logging.py:60:log_dist] [Rank 0] step=130, skipped=0, lr=[0.0006815917789545432, 0.0006815917789545432], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 130 loss: 5.3204 iter time (s): 1.436 samples/sec: 178.287
+%comms: 15.753931201414046 
+ %optimizer_step 1.1976093441643192 
+ %forward: 16.000735369789155 
+ %backward: 49.619131317205564
+[2026-06-06 04:52:47,902] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 1545.97 | forward: 2297.53 | backward_microstep: 7125.35 | backward: 7124.75 | backward_inner_microstep: 7123.21 | backward_inner: 7122.67 | backward_allreduce_microstep: 0.75 | backward_allreduce: 0.27 | reduce_tied_grads: 0.38 | comms: 2262.09 | reduce_grads: 2232.26 | step: 171.96 | _step_clipping: 0.16 | _step_step: 170.05 | _step_zero_grad: 0.39 | _step_check_overflow: 0.55
+ samples/sec: 167.905 | iteration      130/   19073 | elapsed time per iteration (ms): 1524.7 | learning rate: 6.816E-04 | approx flops per GPU: 34.8TFLOPS | lm_loss: 5.236361E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:53:02,652] [INFO] [logging.py:60:log_dist] [Rank 0] step=140, skipped=0, lr=[0.0007340219157972003, 0.0007340219157972003], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 140 loss: 4.9832 iter time (s): 1.475 samples/sec: 173.618
+%comms: 14.217213323564645 
+ %optimizer_step 1.0634063382197307 
+ %forward: 17.153983490494763 
+ %backward: 48.64567789320374
+[2026-06-06 04:53:02,653] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 1825.25 | forward: 2529.36 | backward_microstep: 7173.54 | backward: 7172.83 | backward_inner_microstep: 7171.38 | backward_inner: 7170.85 | backward_allreduce_microstep: 0.67 | backward_allreduce: 0.23 | reduce_tied_grads: 0.34 | comms: 2096.34 | reduce_grads: 2073.92 | step: 156.80 | _step_clipping: 0.15 | _step_step: 154.85 | _step_zero_grad: 0.39 | _step_check_overflow: 0.63
+ samples/sec: 173.555 | iteration      140/   19073 | elapsed time per iteration (ms): 1475.0 | learning rate: 7.340E-04 | approx flops per GPU: 36.0TFLOPS | lm_loss: 5.103344E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:53:17,178] [INFO] [logging.py:60:log_dist] [Rank 0] step=150, skipped=0, lr=[0.0007864520526398574, 0.0007864520526398574], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 150 loss: 5.0480 iter time (s): 1.452 samples/sec: 176.295
+%comms: 9.926461219866264 
+ %optimizer_step 1.113547039442402 
+ %forward: 18.53659676289742 
+ %backward: 49.145837022088394
+[2026-06-06 04:53:17,179] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2101.32 | forward: 2691.71 | backward_microstep: 7137.17 | backward: 7136.51 | backward_inner_microstep: 7134.89 | backward_inner: 7134.32 | backward_allreduce_microstep: 0.77 | backward_allreduce: 0.26 | reduce_tied_grads: 0.37 | comms: 1441.43 | reduce_grads: 1419.04 | step: 161.70 | _step_clipping: 0.14 | _step_step: 159.78 | _step_zero_grad: 0.42 | _step_check_overflow: 0.56
+ samples/sec: 176.231 | iteration      150/   19073 | elapsed time per iteration (ms): 1452.6 | learning rate: 7.865E-04 | approx flops per GPU: 36.5TFLOPS | lm_loss: 5.032825E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:53:31,213] [INFO] [logging.py:60:log_dist] [Rank 0] step=160, skipped=0, lr=[0.0008388821894825146, 0.0008388821894825146], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 160 loss: 5.1026 iter time (s): 1.403 samples/sec: 182.479
+%comms: 11.553571933251636 
+ %optimizer_step 1.1747360149849246 
+ %forward: 17.30411732109157 
+ %backward: 50.92994262557482
+[2026-06-06 04:53:31,213] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 1709.75 | forward: 2427.60 | backward_microstep: 7145.67 | backward: 7144.98 | backward_inner_microstep: 7143.37 | backward_inner: 7142.79 | backward_allreduce_microstep: 0.78 | backward_allreduce: 0.27 | reduce_tied_grads: 0.36 | comms: 1620.86 | reduce_grads: 1594.01 | step: 164.80 | _step_clipping: 0.14 | _step_step: 162.97 | _step_zero_grad: 0.37 | _step_check_overflow: 0.57
+ samples/sec: 182.413 | iteration      160/   19073 | elapsed time per iteration (ms): 1403.4 | learning rate: 8.389E-04 | approx flops per GPU: 37.8TFLOPS | lm_loss: 5.015837E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:53:45,912] [INFO] [logging.py:60:log_dist] [Rank 0] step=170, skipped=0, lr=[0.0008913123263251719, 0.0008913123263251719], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 170 loss: 4.8970 iter time (s): 1.469 samples/sec: 174.210
+%comms: 9.095313334933621 
+ %optimizer_step 1.1563052118394546 
+ %forward: 16.162964197235116 
+ %backward: 48.80867802448829
+[2026-06-06 04:53:45,913] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2682.72 | forward: 2375.13 | backward_microstep: 7173.05 | backward: 7172.37 | backward_inner_microstep: 7170.82 | backward_inner: 7170.27 | backward_allreduce_microstep: 0.75 | backward_allreduce: 0.25 | reduce_tied_grads: 0.38 | comms: 1336.54 | reduce_grads: 1306.10 | step: 169.92 | _step_clipping: 0.14 | _step_step: 167.94 | _step_zero_grad: 0.37 | _step_check_overflow: 0.71
+ samples/sec: 174.150 | iteration      170/   19073 | elapsed time per iteration (ms): 1470.0 | learning rate: 8.913E-04 | approx flops per GPU: 36.1TFLOPS | lm_loss: 4.936303E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:54:00,611] [INFO] [logging.py:60:log_dist] [Rank 0] step=180, skipped=0, lr=[0.0009437424631678289, 0.0009437424631678289], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 180 loss: 4.9311 iter time (s): 1.469 samples/sec: 174.232
+%comms: 16.97307677953368 
+ %optimizer_step 1.197765268850879 
+ %forward: 15.223372509821168 
+ %backward: 48.527431925240684
+[2026-06-06 04:54:00,612] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 1701.84 | forward: 2236.78 | backward_microstep: 7130.77 | backward: 7130.16 | backward_inner_microstep: 7128.64 | backward_inner: 7128.09 | backward_allreduce_microstep: 0.73 | backward_allreduce: 0.25 | reduce_tied_grads: 0.36 | comms: 2493.86 | reduce_grads: 2460.27 | step: 175.99 | _step_clipping: 0.14 | _step_step: 174.01 | _step_zero_grad: 0.40 | _step_check_overflow: 0.65
+ samples/sec: 174.167 | iteration      180/   19073 | elapsed time per iteration (ms): 1469.9 | learning rate: 9.437E-04 | approx flops per GPU: 36.1TFLOPS | lm_loss: 4.834654E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:54:15,238] [INFO] [logging.py:60:log_dist] [Rank 0] step=190, skipped=0, lr=[0.000996172600010486, 0.000996172600010486], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 190 loss: 4.7560 iter time (s): 1.462 samples/sec: 175.093
+%comms: 18.389482567288685 
+ %optimizer_step 1.0096688308868509 
+ %forward: 15.375783253607016 
+ %backward: 48.97567544619073
+[2026-06-06 04:54:15,238] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 1404.51 | forward: 2248.07 | backward_microstep: 7161.34 | backward: 7160.65 | backward_inner_microstep: 7159.10 | backward_inner: 7158.53 | backward_allreduce_microstep: 0.73 | backward_allreduce: 0.25 | reduce_tied_grads: 0.36 | comms: 2688.69 | reduce_grads: 2672.68 | step: 147.62 | _step_clipping: 0.16 | _step_step: 145.55 | _step_zero_grad: 0.40 | _step_check_overflow: 0.68
+ samples/sec: 175.022 | iteration      190/   19073 | elapsed time per iteration (ms): 1462.7 | learning rate: 9.962E-04 | approx flops per GPU: 36.3TFLOPS | lm_loss: 4.769349E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:54:29,710] [INFO] [logging.py:60:log_dist] [Rank 0] step=200, skipped=0, lr=[0.0009999994171442028, 0.0009999994171442028], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 200 loss: 4.6935 iter time (s): 1.447 samples/sec: 176.950
+%comms: 13.57276623481195 
+ %optimizer_step 1.099588305542554 
+ %forward: 16.42552085731484 
+ %backward: 49.37914752691798
+[2026-06-06 04:54:29,711] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 1859.39 | forward: 2376.34 | backward_microstep: 7144.46 | backward: 7143.85 | backward_inner_microstep: 7142.28 | backward_inner: 7141.72 | backward_allreduce_microstep: 0.75 | backward_allreduce: 0.26 | reduce_tied_grads: 0.35 | comms: 1963.62 | reduce_grads: 1939.52 | step: 159.08 | _step_clipping: 0.15 | _step_step: 156.75 | _step_zero_grad: 0.41 | _step_check_overflow: 0.96
+ samples/sec: 176.884 | iteration      200/   19073 | elapsed time per iteration (ms): 1447.3 | learning rate: 1.000E-03 | approx flops per GPU: 36.7TFLOPS | lm_loss: 4.710065E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:54:44,043] [INFO] [logging.py:60:log_dist] [Rank 0] step=210, skipped=0, lr=[0.000999997481367511, 0.000999997481367511], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 210 loss: 4.5750 iter time (s): 1.433 samples/sec: 178.678
+%comms: 7.27408587935092 
+ %optimizer_step 1.0580784453546461 
+ %forward: 16.445204014387276 
+ %backward: 50.06483380092014
+[2026-06-06 04:54:44,044] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2642.60 | forward: 2356.18 | backward_microstep: 7173.65 | backward: 7173.01 | backward_inner_microstep: 7171.57 | backward_inner: 7171.03 | backward_allreduce_microstep: 0.69 | backward_allreduce: 0.24 | reduce_tied_grads: 0.32 | comms: 1042.19 | reduce_grads: 1018.10 | step: 151.60 | _step_clipping: 0.13 | _step_step: 149.82 | _step_zero_grad: 0.36 | _step_check_overflow: 0.57
+ samples/sec: 178.615 | iteration      210/   19073 | elapsed time per iteration (ms): 1433.2 | learning rate: 1.000E-03 | approx flops per GPU: 37.0TFLOPS | lm_loss: 4.648542E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:54:58,751] [INFO] [logging.py:60:log_dist] [Rank 0] step=220, skipped=0, lr=[0.0009999941890606833, 0.0009999941890606833], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 220 loss: 4.5639 iter time (s): 1.470 samples/sec: 174.110
+%comms: 7.511002148751652 
+ %optimizer_step 1.037766587720953 
+ %forward: 16.55375642696688 
+ %backward: 48.69382512073168
+[2026-06-06 04:54:58,752] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2892.85 | forward: 2433.95 | backward_microstep: 7160.30 | backward: 7159.61 | backward_inner_microstep: 7158.05 | backward_inner: 7157.48 | backward_allreduce_microstep: 0.77 | backward_allreduce: 0.26 | reduce_tied_grads: 0.38 | comms: 1104.37 | reduce_grads: 1080.55 | step: 152.59 | _step_clipping: 0.13 | _step_step: 150.72 | _step_zero_grad: 0.37 | _step_check_overflow: 0.62
+ samples/sec: 174.052 | iteration      220/   19073 | elapsed time per iteration (ms): 1470.8 | learning rate: 1.000E-03 | approx flops per GPU: 36.1TFLOPS | lm_loss: 4.585849E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:55:13,119] [INFO] [logging.py:60:log_dist] [Rank 0] step=230, skipped=0, lr=[0.0009999895402326515, 0.0009999895402326515], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 230 loss: 4.6014 iter time (s): 1.436 samples/sec: 178.243
+%comms: 6.648347932466643 
+ %optimizer_step 1.2131091437839638 
+ %forward: 16.356866480853178 
+ %backward: 49.90533419021216
+[2026-06-06 04:55:13,119] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2758.29 | forward: 2349.24 | backward_microstep: 7168.27 | backward: 7167.61 | backward_inner_microstep: 7166.13 | backward_inner: 7165.58 | backward_allreduce_microstep: 0.71 | backward_allreduce: 0.24 | reduce_tied_grads: 0.33 | comms: 954.86 | reduce_grads: 926.81 | step: 174.23 | _step_clipping: 0.14 | _step_step: 172.18 | _step_zero_grad: 0.43 | _step_check_overflow: 0.67
+ samples/sec: 178.180 | iteration      230/   19073 | elapsed time per iteration (ms): 1436.7 | learning rate: 1.000E-03 | approx flops per GPU: 36.9TFLOPS | lm_loss: 4.528635E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:55:27,298] [INFO] [logging.py:60:log_dist] [Rank 0] step=240, skipped=0, lr=[0.0009999835348960286, 0.0009999835348960286], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 240 loss: 4.6136 iter time (s): 1.417 samples/sec: 180.614
+%comms: 6.920966021313508 
+ %optimizer_step 1.14590808149825 
+ %forward: 17.58229068579412 
+ %backward: 50.41477472858531
+[2026-06-06 04:55:27,298] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2423.52 | forward: 2492.10 | backward_microstep: 7146.39 | backward: 7145.74 | backward_inner_microstep: 7144.27 | backward_inner: 7143.74 | backward_allreduce_microstep: 0.71 | backward_allreduce: 0.24 | reduce_tied_grads: 0.30 | comms: 980.97 | reduce_grads: 950.35 | step: 162.42 | _step_clipping: 0.13 | _step_step: 160.69 | _step_zero_grad: 0.37 | _step_check_overflow: 0.52
+ samples/sec: 180.551 | iteration      240/   19073 | elapsed time per iteration (ms): 1417.9 | learning rate: 1.000E-03 | approx flops per GPU: 37.4TFLOPS | lm_loss: 4.485986E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:55:41,463] [INFO] [logging.py:60:log_dist] [Rank 0] step=250, skipped=0, lr=[0.0009999761730671074, 0.0009999761730671074], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 250 loss: 4.3722 iter time (s): 1.416 samples/sec: 180.786
+%comms: 3.0925410344682094 
+ %optimizer_step 1.082326812472486 
+ %forward: 18.32393899645267 
+ %backward: 50.5591024270016
+[2026-06-06 04:55:41,463] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2851.87 | forward: 2594.74 | backward_microstep: 7159.97 | backward: 7159.35 | backward_inner_microstep: 7157.94 | backward_inner: 7157.43 | backward_allreduce_microstep: 0.68 | backward_allreduce: 0.23 | reduce_tied_grads: 0.30 | comms: 437.92 | reduce_grads: 412.85 | step: 153.26 | _step_clipping: 0.13 | _step_step: 151.50 | _step_zero_grad: 0.36 | _step_check_overflow: 0.56
+ samples/sec: 180.727 | iteration      250/   19073 | elapsed time per iteration (ms): 1416.5 | learning rate: 1.000E-03 | approx flops per GPU: 37.5TFLOPS | lm_loss: 4.401064E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:55:50,411] [INFO] [logging.py:60:log_dist] [Rank 0] Saving model checkpoint: /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step256/mp_rank_00_model_states.pt
+[2026-06-06 04:55:50,699] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:55:50,700] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:55:50,700] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:55:50,701] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:55:50,701] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:55:50,702] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:55:50,705] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step256/zero_pp_rank_3_mp_rank_00_optim_states.pt
+[2026-06-06 04:55:50,706] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step256/zero_pp_rank_4_mp_rank_00_optim_states.pt
+[2026-06-06 04:55:50,706] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step256/zero_pp_rank_6_mp_rank_00_optim_states.pt
+[2026-06-06 04:55:50,706] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step256/zero_pp_rank_0_mp_rank_00_optim_states.pt
+[2026-06-06 04:55:50,706] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step256/zero_pp_rank_2_mp_rank_00_optim_states.pt
+[2026-06-06 04:55:50,706] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step256/zero_pp_rank_7_mp_rank_00_optim_states.pt
+[2026-06-06 04:55:50,803] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:55:50,805] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step256/zero_pp_rank_1_mp_rank_00_optim_states.pt
+[2026-06-06 04:55:50,815] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 04:55:50,819] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step256/zero_pp_rank_5_mp_rank_00_optim_states.pt
+[2026-06-06 04:55:56,630] [INFO] [logging.py:60:log_dist] [Rank 0] step=260, skipped=0, lr=[0.0009999674547658609, 0.0009999674547658609], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 260 loss: 4.4314 iter time (s): 1.439 samples/sec: 177.861
+%comms: 3.163012541852376 
+ %optimizer_step 1.1329173106921921 
+ %forward: 17.014861329863024 
+ %backward: 49.773893764565166
+[2026-06-06 04:55:56,630] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 3201.58 | forward: 2448.99 | backward_microstep: 7164.66 | backward: 7164.08 | backward_inner_microstep: 7162.58 | backward_inner: 7162.04 | backward_allreduce_microstep: 0.74 | backward_allreduce: 0.26 | reduce_tied_grads: 0.32 | comms: 455.26 | reduce_grads: 429.95 | step: 163.06 | _step_clipping: 0.13 | _step_step: 161.25 | _step_zero_grad: 0.40 | _step_check_overflow: 0.54
+ samples/sec: 168.786 | iteration      260/   19073 | elapsed time per iteration (ms): 1516.7 | learning rate: 1.000E-03 | approx flops per GPU: 35.0TFLOPS | lm_loss: 4.455191E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:56:10,990] [INFO] [logging.py:60:log_dist] [Rank 0] step=270, skipped=0, lr=[0.0009999573800159426, 0.0009999573800159426], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 270 loss: 4.2329 iter time (s): 1.436 samples/sec: 178.323
+%comms: 5.375075085134407 
+ %optimizer_step 1.0802676756704832 
+ %forward: 16.502877594336816 
+ %backward: 50.360181951112246
+[2026-06-06 04:56:10,991] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2867.79 | forward: 2369.15 | backward_microstep: 7230.28 | backward: 7229.69 | backward_inner_microstep: 7228.19 | backward_inner: 7227.65 | backward_allreduce_microstep: 0.74 | backward_allreduce: 0.26 | reduce_tied_grads: 0.34 | comms: 771.64 | reduce_grads: 749.29 | step: 155.08 | _step_clipping: 0.13 | _step_step: 153.13 | _step_zero_grad: 0.37 | _step_check_overflow: 0.70
+ samples/sec: 178.262 | iteration      270/   19073 | elapsed time per iteration (ms): 1436.1 | learning rate: 1.000E-03 | approx flops per GPU: 36.9TFLOPS | lm_loss: 4.300377E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:56:25,522] [INFO] [logging.py:60:log_dist] [Rank 0] step=280, skipped=0, lr=[0.0009999459488446863, 0.0009999459488446863], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 280 loss: 4.2736 iter time (s): 1.453 samples/sec: 176.239
+%comms: 16.513886376700075 
+ %optimizer_step 1.2435367445775294 
+ %forward: 15.533217956844773 
+ %backward: 49.174840353364566
+[2026-06-06 04:56:25,523] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 1593.71 | forward: 2256.31 | backward_microstep: 7143.60 | backward: 7142.99 | backward_inner_microstep: 7141.41 | backward_inner: 7140.82 | backward_allreduce_microstep: 0.75 | backward_allreduce: 0.26 | reduce_tied_grads: 0.35 | comms: 2398.76 | reduce_grads: 2365.87 | step: 180.63 | _step_clipping: 0.15 | _step_step: 178.42 | _step_zero_grad: 0.41 | _step_check_overflow: 0.82
+ samples/sec: 176.170 | iteration      280/   19073 | elapsed time per iteration (ms): 1453.1 | learning rate: 9.999E-04 | approx flops per GPU: 36.5TFLOPS | lm_loss: 4.267200E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:56:39,644] [INFO] [logging.py:60:log_dist] [Rank 0] step=290, skipped=0, lr=[0.0009999331612831053, 0.0009999331612831053], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 290 loss: 4.2468 iter time (s): 1.412 samples/sec: 181.352
+%comms: 11.999741587446893 
+ %optimizer_step 1.2496611502060966 
+ %forward: 17.300186715736903 
+ %backward: 50.894421582346205
+[2026-06-06 04:56:39,644] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 1664.12 | forward: 2442.13 | backward_microstep: 7185.04 | backward: 7184.36 | backward_inner_microstep: 7182.90 | backward_inner: 7182.36 | backward_allreduce_microstep: 0.69 | backward_allreduce: 0.24 | reduce_tied_grads: 0.34 | comms: 1693.91 | reduce_grads: 1660.44 | step: 176.40 | _step_clipping: 0.14 | _step_step: 174.42 | _step_zero_grad: 0.41 | _step_check_overflow: 0.66
+ samples/sec: 181.282 | iteration      290/   19073 | elapsed time per iteration (ms): 1412.2 | learning rate: 9.999E-04 | approx flops per GPU: 37.6TFLOPS | lm_loss: 4.291094E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:56:54,088] [INFO] [logging.py:60:log_dist] [Rank 0] step=300, skipped=0, lr=[0.0009999190173658934, 0.0009999190173658934], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 300 loss: 4.1772 iter time (s): 1.444 samples/sec: 177.293
+%comms: 3.3963757870771194 
+ %optimizer_step 1.1572082346385824 
+ %forward: 18.099412780060856 
+ %backward: 49.43907334309969
+[2026-06-06 04:56:54,089] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 3072.03 | forward: 2613.44 | backward_microstep: 7139.22 | backward: 7138.68 | backward_inner_microstep: 7137.21 | backward_inner: 7136.69 | backward_allreduce_microstep: 0.72 | backward_allreduce: 0.25 | reduce_tied_grads: 0.34 | comms: 490.41 | reduce_grads: 463.11 | step: 167.09 | _step_clipping: 0.14 | _step_step: 165.18 | _step_zero_grad: 0.40 | _step_check_overflow: 0.59
+ samples/sec: 177.232 | iteration      300/   19073 | elapsed time per iteration (ms): 1444.4 | learning rate: 9.999E-04 | approx flops per GPU: 36.7TFLOPS | lm_loss: 4.267189E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:57:08,392] [INFO] [logging.py:60:log_dist] [Rank 0] step=310, skipped=0, lr=[0.0009999035171314237, 0.0009999035171314237], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 310 loss: 4.1655 iter time (s): 1.430 samples/sec: 179.033
+%comms: 8.894849075522464 
+ %optimizer_step 1.195298705626072 
+ %forward: 17.916178293515834 
+ %backward: 50.35119014986202
+[2026-06-06 04:57:08,393] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2143.17 | forward: 2561.85 | backward_microstep: 7200.49 | backward: 7199.75 | backward_inner_microstep: 7198.28 | backward_inner: 7197.75 | backward_allreduce_microstep: 0.68 | backward_allreduce: 0.23 | reduce_tied_grads: 0.32 | comms: 1271.88 | reduce_grads: 1237.72 | step: 170.92 | _step_clipping: 0.13 | _step_step: 169.09 | _step_zero_grad: 0.37 | _step_check_overflow: 0.59
+ samples/sec: 178.972 | iteration      310/   19073 | elapsed time per iteration (ms): 1430.4 | learning rate: 9.999E-04 | approx flops per GPU: 37.1TFLOPS | lm_loss: 4.119434E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:57:22,835] [INFO] [logging.py:60:log_dist] [Rank 0] step=320, skipped=0, lr=[0.00099988666062175, 0.00099988666062175], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 320 loss: 3.9226 iter time (s): 1.444 samples/sec: 177.303
+%comms: 9.035784305064466 
+ %optimizer_step 1.0947841794035285 
+ %forward: 17.678527286835045 
+ %backward: 50.221694956339846
+[2026-06-06 04:57:22,836] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2179.61 | forward: 2552.53 | backward_microstep: 7252.02 | backward: 7251.30 | backward_inner_microstep: 7249.79 | backward_inner: 7249.25 | backward_allreduce_microstep: 0.73 | backward_allreduce: 0.25 | reduce_tied_grads: 0.34 | comms: 1304.64 | reduce_grads: 1277.78 | step: 158.07 | _step_clipping: 0.13 | _step_step: 156.23 | _step_zero_grad: 0.37 | _step_check_overflow: 0.61
+ samples/sec: 177.244 | iteration      320/   19073 | elapsed time per iteration (ms): 1444.3 | learning rate: 9.999E-04 | approx flops per GPU: 36.7TFLOPS | lm_loss: 4.081994E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:57:37,268] [INFO] [logging.py:60:log_dist] [Rank 0] step=330, skipped=0, lr=[0.000999868447882605, 0.000999868447882605], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 330 loss: 4.0293 iter time (s): 1.443 samples/sec: 177.443
+%comms: 10.254987947085267 
+ %optimizer_step 1.0915518974038818 
+ %forward: 16.104495049975196 
+ %backward: 50.21322989277534
+[2026-06-06 04:57:37,269] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2252.71 | forward: 2323.42 | backward_microstep: 7245.00 | backward: 7244.35 | backward_inner_microstep: 7242.80 | backward_inner: 7242.23 | backward_allreduce_microstep: 0.76 | backward_allreduce: 0.26 | reduce_tied_grads: 0.36 | comms: 1479.50 | reduce_grads: 1460.99 | step: 157.48 | _step_clipping: 0.15 | _step_step: 155.43 | _step_zero_grad: 0.42 | _step_check_overflow: 0.66
+ samples/sec: 177.375 | iteration      330/   19073 | elapsed time per iteration (ms): 1443.3 | learning rate: 9.999E-04 | approx flops per GPU: 36.8TFLOPS | lm_loss: 4.068795E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:57:51,500] [INFO] [logging.py:60:log_dist] [Rank 0] step=340, skipped=0, lr=[0.0009998488789634014, 0.0009998488789634014], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 340 loss: 4.1133 iter time (s): 1.423 samples/sec: 179.946
+%comms: 10.93174771969694 
+ %optimizer_step 1.1242986006552869 
+ %forward: 17.481091700505637 
+ %backward: 50.900589535594875
+[2026-06-06 04:57:51,501] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 1816.45 | forward: 2486.95 | backward_microstep: 7242.04 | backward: 7241.38 | backward_inner_microstep: 7239.83 | backward_inner: 7239.24 | backward_allreduce_microstep: 0.74 | backward_allreduce: 0.25 | reduce_tied_grads: 0.37 | comms: 1555.21 | reduce_grads: 1532.63 | step: 159.95 | _step_clipping: 0.14 | _step_step: 157.91 | _step_zero_grad: 0.38 | _step_check_overflow: 0.70
+ samples/sec: 179.876 | iteration      340/   19073 | elapsed time per iteration (ms): 1423.2 | learning rate: 9.998E-04 | approx flops per GPU: 37.3TFLOPS | lm_loss: 4.061067E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:58:05,959] [INFO] [logging.py:60:log_dist] [Rank 0] step=350, skipped=0, lr=[0.0009998279539172308, 0.0009998279539172308], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 350 loss: 4.0584 iter time (s): 1.445 samples/sec: 177.114
+%comms: 12.133182749295095 
+ %optimizer_step 1.0524211720832262 
+ %forward: 15.890897588789251 
+ %backward: 49.9444101696482
+[2026-06-06 04:58:05,960] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2064.80 | forward: 2296.87 | backward_microstep: 7219.58 | backward: 7218.96 | backward_inner_microstep: 7217.49 | backward_inner: 7216.95 | backward_allreduce_microstep: 0.70 | backward_allreduce: 0.24 | reduce_tied_grads: 0.38 | comms: 1753.73 | reduce_grads: 1734.18 | step: 152.12 | _step_clipping: 0.14 | _step_step: 150.06 | _step_zero_grad: 0.39 | _step_check_overflow: 0.73
+ samples/sec: 177.047 | iteration      350/   19073 | elapsed time per iteration (ms): 1445.9 | learning rate: 9.998E-04 | approx flops per GPU: 36.7TFLOPS | lm_loss: 3.980115E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:58:20,305] [INFO] [logging.py:60:log_dist] [Rank 0] step=360, skipped=0, lr=[0.0009998056728008646, 0.0009998056728008646], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 360 loss: 3.8005 iter time (s): 1.434 samples/sec: 178.517
+%comms: 18.593587260349224 
+ %optimizer_step 1.130479611285753 
+ %forward: 15.917437691937502 
+ %backward: 49.84395115541484
+[2026-06-06 04:58:20,306] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 1119.10 | forward: 2282.62 | backward_microstep: 7148.49 | backward: 7147.80 | backward_inner_microstep: 7146.09 | backward_inner: 7145.46 | backward_allreduce_microstep: 0.83 | backward_allreduce: 0.28 | reduce_tied_grads: 0.39 | comms: 2666.39 | reduce_grads: 2641.12 | step: 162.11 | _step_clipping: 0.15 | _step_step: 160.05 | _step_zero_grad: 0.39 | _step_check_overflow: 0.73
+ samples/sec: 178.449 | iteration      360/   19073 | elapsed time per iteration (ms): 1434.6 | learning rate: 9.998E-04 | approx flops per GPU: 37.0TFLOPS | lm_loss: 3.949261E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:58:34,829] [INFO] [logging.py:60:log_dist] [Rank 0] step=370, skipped=0, lr=[0.0009997820356747531, 0.0009997820356747531], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 370 loss: 4.0641 iter time (s): 1.452 samples/sec: 176.322
+%comms: 6.498507993854232 
+ %optimizer_step 1.1316293019773276 
+ %forward: 15.820983040544903 
+ %backward: 49.916601162115434
+[2026-06-06 04:58:34,830] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2896.95 | forward: 2297.03 | backward_microstep: 7247.98 | backward: 7247.32 | backward_inner_microstep: 7245.81 | backward_inner: 7245.27 | backward_allreduce_microstep: 0.72 | backward_allreduce: 0.26 | reduce_tied_grads: 0.33 | comms: 943.51 | reduce_grads: 913.04 | step: 164.30 | _step_clipping: 0.13 | _step_step: 162.43 | _step_zero_grad: 0.36 | _step_check_overflow: 0.64
+ samples/sec: 176.263 | iteration      370/   19073 | elapsed time per iteration (ms): 1452.4 | learning rate: 9.998E-04 | approx flops per GPU: 36.5TFLOPS | lm_loss: 4.005888E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:58:49,195] [INFO] [logging.py:60:log_dist] [Rank 0] step=380, skipped=0, lr=[0.0009997570426030255, 0.0009997570426030255], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 380 loss: 3.9122 iter time (s): 1.436 samples/sec: 178.262
+%comms: 10.330337776793023 
+ %optimizer_step 1.1734895362935187 
+ %forward: 16.323593619931252 
+ %backward: 50.05119470271918
+[2026-06-06 04:58:49,196] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2215.28 | forward: 2344.21 | backward_microstep: 7188.44 | backward: 7187.78 | backward_inner_microstep: 7186.27 | backward_inner: 7185.72 | backward_allreduce_microstep: 0.72 | backward_allreduce: 0.25 | reduce_tied_grads: 0.34 | comms: 1483.52 | reduce_grads: 1448.69 | step: 168.52 | _step_clipping: 0.13 | _step_step: 166.63 | _step_zero_grad: 0.38 | _step_check_overflow: 0.62
+ samples/sec: 178.201 | iteration      380/   19073 | elapsed time per iteration (ms): 1436.6 | learning rate: 9.998E-04 | approx flops per GPU: 36.9TFLOPS | lm_loss: 3.884989E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:59:03,163] [INFO] [logging.py:60:log_dist] [Rank 0] step=390, skipped=0, lr=[0.00099973069365349, 0.00099973069365349], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 390 loss: 3.8510 iter time (s): 1.396 samples/sec: 183.344
+%comms: 7.052832523536119 
+ %optimizer_step 1.0803071405632112 
+ %forward: 18.42217573061722 
+ %backward: 51.32971609947167
+[2026-06-06 04:59:03,163] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2127.56 | forward: 2572.26 | backward_microstep: 7167.66 | backward: 7167.09 | backward_inner_microstep: 7165.61 | backward_inner: 7165.09 | backward_allreduce_microstep: 0.73 | backward_allreduce: 0.25 | reduce_tied_grads: 0.32 | comms: 984.78 | reduce_grads: 960.01 | step: 150.84 | _step_clipping: 0.13 | _step_step: 149.05 | _step_zero_grad: 0.36 | _step_check_overflow: 0.58
+ samples/sec: 183.281 | iteration      390/   19073 | elapsed time per iteration (ms): 1396.8 | learning rate: 9.997E-04 | approx flops per GPU: 38.0TFLOPS | lm_loss: 3.855362E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:59:17,506] [INFO] [logging.py:60:log_dist] [Rank 0] step=400, skipped=0, lr=[0.000999702988897633, 0.000999702988897633], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 400 loss: 3.8139 iter time (s): 1.434 samples/sec: 178.541
+%comms: 6.812018143078104 
+ %optimizer_step 1.1470851054560594 
+ %forward: 17.298240730671598 
+ %backward: 49.96322065908499
+[2026-06-06 04:59:17,507] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2571.53 | forward: 2480.30 | backward_microstep: 7164.63 | backward: 7163.94 | backward_inner_microstep: 7162.41 | backward_inner: 7161.86 | backward_allreduce_microstep: 0.74 | backward_allreduce: 0.26 | reduce_tied_grads: 0.37 | comms: 976.74 | reduce_grads: 949.42 | step: 164.47 | _step_clipping: 0.14 | _step_step: 162.53 | _step_zero_grad: 0.39 | _step_check_overflow: 0.63
+ samples/sec: 178.476 | iteration      400/   19073 | elapsed time per iteration (ms): 1434.4 | learning rate: 9.997E-04 | approx flops per GPU: 37.0TFLOPS | lm_loss: 3.854422E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:59:31,747] [INFO] [logging.py:60:log_dist] [Rank 0] step=410, skipped=0, lr=[0.0009996739284106198, 0.0009996739284106198], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 410 loss: 3.8410 iter time (s): 1.424 samples/sec: 179.822
+%comms: 4.686778141457203 
+ %optimizer_step 1.1851053095160284 
+ %forward: 17.117156918224445 
+ %backward: 50.388167616732225
+[2026-06-06 04:59:31,748] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2831.83 | forward: 2436.85 | backward_microstep: 7174.04 | backward: 7173.40 | backward_inner_microstep: 7171.90 | backward_inner: 7171.33 | backward_allreduce_microstep: 0.73 | backward_allreduce: 0.25 | reduce_tied_grads: 0.36 | comms: 667.22 | reduce_grads: 640.67 | step: 168.72 | _step_clipping: 0.14 | _step_step: 166.84 | _step_zero_grad: 0.40 | _step_check_overflow: 0.58
+ samples/sec: 179.760 | iteration      410/   19073 | elapsed time per iteration (ms): 1424.1 | learning rate: 9.997E-04 | approx flops per GPU: 37.3TFLOPS | lm_loss: 3.757766E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 04:59:46,108] [INFO] [logging.py:60:log_dist] [Rank 0] step=420, skipped=0, lr=[0.0009996435122712937, 0.0009996435122712937], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 420 loss: 3.6771 iter time (s): 1.436 samples/sec: 178.321
+%comms: 4.5633921352215685 
+ %optimizer_step 1.0830054213794686 
+ %forward: 16.280395469306335 
+ %backward: 50.10893179250891
+[2026-06-06 04:59:46,109] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 3051.34 | forward: 2337.23 | backward_microstep: 7194.28 | backward: 7193.69 | backward_inner_microstep: 7192.13 | backward_inner: 7191.57 | backward_allreduce_microstep: 0.76 | backward_allreduce: 0.26 | reduce_tied_grads: 0.33 | comms: 655.12 | reduce_grads: 629.78 | step: 155.48 | _step_clipping: 0.13 | _step_step: 153.69 | _step_zero_grad: 0.37 | _step_check_overflow: 0.58
+ samples/sec: 178.265 | iteration      420/   19073 | elapsed time per iteration (ms): 1436.1 | learning rate: 9.996E-04 | approx flops per GPU: 36.9TFLOPS | lm_loss: 3.794075E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:00:00,386] [INFO] [logging.py:60:log_dist] [Rank 0] step=430, skipped=0, lr=[0.0009996117405621755, 0.0009996117405621755], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 430 loss: 3.7006 iter time (s): 1.427 samples/sec: 179.360
+%comms: 7.823332855426214 
+ %optimizer_step 1.1445198978658533 
+ %forward: 17.67191781520977 
+ %backward: 50.65573249923256
+[2026-06-06 05:00:00,387] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2280.35 | forward: 2522.31 | backward_microstep: 7230.72 | backward: 7230.08 | backward_inner_microstep: 7228.58 | backward_inner: 7228.04 | backward_allreduce_microstep: 0.71 | backward_allreduce: 0.24 | reduce_tied_grads: 0.32 | comms: 1116.62 | reduce_grads: 1087.07 | step: 163.36 | _step_clipping: 0.13 | _step_step: 161.57 | _step_zero_grad: 0.36 | _step_check_overflow: 0.56
+ samples/sec: 179.301 | iteration      430/   19073 | elapsed time per iteration (ms): 1427.8 | learning rate: 9.996E-04 | approx flops per GPU: 37.2TFLOPS | lm_loss: 3.767904E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:00:14,699] [INFO] [logging.py:60:log_dist] [Rank 0] step=440, skipped=0, lr=[0.0009995786133694647, 0.0009995786133694647], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 440 loss: 3.6033 iter time (s): 1.431 samples/sec: 178.921
+%comms: 4.616557148955679 
+ %optimizer_step 1.2898740901391168 
+ %forward: 17.752422059039834 
+ %backward: 50.70048504751353
+[2026-06-06 05:00:14,700] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2709.07 | forward: 2540.01 | backward_microstep: 7254.87 | backward: 7254.22 | backward_inner_microstep: 7252.74 | backward_inner: 7252.21 | backward_allreduce_microstep: 0.72 | backward_allreduce: 0.25 | reduce_tied_grads: 0.34 | comms: 660.54 | reduce_grads: 633.49 | step: 184.56 | _step_clipping: 0.15 | _step_step: 182.42 | _step_zero_grad: 0.48 | _step_check_overflow: 0.64
+ samples/sec: 178.852 | iteration      440/   19073 | elapsed time per iteration (ms): 1431.4 | learning rate: 9.996E-04 | approx flops per GPU: 37.1TFLOPS | lm_loss: 3.697368E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:00:28,641] [INFO] [logging.py:60:log_dist] [Rank 0] step=450, skipped=0, lr=[0.0009995441307830376, 0.0009995441307830376], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 450 loss: 3.7591 iter time (s): 1.394 samples/sec: 183.697
+%comms: 10.089106905858342 
+ %optimizer_step 1.2276499440403357 
+ %forward: 17.63089299902075 
+ %backward: 51.36183457984779
+[2026-06-06 05:00:28,642] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 1761.31 | forward: 2457.05 | backward_microstep: 7158.53 | backward: 7157.80 | backward_inner_microstep: 7156.28 | backward_inner: 7155.70 | backward_allreduce_microstep: 0.72 | backward_allreduce: 0.25 | reduce_tied_grads: 0.36 | comms: 1406.02 | reduce_grads: 1372.10 | step: 171.09 | _step_clipping: 0.14 | _step_step: 169.19 | _step_zero_grad: 0.37 | _step_check_overflow: 0.61
+ samples/sec: 183.625 | iteration      450/   19073 | elapsed time per iteration (ms): 1394.1 | learning rate: 9.995E-04 | approx flops per GPU: 38.1TFLOPS | lm_loss: 3.712384E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:00:42,926] [INFO] [logging.py:60:log_dist] [Rank 0] step=460, skipped=0, lr=[0.0009995082928964478, 0.0009995082928964478], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 460 loss: 3.6852 iter time (s): 1.428 samples/sec: 179.268
+%comms: 8.097885298546128 
+ %optimizer_step 1.176562885878888 
+ %forward: 16.783475204311706 
+ %backward: 50.32977138806676
+[2026-06-06 05:00:42,927] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2394.40 | forward: 2396.72 | backward_microstep: 7187.85 | backward: 7187.22 | backward_inner_microstep: 7185.69 | backward_inner: 7185.15 | backward_allreduce_microstep: 0.76 | backward_allreduce: 0.27 | reduce_tied_grads: 0.33 | comms: 1156.40 | reduce_grads: 1122.28 | step: 168.02 | _step_clipping: 0.14 | _step_step: 166.20 | _step_zero_grad: 0.36 | _step_check_overflow: 0.58
+ samples/sec: 179.209 | iteration      460/   19073 | elapsed time per iteration (ms): 1428.5 | learning rate: 9.995E-04 | approx flops per GPU: 37.1TFLOPS | lm_loss: 3.706293E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:00:57,265] [INFO] [logging.py:60:log_dist] [Rank 0] step=470, skipped=0, lr=[0.0009994710998069264, 0.0009994710998069264], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 470 loss: 3.6679 iter time (s): 1.433 samples/sec: 178.595
+%comms: 2.7818189006656535 
+ %optimizer_step 1.135788531924466 
+ %forward: 18.45993806108368 
+ %backward: 49.808664924826964
+[2026-06-06 05:00:57,266] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 3029.98 | forward: 2646.06 | backward_microstep: 7140.21 | backward: 7139.61 | backward_inner_microstep: 7138.16 | backward_inner: 7137.64 | backward_allreduce_microstep: 0.71 | backward_allreduce: 0.24 | reduce_tied_grads: 0.31 | comms: 398.75 | reduce_grads: 371.19 | step: 162.80 | _step_clipping: 0.13 | _step_step: 160.94 | _step_zero_grad: 0.39 | _step_check_overflow: 0.60
+ samples/sec: 178.533 | iteration      470/   19073 | elapsed time per iteration (ms): 1433.9 | learning rate: 9.995E-04 | approx flops per GPU: 37.0TFLOPS | lm_loss: 3.686444E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:01:11,773] [INFO] [logging.py:60:log_dist] [Rank 0] step=480, skipped=0, lr=[0.0009994325516153812, 0.0009994325516153812], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 480 loss: 3.6237 iter time (s): 1.450 samples/sec: 176.506
+%comms: 5.675361985878857 
+ %optimizer_step 1.2745295171524893 
+ %forward: 16.80414569478334 
+ %backward: 50.40883213522337
+[2026-06-06 05:01:11,774] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2797.18 | forward: 2437.23 | backward_microstep: 7311.78 | backward: 7311.16 | backward_inner_microstep: 7309.71 | backward_inner: 7309.18 | backward_allreduce_microstep: 0.70 | backward_allreduce: 0.24 | reduce_tied_grads: 0.30 | comms: 823.14 | reduce_grads: 783.50 | step: 184.85 | _step_clipping: 0.13 | _step_step: 183.13 | _step_zero_grad: 0.36 | _step_check_overflow: 0.52
+ samples/sec: 176.450 | iteration      480/   19073 | elapsed time per iteration (ms): 1450.8 | learning rate: 9.994E-04 | approx flops per GPU: 36.6TFLOPS | lm_loss: 3.666297E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:01:26,154] [INFO] [logging.py:60:log_dist] [Rank 0] step=490, skipped=0, lr=[0.000999392648426396, 0.000999392648426396], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 490 loss: 3.6455 iter time (s): 1.438 samples/sec: 178.081
+%comms: 10.615757380918446 
+ %optimizer_step 1.154927996512629 
+ %forward: 16.271923733193418 
+ %backward: 50.0205820442909
+[2026-06-06 05:01:26,155] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2099.83 | forward: 2339.17 | backward_microstep: 7191.41 | backward: 7190.72 | backward_inner_microstep: 7189.21 | backward_inner: 7188.66 | backward_allreduce_microstep: 0.72 | backward_allreduce: 0.25 | reduce_tied_grads: 0.36 | comms: 1526.07 | reduce_grads: 1499.20 | step: 166.03 | _step_clipping: 0.14 | _step_step: 164.10 | _step_zero_grad: 0.40 | _step_check_overflow: 0.62
+ samples/sec: 178.016 | iteration      490/   19073 | elapsed time per iteration (ms): 1438.1 | learning rate: 9.994E-04 | approx flops per GPU: 36.9TFLOPS | lm_loss: 3.643661E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:01:40,415] [INFO] [logging.py:60:log_dist] [Rank 0] step=500, skipped=0, lr=[0.000999351390348231, 0.000999351390348231], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 500 loss: 3.7123 iter time (s): 1.426 samples/sec: 179.572
+%comms: 9.553713731244537 
+ %optimizer_step 1.1456389525605832 
+ %forward: 16.474924650361285 
+ %backward: 50.16647160996867
+[2026-06-06 05:01:40,416] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2262.73 | forward: 2348.69 | backward_microstep: 7152.41 | backward: 7151.80 | backward_inner_microstep: 7150.34 | backward_inner: 7149.80 | backward_allreduce_microstep: 0.70 | backward_allreduce: 0.25 | reduce_tied_grads: 0.33 | comms: 1361.99 | reduce_grads: 1334.58 | step: 163.32 | _step_clipping: 0.13 | _step_step: 161.44 | _step_zero_grad: 0.36 | _step_check_overflow: 0.64
+ samples/sec: 179.509 | iteration      500/   19073 | elapsed time per iteration (ms): 1426.1 | learning rate: 9.994E-04 | approx flops per GPU: 37.2TFLOPS | lm_loss: 3.646676E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:01:54,854] [INFO] [logging.py:60:log_dist] [Rank 0] step=510, skipped=0, lr=[0.0009993087774928225, 0.0009993087774928225], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 510 loss: 3.6344 iter time (s): 1.443 samples/sec: 177.355
+%comms: 7.955316783281721 
+ %optimizer_step 1.162562948525952 
+ %forward: 18.112134390967345 
+ %backward: 49.425774792827035
+[2026-06-06 05:01:54,855] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2407.95 | forward: 2614.36 | backward_microstep: 7134.92 | backward: 7134.27 | backward_inner_microstep: 7132.79 | backward_inner: 7132.25 | backward_allreduce_microstep: 0.72 | backward_allreduce: 0.25 | reduce_tied_grads: 0.32 | comms: 1148.30 | reduce_grads: 1124.02 | step: 167.81 | _step_clipping: 0.14 | _step_step: 165.79 | _step_zero_grad: 0.40 | _step_check_overflow: 0.71
+ samples/sec: 177.294 | iteration      510/   19073 | elapsed time per iteration (ms): 1443.9 | learning rate: 9.993E-04 | approx flops per GPU: 36.7TFLOPS | lm_loss: 3.576643E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:01:58,059] [INFO] [logging.py:60:log_dist] [Rank 0] Saving model checkpoint: /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step512/mp_rank_00_model_states.pt
+[2026-06-06 05:01:58,343] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 05:01:58,345] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 05:01:58,345] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 05:01:58,345] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 05:01:58,345] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 05:01:58,346] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 05:01:58,352] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step512/zero_pp_rank_3_mp_rank_00_optim_states.pt
+[2026-06-06 05:01:58,353] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step512/zero_pp_rank_7_mp_rank_00_optim_states.pt
+[2026-06-06 05:01:58,353] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step512/zero_pp_rank_6_mp_rank_00_optim_states.pt
+[2026-06-06 05:01:58,353] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step512/zero_pp_rank_2_mp_rank_00_optim_states.pt
+[2026-06-06 05:01:58,353] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step512/zero_pp_rank_5_mp_rank_00_optim_states.pt
+[2026-06-06 05:01:58,353] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step512/zero_pp_rank_1_mp_rank_00_optim_states.pt
+[2026-06-06 05:01:58,353] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 05:01:58,358] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step512/zero_pp_rank_0_mp_rank_00_optim_states.pt
+[2026-06-06 05:01:58,444] [INFO] [engine.py:1805:_copy_recovery_script] creating recovery script /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/zero_to_fp32.py
+[2026-06-06 05:01:58,448] [INFO] [engine.py:1818:_save_zero_checkpoint] zero checkpoint saved /workspace/pythia_70m_lskv_d256_w128_w_act_wo_bias_checkpoints/global_step512/zero_pp_rank_4_mp_rank_00_optim_states.pt
+[2026-06-06 05:02:10,062] [INFO] [logging.py:60:log_dist] [Rank 0] step=520, skipped=0, lr=[0.0009992648099757826, 0.0009992648099757826], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 520 loss: 3.4089 iter time (s): 1.448 samples/sec: 176.794
+%comms: 10.226028105490759 
+ %optimizer_step 1.0997951066650598 
+ %forward: 17.239452537654337 
+ %backward: 49.55056176075229
+[2026-06-06 05:02:10,063] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2157.46 | forward: 2496.29 | backward_microstep: 7175.67 | backward: 7174.98 | backward_inner_microstep: 7173.43 | backward_inner: 7172.86 | backward_allreduce_microstep: 0.75 | backward_allreduce: 0.26 | reduce_tied_grads: 0.33 | comms: 1480.74 | reduce_grads: 1455.50 | step: 159.25 | _step_clipping: 0.13 | _step_step: 157.37 | _step_zero_grad: 0.39 | _step_check_overflow: 0.61
+ samples/sec: 168.335 | iteration      520/   19073 | elapsed time per iteration (ms): 1520.8 | learning rate: 9.993E-04 | approx flops per GPU: 34.9TFLOPS | lm_loss: 3.613158E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:02:24,243] [INFO] [logging.py:60:log_dist] [Rank 0] step=530, skipped=0, lr=[0.000999219487916398, 0.000999219487916398], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 530 loss: 3.4658 iter time (s): 1.418 samples/sec: 180.588
+%comms: 7.501502700218459 
+ %optimizer_step 1.2046055997844662 
+ %forward: 17.346233852899815 
+ %backward: 50.47311321626587
+[2026-06-06 05:02:24,244] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2374.85 | forward: 2458.98 | backward_microstep: 7155.62 | backward: 7155.01 | backward_inner_microstep: 7153.55 | backward_inner: 7153.02 | backward_allreduce_microstep: 0.72 | backward_allreduce: 0.24 | reduce_tied_grads: 0.33 | comms: 1063.40 | reduce_grads: 1031.01 | step: 170.76 | _step_clipping: 0.14 | _step_step: 168.87 | _step_zero_grad: 0.39 | _step_check_overflow: 0.59
+ samples/sec: 180.525 | iteration      530/   19073 | elapsed time per iteration (ms): 1418.1 | learning rate: 9.992E-04 | approx flops per GPU: 37.4TFLOPS | lm_loss: 3.549362E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:02:38,675] [INFO] [logging.py:60:log_dist] [Rank 0] step=540, skipped=0, lr=[0.0009991728114376313, 0.0009991728114376313], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 540 loss: 3.3953 iter time (s): 1.443 samples/sec: 177.442
+%comms: 8.11872902444895 
+ %optimizer_step 1.1043601548541733 
+ %forward: 16.64715909950049 
+ %backward: 49.81043311525411
+[2026-06-06 05:02:38,676] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2483.72 | forward: 2401.73 | backward_microstep: 7187.02 | backward: 7186.29 | backward_inner_microstep: 7184.72 | backward_inner: 7184.17 | backward_allreduce_microstep: 0.76 | backward_allreduce: 0.26 | reduce_tied_grads: 0.34 | comms: 1171.31 | reduce_grads: 1142.57 | step: 159.33 | _step_clipping: 0.13 | _step_step: 157.53 | _step_zero_grad: 0.36 | _step_check_overflow: 0.58
+ samples/sec: 177.384 | iteration      540/   19073 | elapsed time per iteration (ms): 1443.2 | learning rate: 9.992E-04 | approx flops per GPU: 36.8TFLOPS | lm_loss: 3.546326E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:02:53,087] [INFO] [logging.py:60:log_dist] [Rank 0] step=550, skipped=0, lr=[0.0009991247806661187, 0.0009991247806661187], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 550 loss: 3.5769 iter time (s): 1.441 samples/sec: 177.694
+%comms: 5.429287454727542 
+ %optimizer_step 1.1270510997484475 
+ %forward: 16.918163402980856 
+ %backward: 50.01510929898082
+[2026-06-06 05:02:53,088] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2857.94 | forward: 2437.36 | backward_microstep: 7206.21 | backward: 7205.56 | backward_inner_microstep: 7204.10 | backward_inner: 7203.59 | backward_allreduce_microstep: 0.70 | backward_allreduce: 0.24 | reduce_tied_grads: 0.32 | comms: 782.18 | reduce_grads: 754.57 | step: 162.37 | _step_clipping: 0.13 | _step_step: 160.55 | _step_zero_grad: 0.41 | _step_check_overflow: 0.51
+ samples/sec: 177.633 | iteration      550/   19073 | elapsed time per iteration (ms): 1441.2 | learning rate: 9.991E-04 | approx flops per GPU: 36.8TFLOPS | lm_loss: 3.547539E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:03:07,563] [INFO] [logging.py:60:log_dist] [Rank 0] step=560, skipped=0, lr=[0.0009990753957321715, 0.0009990753957321715], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 560 loss: 3.5436 iter time (s): 1.447 samples/sec: 176.907
+%comms: 7.485916893281098 
+ %optimizer_step 1.1656598358780608 
+ %forward: 15.798229768836721 
+ %backward: 49.74018471993115
+[2026-06-06 05:03:07,564] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2777.66 | forward: 2286.14 | backward_microstep: 7198.47 | backward: 7197.84 | backward_inner_microstep: 7196.34 | backward_inner: 7195.81 | backward_allreduce_microstep: 0.72 | backward_allreduce: 0.25 | reduce_tied_grads: 0.32 | comms: 1083.28 | reduce_grads: 1055.37 | step: 168.68 | _step_clipping: 0.14 | _step_step: 166.77 | _step_zero_grad: 0.40 | _step_check_overflow: 0.60
+ samples/sec: 176.845 | iteration      560/   19073 | elapsed time per iteration (ms): 1447.6 | learning rate: 9.991E-04 | approx flops per GPU: 36.6TFLOPS | lm_loss: 3.558566E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:03:21,956] [INFO] [logging.py:60:log_dist] [Rank 0] step=570, skipped=0, lr=[0.0009990246567697747, 0.0009990246567697747], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 570 loss: 3.4904 iter time (s): 1.439 samples/sec: 177.921
+%comms: 5.53132386678564 
+ %optimizer_step 1.0685616332238872 
+ %forward: 17.165580076670253 
+ %backward: 49.84641756704919
+[2026-06-06 05:03:21,957] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2834.88 | forward: 2469.85 | backward_microstep: 7172.75 | backward: 7172.11 | backward_inner_microstep: 7170.60 | backward_inner: 7170.05 | backward_allreduce_microstep: 0.72 | backward_allreduce: 0.25 | reduce_tied_grads: 0.33 | comms: 795.87 | reduce_grads: 773.26 | step: 153.75 | _step_clipping: 0.14 | _step_step: 151.95 | _step_zero_grad: 0.37 | _step_check_overflow: 0.57
+ samples/sec: 177.863 | iteration      570/   19073 | elapsed time per iteration (ms): 1439.3 | learning rate: 9.990E-04 | approx flops per GPU: 36.9TFLOPS | lm_loss: 3.495139E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:03:36,593] [INFO] [logging.py:60:log_dist] [Rank 0] step=580, skipped=0, lr=[0.000998972563916587, 0.000998972563916587], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 580 loss: 3.1879 iter time (s): 1.463 samples/sec: 174.959
+%comms: 7.434078711516388 
+ %optimizer_step 1.099320633457558 
+ %forward: 16.746218905954173 
+ %backward: 49.31580544385512
+[2026-06-06 05:03:36,594] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2742.10 | forward: 2450.30 | backward_microstep: 7216.51 | backward: 7215.88 | backward_inner_microstep: 7214.39 | backward_inner: 7213.85 | backward_allreduce_microstep: 0.71 | backward_allreduce: 0.24 | reduce_tied_grads: 0.34 | comms: 1087.75 | reduce_grads: 1067.35 | step: 160.85 | _step_clipping: 0.14 | _step_step: 158.83 | _step_zero_grad: 0.42 | _step_check_overflow: 0.64
+ samples/sec: 174.898 | iteration      580/   19073 | elapsed time per iteration (ms): 1463.7 | learning rate: 9.990E-04 | approx flops per GPU: 36.2TFLOPS | lm_loss: 3.460984E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:03:51,076] [INFO] [logging.py:60:log_dist] [Rank 0] step=590, skipped=0, lr=[0.0009989191173139398, 0.0009989191173139398], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 590 loss: 3.4802 iter time (s): 1.448 samples/sec: 176.824
+%comms: 9.23650264647016 
+ %optimizer_step 1.147679832969896 
+ %forward: 15.672653391982175 
+ %backward: 49.44235304765649
+[2026-06-06 05:03:51,077] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2581.58 | forward: 2269.04 | backward_microstep: 7158.76 | backward: 7158.12 | backward_inner_microstep: 7156.57 | backward_inner: 7156.02 | backward_allreduce_microstep: 0.75 | backward_allreduce: 0.26 | reduce_tied_grads: 0.34 | comms: 1337.23 | reduce_grads: 1309.79 | step: 166.16 | _step_clipping: 0.14 | _step_step: 164.15 | _step_zero_grad: 0.40 | _step_check_overflow: 0.70
+ samples/sec: 176.755 | iteration      590/   19073 | elapsed time per iteration (ms): 1448.3 | learning rate: 9.989E-04 | approx flops per GPU: 36.6TFLOPS | lm_loss: 3.506070E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:04:05,651] [INFO] [logging.py:60:log_dist] [Rank 0] step=600, skipped=0, lr=[0.0009988643171068379, 0.0009988643171068379], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 600 loss: 3.3187 iter time (s): 1.457 samples/sec: 175.709
+%comms: 18.08603473856791 
+ %optimizer_step 1.1506756447053017 
+ %forward: 15.340134942879988 
+ %backward: 49.08363612168407
+[2026-06-06 05:04:05,652] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 1406.93 | forward: 2234.98 | backward_microstep: 7151.87 | backward: 7151.25 | backward_inner_microstep: 7149.62 | backward_inner: 7149.01 | backward_allreduce_microstep: 0.78 | backward_allreduce: 0.27 | reduce_tied_grads: 0.38 | comms: 2635.05 | reduce_grads: 2615.28 | step: 167.65 | _step_clipping: 0.16 | _step_step: 165.30 | _step_zero_grad: 0.44 | _step_check_overflow: 0.88
+ samples/sec: 175.639 | iteration      600/   19073 | elapsed time per iteration (ms): 1457.5 | learning rate: 9.989E-04 | approx flops per GPU: 36.4TFLOPS | lm_loss: 3.381802E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:04:19,668] [INFO] [logging.py:60:log_dist] [Rank 0] step=610, skipped=0, lr=[0.0009988081634439584, 0.0009988081634439584], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 610 loss: 3.3484 iter time (s): 1.401 samples/sec: 182.722
+%comms: 8.504935375117965 
+ %optimizer_step 1.2756573470605324 
+ %forward: 16.54502521202629 
+ %backward: 51.12555733909815
+[2026-06-06 05:04:19,669] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2204.68 | forward: 2318.02 | backward_microstep: 7163.55 | backward: 7162.89 | backward_inner_microstep: 7161.43 | backward_inner: 7160.89 | backward_allreduce_microstep: 0.70 | backward_allreduce: 0.24 | reduce_tied_grads: 0.32 | comms: 1191.57 | reduce_grads: 1156.38 | step: 178.72 | _step_clipping: 0.14 | _step_step: 176.75 | _step_zero_grad: 0.41 | _step_check_overflow: 0.65
+ samples/sec: 182.649 | iteration      610/   19073 | elapsed time per iteration (ms): 1401.6 | learning rate: 9.988E-04 | approx flops per GPU: 37.8TFLOPS | lm_loss: 3.381668E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:04:33,749] [INFO] [logging.py:60:log_dist] [Rank 0] step=620, skipped=0, lr=[0.00099875065647765, 0.00099875065647765], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 620 loss: 3.3121 iter time (s): 1.408 samples/sec: 181.868
+%comms: 16.680187548886728 
+ %optimizer_step 1.1255863443380487 
+ %forward: 16.389917672122785 
+ %backward: 50.74185706731454
+[2026-06-06 05:04:33,750] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 1154.91 | forward: 2307.07 | backward_microstep: 7143.11 | backward: 7142.49 | backward_inner_microstep: 7140.89 | backward_inner: 7140.27 | backward_allreduce_microstep: 0.76 | backward_allreduce: 0.26 | reduce_tied_grads: 0.38 | comms: 2347.92 | reduce_grads: 2325.49 | step: 158.44 | _step_clipping: 0.14 | _step_step: 156.44 | _step_zero_grad: 0.38 | _step_check_overflow: 0.68
+ samples/sec: 181.797 | iteration      620/   19073 | elapsed time per iteration (ms): 1408.2 | learning rate: 9.988E-04 | approx flops per GPU: 37.7TFLOPS | lm_loss: 3.368743E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:04:47,928] [INFO] [logging.py:60:log_dist] [Rank 0] step=630, skipped=0, lr=[0.0009986917963639337, 0.0009986917963639337], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 630 loss: 3.3801 iter time (s): 1.417 samples/sec: 180.614
+%comms: 9.383663436118724 
+ %optimizer_step 1.0737236020772163 
+ %forward: 18.31441017801241 
+ %backward: 50.52567416642451
+[2026-06-06 05:04:47,929] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 1967.29 | forward: 2595.86 | backward_microstep: 7162.11 | backward: 7161.45 | backward_inner_microstep: 7159.89 | backward_inner: 7159.32 | backward_allreduce_microstep: 0.75 | backward_allreduce: 0.26 | reduce_tied_grads: 0.33 | comms: 1330.03 | reduce_grads: 1309.19 | step: 152.19 | _step_clipping: 0.14 | _step_step: 150.27 | _step_zero_grad: 0.39 | _step_check_overflow: 0.60
+ samples/sec: 180.550 | iteration      630/   19073 | elapsed time per iteration (ms): 1417.9 | learning rate: 9.987E-04 | approx flops per GPU: 37.4TFLOPS | lm_loss: 3.369184E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:05:02,008] [INFO] [logging.py:60:log_dist] [Rank 0] step=640, skipped=0, lr=[0.0009986315832625013, 0.0009986315832625013], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 640 loss: 3.4047 iter time (s): 1.408 samples/sec: 181.877
+%comms: 8.03752396088693 
+ %optimizer_step 1.2104035788637595 
+ %forward: 16.76019979254309 
+ %backward: 51.049814016123285
+[2026-06-06 05:05:02,009] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2279.23 | forward: 2359.08 | backward_microstep: 7186.12 | backward: 7185.51 | backward_inner_microstep: 7184.15 | backward_inner: 7183.63 | backward_allreduce_microstep: 0.64 | backward_allreduce: 0.22 | reduce_tied_grads: 0.30 | comms: 1131.32 | reduce_grads: 1095.83 | step: 170.37 | _step_clipping: 0.13 | _step_step: 168.55 | _step_zero_grad: 0.38 | _step_check_overflow: 0.58
+ samples/sec: 181.816 | iteration      640/   19073 | elapsed time per iteration (ms): 1408.0 | learning rate: 9.986E-04 | approx flops per GPU: 37.7TFLOPS | lm_loss: 3.375845E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:05:15,963] [INFO] [logging.py:60:log_dist] [Rank 0] step=650, skipped=0, lr=[0.0009985700173367152, 0.0009985700173367152], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 650 loss: 3.4634 iter time (s): 1.395 samples/sec: 183.513
+%comms: 7.528730189599673 
+ %optimizer_step 1.1935893684433447 
+ %forward: 16.838966536787396 
+ %backward: 51.54617998334692
+[2026-06-06 05:05:15,964] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2236.53 | forward: 2349.03 | backward_microstep: 7191.35 | backward: 7190.69 | backward_inner_microstep: 7189.13 | backward_inner: 7188.58 | backward_allreduce_microstep: 0.76 | backward_allreduce: 0.26 | reduce_tied_grads: 0.35 | comms: 1050.26 | reduce_grads: 1021.43 | step: 166.51 | _step_clipping: 0.14 | _step_step: 164.53 | _step_zero_grad: 0.39 | _step_check_overflow: 0.69
+ samples/sec: 183.446 | iteration      650/   19073 | elapsed time per iteration (ms): 1395.5 | learning rate: 9.986E-04 | approx flops per GPU: 38.0TFLOPS | lm_loss: 3.368382E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:05:30,294] [INFO] [logging.py:60:log_dist] [Rank 0] step=660, skipped=0, lr=[0.0009985070987536084, 0.0009985070987536084], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 660 loss: 3.3339 iter time (s): 1.433 samples/sec: 178.699
+%comms: 10.07245939641773 
+ %optimizer_step 1.1913657177858914 
+ %forward: 16.782044562066964 
+ %backward: 50.04058381917945
+[2026-06-06 05:05:30,295] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2186.34 | forward: 2404.16 | backward_microstep: 7169.39 | backward: 7168.71 | backward_inner_microstep: 7167.14 | backward_inner: 7166.59 | backward_allreduce_microstep: 0.78 | backward_allreduce: 0.25 | reduce_tied_grads: 0.34 | comms: 1442.96 | reduce_grads: 1408.18 | step: 170.67 | _step_clipping: 0.14 | _step_step: 168.80 | _step_zero_grad: 0.36 | _step_check_overflow: 0.64
+ samples/sec: 178.635 | iteration      660/   19073 | elapsed time per iteration (ms): 1433.1 | learning rate: 9.985E-04 | approx flops per GPU: 37.0TFLOPS | lm_loss: 3.282496E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:05:44,515] [INFO] [logging.py:60:log_dist] [Rank 0] step=670, skipped=0, lr=[0.0009984428276838837, 0.0009984428276838837], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 670 loss: 3.2971 iter time (s): 1.422 samples/sec: 180.081
+%comms: 5.394915408704498 
+ %optimizer_step 1.1224695810017349 
+ %forward: 17.055509328054512 
+ %backward: 50.374038568326974
+[2026-06-06 05:05:44,516] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2698.29 | forward: 2424.58 | backward_microstep: 7161.65 | backward: 7161.07 | backward_inner_microstep: 7159.64 | backward_inner: 7159.12 | backward_allreduce_microstep: 0.70 | backward_allreduce: 0.25 | reduce_tied_grads: 0.32 | comms: 766.93 | reduce_grads: 737.92 | step: 159.57 | _step_clipping: 0.13 | _step_step: 157.84 | _step_zero_grad: 0.36 | _step_check_overflow: 0.52
+ samples/sec: 180.023 | iteration      670/   19073 | elapsed time per iteration (ms): 1422.0 | learning rate: 9.984E-04 | approx flops per GPU: 37.3TFLOPS | lm_loss: 3.273683E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:05:58,354] [INFO] [logging.py:60:log_dist] [Rank 0] step=680, skipped=0, lr=[0.0009983772043019134, 0.0009983772043019134], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 680 loss: 3.5344 iter time (s): 1.383 samples/sec: 185.056
+%comms: 10.740102566598498 
+ %optimizer_step 1.2698415598213613 
+ %forward: 17.329378919690818 
+ %backward: 51.58547636780039
+[2026-06-06 05:05:58,355] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 1681.03 | forward: 2397.29 | backward_microstep: 7136.81 | backward: 7136.16 | backward_inner_microstep: 7134.61 | backward_inner: 7134.04 | backward_allreduce_microstep: 0.75 | backward_allreduce: 0.27 | reduce_tied_grads: 0.39 | comms: 1485.75 | reduce_grads: 1455.49 | step: 175.67 | _step_clipping: 0.15 | _step_step: 173.63 | _step_zero_grad: 0.40 | _step_check_overflow: 0.66
+ samples/sec: 184.982 | iteration      680/   19073 | elapsed time per iteration (ms): 1383.9 | learning rate: 9.984E-04 | approx flops per GPU: 38.3TFLOPS | lm_loss: 3.338558E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:06:12,344] [INFO] [logging.py:60:log_dist] [Rank 0] step=690, skipped=0, lr=[0.0009983102287857383, 0.0009983102287857383], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 690 loss: 3.3832 iter time (s): 1.398 samples/sec: 183.060
+%comms: 5.946549299353701 
+ %optimizer_step 1.1530173381975457 
+ %forward: 17.644355280590545 
+ %backward: 51.111357675047266
+[2026-06-06 05:06:12,344] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2410.81 | forward: 2467.47 | backward_microstep: 7148.33 | backward: 7147.65 | backward_inner_microstep: 7146.12 | backward_inner: 7145.58 | backward_allreduce_microstep: 0.75 | backward_allreduce: 0.25 | reduce_tied_grads: 0.33 | comms: 831.59 | reduce_grads: 804.97 | step: 161.24 | _step_clipping: 0.13 | _step_step: 159.38 | _step_zero_grad: 0.39 | _step_check_overflow: 0.58
+ samples/sec: 182.995 | iteration      690/   19073 | elapsed time per iteration (ms): 1398.9 | learning rate: 9.983E-04 | approx flops per GPU: 37.9TFLOPS | lm_loss: 3.249767E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:06:26,502] [INFO] [logging.py:60:log_dist] [Rank 0] step=700, skipped=0, lr=[0.000998241901317068, 0.000998241901317068], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 700 loss: 3.2839 iter time (s): 1.415 samples/sec: 180.884
+%comms: 1.7236970268921668 
+ %optimizer_step 1.3277184026220679 
+ %forward: 16.13145076597713 
+ %backward: 51.13055286672446
+[2026-06-06 05:06:26,503] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 3259.54 | forward: 2283.04 | backward_microstep: 7236.91 | backward: 7236.36 | backward_inner_microstep: 7234.85 | backward_inner: 7234.31 | backward_allreduce_microstep: 0.75 | backward_allreduce: 0.25 | reduce_tied_grads: 0.36 | comms: 243.95 | reduce_grads: 201.72 | step: 187.91 | _step_clipping: 0.15 | _step_step: 185.83 | _step_zero_grad: 0.45 | _step_check_overflow: 0.63
+ samples/sec: 180.814 | iteration      700/   19073 | elapsed time per iteration (ms): 1415.8 | learning rate: 9.982E-04 | approx flops per GPU: 37.5TFLOPS | lm_loss: 3.283270E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:06:40,846] [INFO] [logging.py:60:log_dist] [Rank 0] step=710, skipped=0, lr=[0.00099817222208128, 0.00099817222208128], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 710 loss: 3.3363 iter time (s): 1.434 samples/sec: 178.525
+%comms: 4.8058052191193585 
+ %optimizer_step 1.0372042082065904 
+ %forward: 15.730078938664462 
+ %backward: 49.80003092856302
+[2026-06-06 05:06:40,847] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 3132.74 | forward: 2255.65 | backward_microstep: 7141.77 | backward: 7141.17 | backward_inner_microstep: 7139.75 | backward_inner: 7139.23 | backward_allreduce_microstep: 0.70 | backward_allreduce: 0.24 | reduce_tied_grads: 0.30 | comms: 689.14 | reduce_grads: 665.46 | step: 148.73 | _step_clipping: 0.13 | _step_step: 146.95 | _step_zero_grad: 0.36 | _step_check_overflow: 0.58
+ samples/sec: 178.468 | iteration      710/   19073 | elapsed time per iteration (ms): 1434.4 | learning rate: 9.982E-04 | approx flops per GPU: 37.0TFLOPS | lm_loss: 3.274023E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:06:55,072] [INFO] [logging.py:60:log_dist] [Rank 0] step=720, skipped=0, lr=[0.0009981011912674196, 0.0009981011912674196], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 720 loss: 3.2671 iter time (s): 1.422 samples/sec: 180.015
+%comms: 3.130344751923038 
+ %optimizer_step 1.1789956077807786 
+ %forward: 16.712170824977548 
+ %backward: 51.40396137990899
+[2026-06-06 05:06:55,073] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2970.10 | forward: 2376.64 | backward_microstep: 7310.76 | backward: 7310.17 | backward_inner_microstep: 7308.72 | backward_inner: 7308.18 | backward_allreduce_microstep: 0.71 | backward_allreduce: 0.25 | reduce_tied_grads: 0.31 | comms: 445.17 | reduce_grads: 410.81 | step: 167.67 | _step_clipping: 0.13 | _step_step: 166.03 | _step_zero_grad: 0.35 | _step_check_overflow: 0.45
+ samples/sec: 179.957 | iteration      720/   19073 | elapsed time per iteration (ms): 1422.6 | learning rate: 9.981E-04 | approx flops per GPU: 37.3TFLOPS | lm_loss: 3.284896E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:07:09,370] [INFO] [logging.py:60:log_dist] [Rank 0] step=730, skipped=0, lr=[0.000998028809068198, 0.000998028809068198], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 730 loss: 3.2864 iter time (s): 1.429 samples/sec: 179.111
+%comms: 4.7231356480274425 
+ %optimizer_step 1.0977173501638329 
+ %forward: 16.678980608460854 
+ %backward: 50.04067003723708
+[2026-06-06 05:07:09,370] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2962.96 | forward: 2383.89 | backward_microstep: 7152.79 | backward: 7152.21 | backward_inner_microstep: 7150.78 | backward_inner: 7150.26 | backward_allreduce_microstep: 0.69 | backward_allreduce: 0.24 | reduce_tied_grads: 0.30 | comms: 675.07 | reduce_grads: 652.07 | step: 156.89 | _step_clipping: 0.13 | _step_step: 155.04 | _step_zero_grad: 0.39 | _step_check_overflow: 0.58
+ samples/sec: 179.050 | iteration      730/   19073 | elapsed time per iteration (ms): 1429.8 | learning rate: 9.980E-04 | approx flops per GPU: 37.1TFLOPS | lm_loss: 3.323159E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:07:23,642] [INFO] [logging.py:60:log_dist] [Rank 0] step=740, skipped=0, lr=[0.000997955075679994, 0.000997955075679994], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 740 loss: 3.1879 iter time (s): 1.427 samples/sec: 179.428
+%comms: 12.9691149338387 
+ %optimizer_step 1.1477507223072203 
+ %forward: 16.261173831469353 
+ %backward: 50.102925823206476
+[2026-06-06 05:07:23,643] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 1822.29 | forward: 2320.08 | backward_microstep: 7149.08 | backward: 7148.48 | backward_inner_microstep: 7147.02 | backward_inner: 7146.47 | backward_allreduce_microstep: 0.72 | backward_allreduce: 0.24 | reduce_tied_grads: 0.35 | comms: 1850.38 | reduce_grads: 1825.71 | step: 163.76 | _step_clipping: 0.14 | _step_step: 161.72 | _step_zero_grad: 0.39 | _step_check_overflow: 0.71
+ samples/sec: 179.359 | iteration      740/   19073 | elapsed time per iteration (ms): 1427.3 | learning rate: 9.980E-04 | approx flops per GPU: 37.2TFLOPS | lm_loss: 3.238588E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:07:37,978] [INFO] [logging.py:60:log_dist] [Rank 0] step=750, skipped=0, lr=[0.0009978799913028513, 0.0009978799913028513], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 750 loss: 3.4035 iter time (s): 1.433 samples/sec: 178.651
+%comms: 16.21061478514076 
+ %optimizer_step 1.1999890055192692 
+ %forward: 15.795098950659339 
+ %backward: 49.91992896713575
+[2026-06-06 05:07:37,979] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 1453.62 | forward: 2263.38 | backward_microstep: 7153.98 | backward: 7153.35 | backward_inner_microstep: 7151.83 | backward_inner: 7151.24 | backward_allreduce_microstep: 0.72 | backward_allreduce: 0.26 | reduce_tied_grads: 0.38 | comms: 2322.92 | reduce_grads: 2297.03 | step: 171.95 | _step_clipping: 0.15 | _step_step: 169.76 | _step_zero_grad: 0.41 | _step_check_overflow: 0.78
+ samples/sec: 178.574 | iteration      750/   19073 | elapsed time per iteration (ms): 1433.6 | learning rate: 9.979E-04 | approx flops per GPU: 37.0TFLOPS | lm_loss: 3.231780E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:07:52,291] [INFO] [logging.py:60:log_dist] [Rank 0] step=760, skipped=0, lr=[0.0009978035561404796, 0.0009978035561404796], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 760 loss: 3.2771 iter time (s): 1.431 samples/sec: 178.927
+%comms: 11.579853550739102 
+ %optimizer_step 1.0918580418573245 
+ %forward: 17.733643021723765 
+ %backward: 50.18733294763095
+[2026-06-06 05:07:52,292] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 1815.78 | forward: 2537.24 | backward_microstep: 7181.18 | backward: 7180.55 | backward_inner_microstep: 7179.10 | backward_inner: 7178.56 | backward_allreduce_microstep: 0.70 | backward_allreduce: 0.25 | reduce_tied_grads: 0.35 | comms: 1656.79 | reduce_grads: 1632.04 | step: 156.22 | _step_clipping: 0.14 | _step_step: 154.26 | _step_zero_grad: 0.38 | _step_check_overflow: 0.67
+ samples/sec: 178.858 | iteration      760/   19073 | elapsed time per iteration (ms): 1431.3 | learning rate: 9.978E-04 | approx flops per GPU: 37.1TFLOPS | lm_loss: 3.237228E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:08:06,751] [INFO] [logging.py:60:log_dist] [Rank 0] step=770, skipped=0, lr=[0.0009977257704002532, 0.0009977257704002532], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 770 loss: 3.2596 iter time (s): 1.445 samples/sec: 177.107
+%comms: 11.41317457282492 
+ %optimizer_step 1.149476078710186 
+ %forward: 17.296620510077876 
+ %backward: 49.50948810246264
+[2026-06-06 05:08:06,751] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2024.61 | forward: 2500.14 | backward_microstep: 7157.04 | backward: 7156.36 | backward_inner_microstep: 7154.88 | backward_inner: 7154.34 | backward_allreduce_microstep: 0.72 | backward_allreduce: 0.25 | reduce_tied_grads: 0.35 | comms: 1649.72 | reduce_grads: 1618.74 | step: 166.15 | _step_clipping: 0.14 | _step_step: 164.20 | _step_zero_grad: 0.36 | _step_check_overflow: 0.70
+ samples/sec: 177.048 | iteration      770/   19073 | elapsed time per iteration (ms): 1445.9 | learning rate: 9.977E-04 | approx flops per GPU: 36.7TFLOPS | lm_loss: 3.237526E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:08:21,144] [INFO] [logging.py:60:log_dist] [Rank 0] step=780, skipped=0, lr=[0.0009976466342932104, 0.0009976466342932104], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 780 loss: 3.1187 iter time (s): 1.439 samples/sec: 177.927
+%comms: 19.901716559069747 
+ %optimizer_step 1.0844164238209377 
+ %forward: 15.80064141066666 
+ %backward: 49.735032871480556
+[2026-06-06 05:08:21,145] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 970.64 | forward: 2273.38 | backward_microstep: 7156.49 | backward: 7155.84 | backward_inner_microstep: 7154.18 | backward_inner: 7153.56 | backward_allreduce_microstep: 0.79 | backward_allreduce: 0.27 | reduce_tied_grads: 0.39 | comms: 2863.44 | reduce_grads: 2843.52 | step: 156.02 | _step_clipping: 0.16 | _step_step: 153.87 | _step_zero_grad: 0.40 | _step_check_overflow: 0.77
+ samples/sec: 177.856 | iteration      780/   19073 | elapsed time per iteration (ms): 1439.4 | learning rate: 9.976E-04 | approx flops per GPU: 36.9TFLOPS | lm_loss: 3.207324E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:08:35,681] [INFO] [logging.py:60:log_dist] [Rank 0] step=790, skipped=0, lr=[0.0009975661480340534, 0.0009975661480340534], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 790 loss: 3.1671 iter time (s): 1.453 samples/sec: 176.179
+%comms: 9.079520809681677 
+ %optimizer_step 1.176337047170257 
+ %forward: 16.509452931972504 
+ %backward: 49.47340707232998
+[2026-06-06 05:08:35,682] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2487.17 | forward: 2398.94 | backward_microstep: 7189.51 | backward: 7188.84 | backward_inner_microstep: 7187.27 | backward_inner: 7186.70 | backward_allreduce_microstep: 0.75 | backward_allreduce: 0.26 | reduce_tied_grads: 0.37 | comms: 1319.32 | reduce_grads: 1297.01 | step: 170.93 | _step_clipping: 0.16 | _step_step: 168.81 | _step_zero_grad: 0.45 | _step_check_overflow: 0.64
+ samples/sec: 176.107 | iteration      790/   19073 | elapsed time per iteration (ms): 1453.7 | learning rate: 9.976E-04 | approx flops per GPU: 36.5TFLOPS | lm_loss: 3.178367E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:08:50,095] [INFO] [logging.py:60:log_dist] [Rank 0] step=800, skipped=0, lr=[0.0009974843118411474, 0.0009974843118411474], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 800 loss: 3.2252 iter time (s): 1.441 samples/sec: 177.664
+%comms: 10.11016367916935 
+ %optimizer_step 1.1067247591765714 
+ %forward: 16.920579408802006 
+ %backward: 49.62215429771844
+[2026-06-06 05:08:50,096] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2230.21 | forward: 2438.13 | backward_microstep: 7150.82 | backward: 7150.17 | backward_inner_microstep: 7148.62 | backward_inner: 7148.05 | backward_allreduce_microstep: 0.75 | backward_allreduce: 0.25 | reduce_tied_grads: 0.38 | comms: 1456.80 | reduce_grads: 1430.20 | step: 159.47 | _step_clipping: 0.13 | _step_step: 157.53 | _step_zero_grad: 0.37 | _step_check_overflow: 0.69
+ samples/sec: 177.601 | iteration      800/   19073 | elapsed time per iteration (ms): 1441.4 | learning rate: 9.975E-04 | approx flops per GPU: 36.8TFLOPS | lm_loss: 3.226803E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:09:04,891] [INFO] [logging.py:60:log_dist] [Rank 0] step=810, skipped=0, lr=[0.00099740112593652, 0.00099740112593652], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 810 loss: 3.2303 iter time (s): 1.479 samples/sec: 173.083
+%comms: 13.964414266854828 
+ %optimizer_step 1.0834668760665727 
+ %forward: 16.439303090857 
+ %backward: 48.29033223471888
+[2026-06-06 05:09:04,892] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 2013.61 | forward: 2431.47 | backward_microstep: 7143.11 | backward: 7142.44 | backward_inner_microstep: 7140.89 | backward_inner: 7140.28 | backward_allreduce_microstep: 0.73 | backward_allreduce: 0.25 | reduce_tied_grads: 0.41 | comms: 2065.42 | reduce_grads: 2038.25 | step: 160.25 | _step_clipping: 0.14 | _step_step: 158.27 | _step_zero_grad: 0.37 | _step_check_overflow: 0.70
+ samples/sec: 173.020 | iteration      810/   19073 | elapsed time per iteration (ms): 1479.6 | learning rate: 9.974E-04 | approx flops per GPU: 35.9TFLOPS | lm_loss: 3.227931E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
+[2026-06-06 05:09:19,331] [INFO] [logging.py:60:log_dist] [Rank 0] step=820, skipped=0, lr=[0.0009973165905458607, 0.0009973165905458607], mom=[[0.9, 0.95], [0.9, 0.95]]
+steps: 820 loss: 3.2203 iter time (s): 1.443 samples/sec: 177.350
+%comms: 11.214779008878454 
+ %optimizer_step 1.0913761498438797 
+ %forward: 18.631708287709227 
+ %backward: 49.44124944952942
+[2026-06-06 05:09:19,332] [INFO] [logging.py:60:log_dist] [Rank 0] rank=0 time (ms) | train_batch: 0.00 | batch_input: 1866.22 | forward: 2689.44 | backward_microstep: 7137.51 | backward: 7136.71 | backward_inner_microstep: 7135.15 | backward_inner: 7134.55 | backward_allreduce_microstep: 0.73 | backward_allreduce: 0.26 | reduce_tied_grads: 0.36 | comms: 1618.82 | reduce_grads: 1593.73 | step: 157.54 | _step_clipping: 0.14 | _step_step: 155.59 | _step_zero_grad: 0.38 | _step_check_overflow: 0.65
+ samples/sec: 177.286 | iteration      820/   19073 | elapsed time per iteration (ms): 1444.0 | learning rate: 9.973E-04 | approx flops per GPU: 36.7TFLOPS | lm_loss: 3.215450E+00 | loss scale: 4096.0 | number of skipped iterations:   0 | number of nan iterations:   0 |
+time (ms)
