@@ -1,0 +1,129 @@
+{
+  # parallelism settings
+  "pipe-parallel-size": 1,
+  "model-parallel-size": 1,
+
+  # model settings (identical to pythia-70m-deduped_ddim_d128_w128.yml for fairness)
+  "num-layers": 6,
+  "hidden-size": 512,
+  "num-attention-heads": 8,
+  "seq-length": 2048,
+  "max-position-embeddings": 2048,
+  "pos-emb": "rotary",
+  "rotary-pct": 0.25,
+  "no-weight-tying": true,
+  "gpt-j-residual": true,
+  "output-layer-parallelism": "column",
+
+  "attention-config": [[["global"], 6]],
+
+  "scaled-upper-triang-masked-softmax-fusion": true,
+  "bias-gelu-fusion": true,
+
+  "init_method": "small_init",
+  "output_layer_init_method": "wang_init",
+
+  "optimizer": {
+    "type": "Adam",
+    "params": {
+      "lr": 0.001,
+      "betas": [0.9, 0.95],
+      "eps": 1.0e-8
+    }
+  },
+  "min_lr": 0.0001,
+
+  "zero_optimization": {
+    "stage": 1,
+    "allgather_partitions": true,
+    "allgather_bucket_size": 500000000,
+    "overlap_comm": true,
+    "reduce_scatter": true,
+    "reduce_bucket_size": 500000000,
+    "contiguous_gradients": true,
+    "cpu_offload": false
+  },
+
+  "train_micro_batch_size_per_gpu": 32,
+  "gradient_accumulation_steps": 1,
+  "data-impl": "mmap",
+  "num_workers": 1,
+
+  "checkpoint-activations": true,
+  "checkpoint-num-layers": 1,
+  "partition-activations": false,
+  "synchronize-each-layer": false,
+
+  "gradient_clipping": 1.0,
+  "weight-decay": 0.1,
+  "hidden-dropout": 0,
+  "attention-dropout": 0,
+
+  "fp16": {
+    "fp16": true,
+    "enabled": true,
+    "loss_scale": 0,
+    "loss_scale_window": 1000,
+    "initial_scale_power": 12,
+    "hysteresis": 2,
+    "min_loss_scale": 1
+  },
+
+  "train-iters": 19073,
+  "lr-decay-iters": 19073,
+  "distributed-backend": "nccl",
+  "seed": 1235,
+  "lr-decay-style": "cosine",
+  "warmup": 0.01,
+  "checkpoint-factor": 1000,
+  "extra-save-iters": [0,1,2,4,8,16,32,64,128,256,512],
+  "eval-interval": 1000,
+  "eval-iters": 10,
+
+  "log-interval": 10,
+  "steps_per_print": 10,
+  "wall_clock_breakdown": true,
+
+  "train-data-paths": ["/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document"],
+  "valid-data-paths": ["/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document"],
+  "test-data-paths":  ["/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document"],
+
+  "tokenizer-type": "HFTokenizer",
+  # "vocab-file": "/workspace/pythia/pythia_pile_idxmaps/20B_tokenizer.json",
+  "vocab-file": "/data/zhiyuanwang/code/ls_kv/ppl/train_pythia/pythia/pythia_pile_idxmaps/20B_tokenizer.json",
+  "launcher": "slurm",
+  "deepspeed_slurm": false,
+
+  "save": "/workspace/pythia_70m_ddim_d128_w128_bs256_frozen_alpha_hard_balanced_seed1235_checkpoints",
+  "load": "/workspace/pythia_70m_ddim_d128_w128_bs256_frozen_alpha_hard_balanced_seed1235_checkpoints",
+  "checkpoint_validation_with_forward_pass": False,
+
+  # ===== existing lskv knobs =====
+  "lskv_window_size": 128,
+  "lskv_bottleneck_dim": 128,
+
+  # ===== alpha-routing knobs =====
+  "use_alpha_routing": true,
+  # No reg — the router is frozen.
+  "alpha_reg_coef": 0.0,
+  # Hard route in both training and inference (router is frozen, gradients
+  # do not flow through the threshold).
+  "alpha_hard_routing": true,
+  "alpha_hard_inference": true,
+  # Threshold used by the hard-routing forward to binarize the (soft) alpha
+  # lookup: mix = (alpha > alpha_hard_threshold). Chosen so that the
+  # *training-corpus* token flow splits 50/50 between full and half d_down
+  # (computed from ppl/router_analysis/counts_strict.npy + alpha_arc1e-3.npy
+  # via d_eff_threshold_table.py: target d_eff=96 → t*=0.491937).
+  # Note: 0.5 (the historical hardcoded value) gives only 36% train flow to
+  # full / 64% to half — imbalanced gradient signal between the two branches.
+  "alpha_hard_threshold": 0.491937,
+  # Frozen lookup table extracted from arc1e-3 step19073 (length = padded vocab 50304).
+  # Inside the container this is mapped to /workspace/pythia/...
+  "alpha_lookup_path": "/workspace/pythia/alpha_lookup_from_arc1e-3_step19073.npy",
+
+  "global_num_gpus": 8,
+  # "include": "localhost:0,1,2,3",
+  # "include": "localhost:4,5,6,7",
+  "include": "localhost:0,1,2,3,4,5,6,7",
+}

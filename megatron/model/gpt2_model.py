@@ -27,7 +27,7 @@ from megatron.model.utils import Lambda, SequentialWrapper, recursive_setattr
 from megatron.model.norms import get_norm
 from megatron.model.init_functions import get_init_methods
 
-from megatron import mpu
+from megatron import mpu, print_rank_0
 from megatron.mpu import ParallelRelativePositionBias
 from megatron.model.transformer import (
     ParallelTransformerLayerPipe,
@@ -349,6 +349,24 @@ class GPT2ModelPipe(PipelineModule, torch.nn.Module):
             transformer_ddim.ParallelTransformerLayerPipe
             if use_alpha
             else ParallelTransformerLayerPipe
+        )
+
+        # --- TAR/DDIM routing dispatch summary (printed once, on rank 0) ---
+        # Grep the run log for "[TAR dispatch]" to confirm the intended path:
+        # frozen α-lookup embedding + transformer_ddim layers + hard routing.
+        print_rank_0(
+            "[TAR dispatch] use_alpha_routing=%s | embedding_cls=%s | layer_cls=%s | "
+            "frozen_alpha_lookup=%s | alpha_lookup_path=%s | alpha_hard_routing=%s | "
+            "alpha_hard_threshold=%s"
+            % (
+                use_alpha,
+                embedding_cls.__name__,
+                layer_pipe_cls.__name__,
+                use_frozen_alpha_lookup,
+                getattr(self.neox_args, "alpha_lookup_path", None),
+                getattr(self.neox_args, "alpha_hard_routing", False),
+                getattr(self.neox_args, "alpha_hard_threshold", None),
+            )
         )
 
         # Transformer layers
