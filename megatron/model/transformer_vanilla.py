@@ -194,6 +194,8 @@ class ParallelSelfAttention(nn.Module):
     ):
         super().__init__()
 
+        print(f"INFO: layer {layer_number} using vanilla transformer (transformer_vanilla.ParallelSelfAttention)")
+
         self.fp16 = neox_args.precision == "fp16"
         self.bf16 = neox_args.precision == "bfloat16"
         self.attention_mask_func = attention_mask_func
