@@ -36,6 +36,7 @@ from megatron.model.transformer import (
     parallel_lm_logits,
     ParallelLinear,
 )
+from megatron.model import transformer_lskv
 from megatron.model.gmlp import GMLPBlock
 from megatron.model.word_embeddings import EmbeddingPipe, SoftEmbedding
 
@@ -222,6 +223,14 @@ class GPT2ModelPipe(PipelineModule, torch.nn.Module):
                 heads=self.neox_args.num_attention_heads,
             )
 
+        # Pick the transformer-layer class:
+        #   lskv_window_size set -> transformer_lskv (LSKV sliding-window attention)
+        #   lskv_window_size None (default) -> transformer.py's ParallelTransformerLayerPipe (vanilla)
+        if getattr(self.neox_args, "lskv_window_size", None) is not None:
+            layer_pipe_cls = transformer_lskv.ParallelTransformerLayerPipe
+        else:
+            layer_pipe_cls = ParallelTransformerLayerPipe
+
         # Transformer layers
         for i in range(self.neox_args.num_layers):
             layer_type = self.neox_args.attention_config[i]
@@ -239,7 +248,7 @@ class GPT2ModelPipe(PipelineModule, torch.nn.Module):
             else:
                 self.specs.append(
                     LayerSpec(
-                        ParallelTransformerLayerPipe,
+                        layer_pipe_cls,
                         neox_args=self.neox_args,
                         attention_mask_func=gpt2_attention_mask_func,
                         init_method=self.init_method,

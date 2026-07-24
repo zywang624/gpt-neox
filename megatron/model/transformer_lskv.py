@@ -49,15 +49,15 @@ torch._C._jit_override_can_fuse_on_cpu(True)
 torch._C._jit_override_can_fuse_on_gpu(True)
 
 """ We use the following notation throughout this file:
-    h: hidden size
-    n: number of attention heads
-    p: number of model parallel partitions
-    np: n/p
-    hp: h/p
-    hn: h/n
-    b: batch size
-    s: sequence length
-    l: number of layers
+     h: hidden size
+     n: number of attention heads
+     p: number of model parallel partitions
+     np: n/p
+     hp: h/p
+     hn: h/n
+     b: batch size
+     s: sequence length
+     l: number of layers
     Transformer takes input of size [s, b, h] and returns a
     tensor of the same size. We use the following arguments:
         hyperparameters: transformer hyperparameters
@@ -65,8 +65,8 @@ torch._C._jit_override_can_fuse_on_gpu(True)
             with size [b, np, s, s] and an `attention-mask` and will apply
             the masking. The function should return a masked score of the
             same size [b, np, s, s].
-            masked-attention-scores = attention_mask_func(
-                                    unmasked-attention-scores, attention-mask)
+               masked-attention-scores = attention_mask_func(
+                                     unmasked-attention-scores, attention-mask)
 """
 
 
@@ -276,28 +276,19 @@ class ParallelSelfAttention(nn.Module):
                 f"lskv_bottleneck_dim should be a positive integer, but got {self.lskv_bottleneck_dim}"
             )
 
-        # self.down_up_proj = nn.Sequential(
-        #     nn.Linear(neox_args.hidden_size, neox_args.lskv_bottleneck_dim, bias=False),
-        #     # nn.GELU(),
-        #     nn.Linear(neox_args.lskv_bottleneck_dim, neox_args.hidden_size, bias=False),
-        # )
-        # print(
-        #     f"using LSKV attention with lskv_st_window_size={self.lskv_st_window_size}, lskv_bottleneck_dim={self.lskv_bottleneck_dim}, no bias and activation"
-        # )
-
-        # # 手动应用 neox 的初始化逻辑
-        # init_method(self.down_up_proj[0].weight)
-        # init_method(self.down_up_proj[1].weight)
-        # print(f"init down_up_proj with {init_method.__name__} for both layers")
-        # ## lskv specific args end ##
-
-        self.down_up_proj = nn.Sequential(
-            nn.Linear(neox_args.hidden_size, neox_args.lskv_bottleneck_dim, bias=True),
-            nn.GELU(),
-            nn.Linear(neox_args.lskv_bottleneck_dim, neox_args.hidden_size, bias=True),
-        )
+        if neox_args.lskv_use_act:
+            self.down_up_proj = nn.Sequential(
+                nn.Linear(neox_args.hidden_size, neox_args.lskv_bottleneck_dim, bias=False),
+                nn.GELU(),
+                nn.Linear(neox_args.lskv_bottleneck_dim, neox_args.hidden_size, bias=False),
+            )
+        else:
+            self.down_up_proj = nn.Sequential(
+                nn.Linear(neox_args.hidden_size, neox_args.lskv_bottleneck_dim, bias=False),
+                nn.Linear(neox_args.lskv_bottleneck_dim, neox_args.hidden_size, bias=False),
+            )
         print(
-            f"using LSKV attention with lskv_st_window_size={self.lskv_st_window_size}, lskv_bottleneck_dim={self.lskv_bottleneck_dim}"
+            f"using LSKV attention with lskv_st_window_size={self.lskv_st_window_size}, lskv_bottleneck_dim={self.lskv_bottleneck_dim}, lskv_use_act={neox_args.lskv_use_act}"
         )
 
         # 手动应用 neox 的初始化逻辑

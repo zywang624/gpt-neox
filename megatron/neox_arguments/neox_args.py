@@ -1067,3 +1067,8 @@ class NeoXArgsLSKV(NeoXArgsTemplate):
     """
     The dimension of the bottleneck layer in LSKV.
     """
+
+    lskv_use_act: bool = False
+    """
+    Whether to use GELU activation in the LSKV down_up_proj bottleneck.
+    """

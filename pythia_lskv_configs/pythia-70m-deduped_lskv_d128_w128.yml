@@ -97,8 +97,7 @@
   "test-data-paths": ["/workspace/pythia/pythia_pile_idxmaps/pile_0.87_deduped_text_document"],
 
   "tokenizer-type": "HFTokenizer",
-  # "vocab-file": "/workspace/pythia/pythia_pile_idxmaps/20B_tokenizer.json",
-  "vocab-file": "/data/zhiyuanwang/code/ls_kv/ppl/train_pythia/pythia/pythia_pile_idxmaps/20B_tokenizer.json",
+  "vocab-file": "/workspace/pythia/pythia_pile_idxmaps/20B_tokenizer.json",
 
   "launcher": "slurm",
   "deepspeed_slurm": false,
@@ -111,7 +110,5 @@
   "lskv_bottleneck_dim": 128,
 
   "global_num_gpus": 8,
-  # "num_gpus": 7,
-  # "train_batch_size": 896,       # ← 加这行，显式写死 16 × 8 × 7 = 896
   "include": "localhost:0,1,2,3,4,5,6,7",
 }

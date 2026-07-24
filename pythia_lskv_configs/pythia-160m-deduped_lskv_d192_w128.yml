@@ -96,7 +96,6 @@
 
   "tokenizer-type": "HFTokenizer",
   "vocab-file": "/workspace/pythia/pythia_pile_idxmaps/20B_tokenizer.json",
-  # "vocab-file": "/data/zhiyuanwang/code/ls_kv/ppl/train_pythia/pythia/pythia_pile_idxmaps/20B_tokenizer.json",
 
   "launcher": "slurm",
   "deepspeed_slurm": false,
