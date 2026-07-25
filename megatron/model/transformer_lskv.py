@@ -277,10 +277,12 @@ class ParallelSelfAttention(nn.Module):
             )
 
         if neox_args.lskv_use_act:
+            # bias=True + GELU: reproduces the submitted LSKV bottleneck
+            # (Linear+GELU+Linear, bias=True). Set lskv_use_act: true to use it.
             self.down_up_proj = nn.Sequential(
-                nn.Linear(neox_args.hidden_size, neox_args.lskv_bottleneck_dim, bias=False),
+                nn.Linear(neox_args.hidden_size, neox_args.lskv_bottleneck_dim, bias=True),
                 nn.GELU(),
-                nn.Linear(neox_args.lskv_bottleneck_dim, neox_args.hidden_size, bias=False),
+                nn.Linear(neox_args.lskv_bottleneck_dim, neox_args.hidden_size, bias=True),
             )
         else:
             self.down_up_proj = nn.Sequential(
