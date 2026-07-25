@@ -108,6 +108,7 @@
   "checkpoint_validation_with_forward_pass": False,
   "lskv_window_size": 128,
   "lskv_bottleneck_dim": 128,
+  "lskv_use_act": true,          # GELU + bias=True bottleneck (submission form)
 
   "global_num_gpus": 8,
   "include": "localhost:0,1,2,3,4,5,6,7",
