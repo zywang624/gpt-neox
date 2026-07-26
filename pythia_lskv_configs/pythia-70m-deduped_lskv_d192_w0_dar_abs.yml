@@ -102,7 +102,7 @@
   "launcher": "slurm",
   "deepspeed_slurm": false,
 
-  "save": "/workspace/pythia_70m_lskv_d192_w0_dar_abs_uniform_checkpoints",
+  "save": "/workspace/pythia_70m_lskv_d192_w0_dar_abs_uniform_final_checkpoints",
   # "load": "/workspace/pythia_70m_lskv_d128_w128_bs256_gelu_no_bias_checkpoints",
 
   "checkpoint_validation_with_forward_pass": False,
