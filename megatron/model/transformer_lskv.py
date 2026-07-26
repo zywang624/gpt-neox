@@ -276,17 +276,16 @@ class ParallelSelfAttention(nn.Module):
                 f"lskv_bottleneck_dim should be a positive integer, but got {self.lskv_bottleneck_dim}"
             )
 
-        # DAR-abs (decoupled) variant is FULLY bias-free so the absorbed inference
-        # path is an EXACT reparameterization (no constant terms). The non-decoupled
-        # (submitted) path keeps its original bias behavior unchanged.
-        _bneck_bias = not neox_args.lskv_use_decoupled_rope
+        # down_up_proj keeps bias=True in ALL variants incl. DAR-abs: removing it
+        # caused a real, growing +8% quality gap in smoke (the qkv bias was proven
+        # irrelevant). DAR-abs decoupled variant = submitted bottleneck + decoupled
+        # RoPE only. Absorption stays exact: k_C = W_K' h^D + (W_K b_up + b_K), a
+        # computable per-head constant added to distant scores in absorbed inference.
         if neox_args.lskv_use_act:
-            # GELU bottleneck; bias follows _bneck_bias
-            # (True = submitted Linear+GELU+Linear bias=True; False = DAR-abs bias-free)
             self.down_up_proj = nn.Sequential(
-                nn.Linear(neox_args.hidden_size, neox_args.lskv_bottleneck_dim, bias=_bneck_bias),
+                nn.Linear(neox_args.hidden_size, neox_args.lskv_bottleneck_dim, bias=True),
                 nn.GELU(),
-                nn.Linear(neox_args.lskv_bottleneck_dim, neox_args.hidden_size, bias=_bneck_bias),
+                nn.Linear(neox_args.lskv_bottleneck_dim, neox_args.hidden_size, bias=True),
             )
         else:
             self.down_up_proj = nn.Sequential(
@@ -303,13 +302,10 @@ class ParallelSelfAttention(nn.Module):
         # print(f"init down_up_proj with {init_method.__name__} for both layers")
         ## lskv specific args end ##
 
-        # Strided linear layer.
-        # Fused QKV keeps its bias (b_Q/b_K/b_V) in ALL variants, incl. DAR-abs:
-        # removing it (which also strips the shared window bias) caused a real,
-        # growing quality gap in smoke (+8.1% @300 vs 0.21% for decoupled-only).
-        # In DAR-abs the b_K survives into the global content key as an exact
-        # constant: k_C = W_K' h^D + b_K (down_up_proj is bias-free, so no b_up
-        # cross-term) -> add b_K to distant scores only in the absorbed inference.
+        # Strided linear layer. Fused QKV keeps its default bias in ALL variants
+        # (incl. DAR-abs) -- see down_up_proj note above; both biases stay, so the
+        # DAR-abs decoupled variant differs from submitted DAR-128 ONLY by decoupled
+        # RoPE. Absorption constant for distant scores: W_K b_up + b_K (per head).
         self.query_key_value = mpu.ColumnParallelLinear(
             neox_args=neox_args,
             input_size=neox_args.hidden_size,
