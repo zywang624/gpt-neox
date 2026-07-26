@@ -304,15 +304,18 @@ class ParallelSelfAttention(nn.Module):
         ## lskv specific args end ##
 
         # Strided linear layer.
+        # Fused QKV keeps its bias (b_Q/b_K/b_V) in ALL variants, incl. DAR-abs:
+        # removing it (which also strips the shared window bias) caused a real,
+        # growing quality gap in smoke (+8.1% @300 vs 0.21% for decoupled-only).
+        # In DAR-abs the b_K survives into the global content key as an exact
+        # constant: k_C = W_K' h^D + b_K (down_up_proj is bias-free, so no b_up
+        # cross-term) -> add b_K to distant scores only in the absorbed inference.
         self.query_key_value = mpu.ColumnParallelLinear(
             neox_args=neox_args,
             input_size=neox_args.hidden_size,
             output_size=3 * neox_args.hidden_size,
             gather_output=False,
             init_method=init_method,
-            # DAR-abs: fully bias-free fused QKV (removes b_Q/b_K/b_V; also drops the
-            # window path's bias since QKV is shared). Non-decoupled path keeps bias.
-            bias=not neox_args.lskv_use_decoupled_rope,
         )
 
         coeff = None
