@@ -276,13 +276,17 @@ class ParallelSelfAttention(nn.Module):
                 f"lskv_bottleneck_dim should be a positive integer, but got {self.lskv_bottleneck_dim}"
             )
 
+        # DAR-abs (decoupled) variant is FULLY bias-free so the absorbed inference
+        # path is an EXACT reparameterization (no constant terms). The non-decoupled
+        # (submitted) path keeps its original bias behavior unchanged.
+        _bneck_bias = not neox_args.lskv_use_decoupled_rope
         if neox_args.lskv_use_act:
-            # bias=True + GELU: reproduces the submitted LSKV bottleneck
-            # (Linear+GELU+Linear, bias=True). Set lskv_use_act: true to use it.
+            # GELU bottleneck; bias follows _bneck_bias
+            # (True = submitted Linear+GELU+Linear bias=True; False = DAR-abs bias-free)
             self.down_up_proj = nn.Sequential(
-                nn.Linear(neox_args.hidden_size, neox_args.lskv_bottleneck_dim, bias=True),
+                nn.Linear(neox_args.hidden_size, neox_args.lskv_bottleneck_dim, bias=_bneck_bias),
                 nn.GELU(),
-                nn.Linear(neox_args.lskv_bottleneck_dim, neox_args.hidden_size, bias=True),
+                nn.Linear(neox_args.lskv_bottleneck_dim, neox_args.hidden_size, bias=_bneck_bias),
             )
         else:
             self.down_up_proj = nn.Sequential(
@@ -306,6 +310,9 @@ class ParallelSelfAttention(nn.Module):
             output_size=3 * neox_args.hidden_size,
             gather_output=False,
             init_method=init_method,
+            # DAR-abs: fully bias-free fused QKV (removes b_Q/b_K/b_V; also drops the
+            # window path's bias since QKV is shared). Non-decoupled path keeps bias.
+            bias=not neox_args.lskv_use_decoupled_rope,
         )
 
         coeff = None
