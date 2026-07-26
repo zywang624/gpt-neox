@@ -301,18 +301,111 @@ def check_logits(ckpt, dtype, device, window, S=256):
     return d, agree
 
 
+# ==================== cache-cost model + decode microbench ==================
+def cache_bytes_per_token(method, window, T, dtype_bytes, n_layers):
+    """Per-layer KV-cache footprint (bytes) for a length-T context."""
+    full = 2 * N_HEADS * D_HEAD              # K + V, full heads
+    if method == "vanilla":
+        per_layer = T * full
+    elif method == "dar_abs":                # window full K/V + distant (h^D + shared k_R)
+        w = min(window, T)
+        per_layer = w * full + max(T - w, 0) * (D_DOWN + D_R)
+    else:
+        raise ValueError(method)
+    return per_layer * n_layers * dtype_bytes
+
+
+def _decode_bench(model, T, n_steps, window, mode, device):
+    """Prefill a length-T cache, time n_steps of single-token decode. Returns (peak_MB, ms/token)."""
+    import statistics
+    import time
+    _, layers, _, _ = model
+    dt, nl = layers[0]["W_Q"].dtype, len(layers)
+    torch.cuda.empty_cache()
+    torch.cuda.reset_peak_memory_stats(device)
+
+    if mode == "full":
+        Kc = [torch.randn(T, N_HEADS, D_HEAD, device=device, dtype=dt) for _ in range(nl)]
+        Vc = [torch.randn(T, N_HEADS, D_HEAD, device=device, dtype=dt) for _ in range(nl)]
+    else:
+        w = min(window, T)
+        nd = max(T - w, 0)
+        Kc = [torch.randn(w, N_HEADS, D_HEAD, device=device, dtype=dt) for _ in range(nl)]
+        Vc = [torch.randn(w, N_HEADS, D_HEAD, device=device, dtype=dt) for _ in range(nl)]
+        Hc = [torch.randn(nd, D_DOWN, device=device, dtype=dt) for _ in range(nl)]
+        Rc = [torch.randn(nd, D_R, device=device, dtype=dt) for _ in range(nl)]
+        AB = [absorb(l) for l in layers]
+
+    times = []
+    for _ in range(n_steps):
+        x = torch.randn(HIDDEN, device=device, dtype=dt)
+        torch.cuda.synchronize(device)
+        t0 = time.perf_counter()
+        for li, lay in enumerate(layers):
+            q = torch.einsum("h,ndh->nd", x, lay["W_Q"]) + lay["b_Q"]          # [nh,dh]
+            if mode == "full":
+                sc = torch.einsum("nd,tnd->nt", q, Kc[li]) / NORM_FACTOR
+                p = torch.softmax(sc.float(), -1).to(dt)
+                ctx = torch.einsum("nt,tnd->nd", p, Vc[li])
+            else:
+                WKp, cK, WVp, cV = AB[li]
+                scw = torch.einsum("nd,tnd->nt", q, Kc[li]) / NORM_FACTOR
+                qp = torch.einsum("nd,ndc->nc", q, WKp)
+                q_R = (x @ lay["Wqr"].t()).view(N_HEADS, D_R)
+                scd = (torch.einsum("nc,tc->nt", qp, Hc[li])
+                       + torch.einsum("nd,nd->n", q, cK)[:, None]
+                       + torch.einsum("nd,td->nt", q_R, Rc[li])) / NORM_FACTOR
+                sc = torch.cat([scw, scd], -1)
+                p = torch.softmax(sc.float(), -1).to(dt)
+                pw, pd = p[:, :Kc[li].shape[0]], p[:, Kc[li].shape[0]:]
+                sph = torch.einsum("nt,tc->nc", pd, Hc[li])
+                ctx = (torch.einsum("nt,tnd->nd", pw, Vc[li])
+                       + torch.einsum("nc,ndc->nd", sph, WVp)
+                       + pd.sum(-1)[:, None] * cV)
+            x = ctx.reshape(HIDDEN) @ lay["dense_w"].t() + lay["dense_b"]
+        torch.cuda.synchronize(device)
+        times.append(time.perf_counter() - t0)
+    peak = torch.cuda.max_memory_allocated(device) / 1e6
+    return peak, statistics.median(times) * 1000.0
+
+
+def measure(ckpt, dtype, device, window, seqs, steps):
+    dtype_bytes = torch.tensor([], dtype=dtype).element_size()
+    model = load_ckpt(ckpt, dtype, device)
+    nl = len(model[1])
+    print(f"== cache-cost model ({nl} layers, {dtype} = {dtype_bytes}B, window={window}) ==")
+    print(f"   {'seqlen':>7} | {'vanilla KV':>13} | {'DAR-abs cache':>13} | {'reduction':>9}")
+    for T in seqs:
+        vb = cache_bytes_per_token("vanilla", window, T, dtype_bytes, nl)
+        db = cache_bytes_per_token("dar_abs", window, T, dtype_bytes, nl)
+        print(f"   {T:>7} | {vb/1e6:>10.1f} MB | {db/1e6:>10.1f} MB | {vb/db:>8.2f}x")
+    print(f"\n== on-GPU decode microbench ({steps} steps/pt, 70M geometry) ==")
+    print(f"   {'seqlen':>7} | {'method':>8} | {'peak mem':>10} | {'ms/token':>9} | {'speedup':>7}")
+    for T in seqs:
+        pf, tf = _decode_bench(model, T, steps, window, "full", device)
+        pa, ta = _decode_bench(model, T, steps, window, "absorbed", device)
+        print(f"   {T:>7} | {'full-KV':>8} | {pf:>7.1f} MB | {tf:>7.2f} ms | {'--':>7}")
+        print(f"   {T:>7} | {'absorbed':>8} | {pa:>7.1f} MB | {ta:>7.2f} ms | {tf/ta:>6.2f}x")
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("gate", choices=["core", "attn", "logits", "all"])
+    ap.add_argument("gate", choices=["core", "attn", "logits", "all", "measure"])
     ap.add_argument("--ckpt", required=True)
     ap.add_argument("--dtype", default="fp32", choices=["fp32", "fp16"])
     ap.add_argument("--device", default="cuda")
     ap.add_argument("--window", type=int, default=128, help="lskv_window_size (128 DAR, 0 Uniform)")
+    ap.add_argument("--seqs", type=int, nargs="+", default=[8192, 16384])
+    ap.add_argument("--steps", type=int, default=32)
     args = ap.parse_args()
     dtype = {"fp32": torch.float32, "fp16": torch.float16}[args.dtype]
     device = args.device if torch.cuda.is_available() else "cpu"
     tol = 1e-3 if dtype == torch.float32 else 5e-1
     print(f"ckpt={args.ckpt}  dtype={args.dtype}  device={device}  window={args.window}  tol={tol}\n")
+
+    if args.gate == "measure":
+        measure(args.ckpt, dtype, device, args.window, args.seqs, args.steps)
+        return
 
     ok = True
     if args.gate in ("core", "all"):
