@@ -102,17 +102,17 @@
   "launcher": "slurm",
   "deepspeed_slurm": false,
 
-  "save": "/workspace/pythia_70m_lskv_d192_w0_dar_abs_uniform_final_checkpoints",
+  "save": "/workspace/pythia_70m_lskv_d128_w128_dar_abs_fullbias_checkpoints",
   # "load": "/workspace/pythia_70m_lskv_d128_w128_bs256_gelu_no_bias_checkpoints",
 
   "checkpoint_validation_with_forward_pass": False,
-  "lskv_window_size": 0,
-  "lskv_bottleneck_dim": 192,
+  "lskv_window_size": 128,
+  "lskv_bottleneck_dim": 128,
   "lskv_use_act": true,          # GELU + bias=True bottleneck (submission form)
-  "lskv_use_decoupled_rope": true,   # Q3 Uniform-matched baseline (no window; every token -> bottleneck d_u)
+  "lskv_use_decoupled_rope": true,   # DAR-abs run A
   "lskv_rotary_dim": 32,             # d_r = d_head//2 (64//2), same as smoke
 
   "global_num_gpus": 8,
-  "master_port": 29555,
+  "master_port": 29553,
   "include": "localhost:0,1,2,3,4,5,6,7",
 }

@@ -9,8 +9,8 @@ set -uo pipefail
 cd "$(dirname "$0")/.."                       # -> gpt-neox repo root
 
 CONFIGS=(
-  pythia-70m-deduped_lskv_d128_w128_dar_abs_final   # DAR-abs (distance-adaptive)
-  pythia-70m-deduped_lskv_d192_w0_dar_abs_final     # Q3 Uniform-matched (no window, d_u=192)
+  pythia-70m-deduped_lskv_d128_w128_dar_abs_fullbias   # DAR-abs (distance-adaptive)
+  pythia-70m-deduped_lskv_d192_w0_dar_abs_fullbias     # Q3 Uniform-matched (no window, d_u=192)
 )
 
 declare -a RESULTS
