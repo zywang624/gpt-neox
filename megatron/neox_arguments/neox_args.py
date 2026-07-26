@@ -1072,3 +1072,20 @@ class NeoXArgsLSKV(NeoXArgsTemplate):
     """
     Whether to use GELU activation in the LSKV down_up_proj bottleneck.
     """
+
+    lskv_use_decoupled_rope: bool = False
+    """
+    DAR-abs: enable MLA-style decoupled RoPE on the global (distant) path. The
+    content path becomes NoPE; a separate shared rotary channel of width
+    lskv_rotary_dim carries position. When False the existing (submitted) global
+    path runs unchanged. Only affects the global path -- the window path is never
+    touched.
+    """
+
+    lskv_rotary_dim: int = None
+    """
+    DAR-abs: dimension d_r of the shared decoupled-RoPE key/query channel.
+    Defaults to d_head // 2 (d_head = hidden_size // num_attention_heads),
+    computed at model init when None. Must be even. Overridable for sweeps.
+    Only used when lskv_use_decoupled_rope is True.
+    """

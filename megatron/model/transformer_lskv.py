@@ -343,6 +343,34 @@ class ParallelSelfAttention(nn.Module):
         else:
             self.rotary_emb = None
 
+        # --- DAR-abs: MLA-style decoupled RoPE on the global path (gated) ---
+        self.lskv_use_decoupled_rope = neox_args.lskv_use_decoupled_rope
+        if self.lskv_use_decoupled_rope:
+            d_head = self.hidden_size_per_attention_head
+            d_r = neox_args.lskv_rotary_dim
+            if d_r is None:
+                d_r = d_head // 2  # default from config at init, not hardcoded
+            if d_r % 2 != 0:
+                raise ValueError(
+                    f"lskv_rotary_dim (d_r) must be even for RoPE, got {d_r}"
+                )
+            self.lskv_rotary_dim = d_r
+            n_heads = self.num_attention_heads_per_partition
+            # shared rotary key: one d_r vector per token (NOT per head)
+            self.lskv_W_kr = nn.Linear(neox_args.hidden_size, d_r, bias=False)
+            # per-head rotary query: n_heads * d_r
+            self.lskv_W_qr = nn.Linear(neox_args.hidden_size, n_heads * d_r, bias=False)
+            # DEDICATED rotary embedding, FULL width d_r (100% rotary) -- separate
+            # from the window path's partial (rotary_ndims) instance. BOTH q_R and
+            # k_R go through THIS instance.
+            self.lskv_rotary_emb = RotaryEmbedding(
+                d_r, base=neox_args.rotary_emb_base, precision=neox_args.params_dtype
+            )
+            print(
+                f"using DAR-abs decoupled RoPE: lskv_rotary_dim(d_r)={d_r} "
+                f"(window rotary_ndims={getattr(self, 'rotary_ndims', None)})"
+            )
+
         self.attention_type = neox_args.attention_config[layer_number]
         self.use_flash_attention = self.attention_type == "flash"
         self.sparse = self.attention_type != "global" and not self.use_flash_attention
@@ -400,6 +428,9 @@ class ParallelSelfAttention(nn.Module):
         attention_mask,
         lt_key_layer,
         lt_value_layer,  # ← 新增两个参数
+        q_C=None,  # DAR-abs: NoPE content query (global path)
+        q_R=None,  # DAR-abs: per-head rotary query
+        k_R=None,  # DAR-abs: shared rotary key (across heads)
     ):
         # ===================================
         # Raw attention scores. [b, np, s, s]
@@ -440,15 +471,37 @@ class ParallelSelfAttention(nn.Module):
             alpha=(1.0 / self.norm_factor),
         )
 
-        # ← 新增：LT attention scores
+        # LT (global-path) attention scores
         lt_matmul_result = torch.empty_like(matmul_result)
-        lt_matmul_result = torch.baddbmm(
-            lt_matmul_result,
-            query_layer.transpose(0, 1),
-            lt_key_layer.transpose(0, 1).transpose(1, 2),
-            beta=0.0,
-            alpha=(1.0 / self.norm_factor),
-        )
+        if q_C is None:
+            # existing (submitted) path: RoPE'd shared query . RoPE'd content lt_key
+            lt_matmul_result = torch.baddbmm(
+                lt_matmul_result,
+                query_layer.transpose(0, 1),
+                lt_key_layer.transpose(0, 1).transpose(1, 2),
+                beta=0.0,
+                alpha=(1.0 / self.norm_factor),
+            )
+        else:
+            # DAR-abs decoupled RoPE: score = q_C . k_C (NoPE) + q_R . k_R (RoPE).
+            # lt_key_layer here is the NoPE content key k_C, already reshaped to
+            # [sk, b*np, hn]. Both terms scaled by 1/norm_factor (= 1/sqrt(d_head),
+            # matching the content/window scale; NOT 1/sqrt(d_head+d_r)).
+            b_, np_, sq_, sk_ = output_size
+            q_C = q_C.view(sq_, b_ * np_, -1)  # [sq, b*np, hn]
+            lt_matmul_result = torch.baddbmm(
+                lt_matmul_result,
+                q_C.transpose(0, 1),
+                lt_key_layer.transpose(0, 1).transpose(1, 2),
+                beta=0.0,
+                alpha=(1.0 / self.norm_factor),
+            )
+            # rotary term: per-head q_R . shared k_R (broadcast across heads)
+            k_R = k_R.view(sk_, b_, -1)  # drop singleton head dim -> [sk, b, d_r]
+            score_R = torch.einsum("qbnd,kbd->bnqk", q_R, k_R)  # [b, np, sq, sk]
+            lt_matmul_result = lt_matmul_result + score_R.reshape(
+                b_ * np_, sq_, sk_
+            ) * (1.0 / self.norm_factor)
 
         # change view to [b, np, sq, sk]
         attention_scores = matmul_result.view(*output_size)
@@ -636,6 +689,13 @@ class ParallelSelfAttention(nn.Module):
             lt_mixed_x_layer, 3
         )
 
+        # DAR-abs: capture the NoPE content query for the global path BEFORE the
+        # window-path rotary below. apply_rotary_pos_emb returns NEW tensors (not
+        # in-place, see positional_embeddings.py), so this pre-RoPE reference
+        # stays NoPE even after query_layer is rebound to its rotated version.
+        q_C = query_layer if self.lskv_use_decoupled_rope else None
+        q_R = k_R = None
+
         if exists(self.rotary_emb):
             if exists(self.rotary_ndims):
                 # partial rotary
@@ -647,14 +707,16 @@ class ParallelSelfAttention(nn.Module):
                     key_layer[..., : self.rotary_ndims],
                     key_layer[..., self.rotary_ndims :],
                 )
-                lt_key_rot, lt_key_pass = (
-                    lt_key_layer[..., : self.rotary_ndims],
-                    lt_key_layer[..., self.rotary_ndims :],
-                )
+                if not self.lskv_use_decoupled_rope:
+                    lt_key_rot, lt_key_pass = (
+                        lt_key_layer[..., : self.rotary_ndims],
+                        lt_key_layer[..., self.rotary_ndims :],
+                    )
             else:
                 # full rotary
                 query_rot, key_rot = query_layer, key_layer
-                lt_key_rot = lt_key_layer
+                if not self.lskv_use_decoupled_rope:
+                    lt_key_rot = lt_key_layer
             apply_rotary_fn = (
                 apply_rotary_pos_emb_torch if self.bf16 else apply_rotary_pos_emb
             )
@@ -672,14 +734,35 @@ class ParallelSelfAttention(nn.Module):
                 query_rot, key_rot, cos, sin, offset=offset
             )
 
-            lt_cos, lt_sin = self.rotary_emb(lt_value_layer, seq_len=seq_len)
-            lt_key_layer = lt_apply_rotary_fn(
-                query_rot, lt_key_rot, lt_cos, lt_sin, offset=offset
-            )
+            if not self.lskv_use_decoupled_rope:
+                # existing (submitted) global path: RoPE the content lt_key
+                lt_cos, lt_sin = self.rotary_emb(lt_value_layer, seq_len=seq_len)
+                lt_key_layer = lt_apply_rotary_fn(
+                    query_rot, lt_key_rot, lt_cos, lt_sin, offset=offset
+                )
             if exists(self.rotary_ndims):
                 query_layer = torch.cat((query_layer, query_pass), dim=-1)
                 key_layer = torch.cat((key_layer, key_pass), dim=-1)
-                lt_key_layer = torch.cat((lt_key_layer, lt_key_pass), dim=-1)
+                if not self.lskv_use_decoupled_rope:
+                    lt_key_layer = torch.cat((lt_key_layer, lt_key_pass), dim=-1)
+
+            # DAR-abs: shared rotary key k_R (one d_r vec/token) + per-head rotary
+            # query q_R (n_heads x d_r). BOTH fully rotated across all d_r dims via
+            # the DEDICATED lskv_rotary_emb (independent of the window's partial
+            # instance). q_R at query positions, k_R at key positions -> the dot
+            # product q_R . k_R encodes relative position (t - j).
+            if self.lskv_use_decoupled_rope:
+                sq_, b_ = hidden_states.shape[0], hidden_states.shape[1]
+                np_ = self.num_attention_heads_per_partition
+                dr_ = self.lskv_rotary_dim
+                q_R = self.lskv_W_qr(hidden_states).view(sq_, b_, np_, dr_)
+                k_R = self.lskv_W_kr(hidden_states).view(sq_, b_, 1, dr_)
+                kfn = (
+                    apply_rotary_pos_emb_torch_k if self.bf16 else apply_rotary_pos_emb_k
+                )
+                lskv_cos, lskv_sin = self.lskv_rotary_emb(k_R, seq_len=seq_len)
+                q_R = kfn(q_R, q_R, lskv_cos, lskv_sin, offset=offset)
+                k_R = kfn(k_R, k_R, lskv_cos, lskv_sin, offset=offset)
 
         # ==================================
         # Cache key and value for inference
@@ -717,6 +800,9 @@ class ParallelSelfAttention(nn.Module):
                 attention_mask,
                 lt_key_layer,
                 lt_value_layer,
+                q_C=q_C,
+                q_R=q_R,
+                k_R=k_R,
             )
         else:
             raise NotImplementedError(
