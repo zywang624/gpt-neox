@@ -103,7 +103,7 @@
   "deepspeed_slurm": false,
 
   "save": "/workspace/pythia_70m_lskv_d128_w128_dar_abs_fullbias_checkpoints",
-  # "load": "/workspace/pythia_70m_lskv_d128_w128_bs256_gelu_no_bias_checkpoints",
+  "load": "/workspace/pythia_70m_lskv_d128_w128_dar_abs_fullbias_checkpoints",   # = save -> resume on restart; fresh if empty
 
   "checkpoint_validation_with_forward_pass": False,
   "lskv_window_size": 128,
