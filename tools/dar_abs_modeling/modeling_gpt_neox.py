@@ -53,19 +53,66 @@ class LSKVCache(DynamicCache):
     key position instead of erroring, producing plausible-looking but wrong logits.
     Fixed by giving k_R its own dedicated accumulating cache (decoupled_kr_cache),
     used whenever decoupled RoPE is active (both absorbed and non-absorbed modes).
+
+    WINDOW EVICTION (real cache-footprint fix): the window (this class's own, base-
+    DynamicCache) K_h/V_h cache is now capped at `lskv_st_window_size` entries -- the
+    oldest entries are dropped once a token exits the window, matching the design
+    formula w*2d + T*(d_down+d_r). The long_term_components_cache / decoupled_kr_cache
+    are NEVER truncated (every token needs h^D/k_R cached from its first forward pass,
+    since hidden_states isn't retained and can't be recovered from K_h/V_h later).
+
+    Two eviction regimes, distinguished by sq = number of NEW tokens this call:
+      - sq == 1 (decode step): evict immediately, in place, so the RETURNED key/value
+        (used by the caller for THIS step's attention score) is already capped at w --
+        true O(w) window score, not O(w+1).
+      - sq > 1 (bulk/prefill call): do NOT evict before returning -- the existing
+        mask-based attention path (build_st_mask + torch.where) needs the FULL
+        un-evicted window (key-axis-index == absolute-position for every new+existing
+        entry) to correctly give each of the sq queries its own window/distant split.
+        Eviction happens AFTER, in place, so it doesn't affect the tensor already
+        returned to the caller (rebinding self.layers[i].keys does not mutate the
+        earlier tensor object) but does cap it for subsequent decode calls. NOTE: this
+        assumes multi-token calls only occur as the very first call on a fresh cache
+        (standard prefill-once-then-decode-one-at-a-time usage, i.e. generate());  a
+        second multi-token call after eviction has already broken absolute-position
+        alignment is not supported.
+    get_seq_length() is overridden to always report the TRUE total sequence length
+    (delegating to long_term_components_cache, which is never truncated) since the
+    base DynamicCache.get_seq_length() would otherwise report the truncated window
+    length once eviction has occurred, corrupting cache_position/causal-mask
+    bookkeeping in GPTNeoXModel.forward().
     """
     def __init__(self, config):
         super().__init__(config=config)
         self.long_term_components_cache = DynamicCache(config=config)
         self.decoupled_kr_cache = DynamicCache(config=config)
+        self._window_size = int(config.lskv_st_window_size)
+
+    def get_seq_length(self, layer_idx: int = 0) -> int:
+        return self.long_term_components_cache.get_seq_length(layer_idx)
+
+    def get_mask_sizes(self, cache_position, layer_idx: int) -> tuple:
+        # Cache.get_mask_sizes()'s default impl delegates to self.layers[layer_idx]
+        # .get_mask_sizes(), which reads the WINDOW layer's own (post-eviction-
+        # truncated) length directly -- bypassing the get_seq_length() override above.
+        # Override here too so the causal mask built by create_causal_mask() is sized
+        # to the TRUE total (kv_length = true_total + query_length), matching the
+        # width of the concatenated [distant | window] score tensor the decode fast
+        # path produces, not the truncated window length.
+        kv_offset = 0
+        query_length = cache_position.shape[0]
+        kv_length = self.get_seq_length(layer_idx) + query_length
+        return kv_length, kv_offset
 
     def update(self, key_states, value_states, layer_idx: int, cache_kwargs=None):
-        # 1. full term KV cache的更新
+        sq = key_states.shape[-2]
+
+        # 1. full term (window) KV cache的更新
         key_states, value_states = super().update(
             key_states, value_states, layer_idx, cache_kwargs
         )
 
-        # 2. long term KV cache的更新
+        # 2. long term KV cache的更新 (never truncated)
         lt_key_states, lt_value_states = self.long_term_components_cache.update(
             cache_kwargs["lt_key_states"],
             cache_kwargs["lt_value_states"],
@@ -73,17 +120,27 @@ class LSKVCache(DynamicCache):
             cache_kwargs,
         )
 
-        assert self.get_seq_length(layer_idx) == self.long_term_components_cache.get_seq_length(layer_idx), "full kv cache length != long term components cache length"
-
-        # 3. decoupled-RoPE k_R accumulation (see BUGFIX note above)
+        # 3. decoupled-RoPE k_R accumulation (see BUGFIX note above; never truncated)
         kR_all = None
         k_R_new = cache_kwargs.get("k_R_new")
         if k_R_new is not None:
             _, kR_all = self.decoupled_kr_cache.update(k_R_new, k_R_new, layer_idx, cache_kwargs)
-            assert self.get_seq_length(layer_idx) == self.decoupled_kr_cache.get_seq_length(layer_idx), "full kv cache length != k_R cache length"
+
+        # 4. window-cache eviction (see WINDOW EVICTION docstring above)
+        w = self._window_size
+        layer = self.layers[layer_idx]
+        if sq == 1:
+            if layer.keys.shape[-2] > w:
+                layer.keys = layer.keys[..., -w:, :].clone()
+                layer.values = layer.values[..., -w:, :].clone()
+            key_states, value_states = layer.keys, layer.values
+        else:
+            if layer.keys.shape[-2] > w:
+                layer.keys = layer.keys[..., -w:, :].clone()
+                layer.values = layer.values[..., -w:, :].clone()
 
         return key_states, value_states, lt_key_states, lt_value_states, kR_all
-    
+
 class GPTNeoXMLP(nn.Module):
     def __init__(self, config):
         super().__init__()
@@ -347,6 +404,119 @@ def eager_attention_forward_absorbed(
     return attn_output, attn_weights
 
 
+def eager_attention_forward_decode(
+    module: nn.Module,
+    query: torch.Tensor,
+    key: torch.Tensor,
+    value: torch.Tensor,
+    attention_mask: torch.Tensor,
+    scaling: float,
+    dropout: float = 0.0,
+    head_mask: Optional[torch.Tensor] = None,
+    **kwargs,
+):
+    """O(w) single-token decode fast path (non-absorbed). `key`/`value` (window) are
+    ALREADY capped at <=w entries by LSKVCache.update()'s eviction, covering exactly
+    the causally-valid in-window positions for this one new query -- no window-side
+    masking needed (every entry is in-window by construction, and nothing future is
+    ever cached). `lt_key`/`lt_value` (distant) are the FULL, never-truncated
+    accumulated cache; slice to the OLDEST nd = total - window_len entries (the newest
+    window_len distant entries are redundant with the window path and unused, exactly
+    as the mask in the prefill path discards them). Window and distant scores are
+    concatenated (ordered oldest-to-newest, matching absolute position order) rather
+    than torch.where-selected, since they now have different key-axis widths -- a
+    shared T-wide canvas is exactly what eviction removes."""
+    lt_key_full, lt_value_full = kwargs["lt_key"], kwargs["lt_value"]
+    q_C, q_R, k_R_full = kwargs.get("q_C"), kwargs.get("q_R"), kwargs.get("k_R")
+
+    win_len = key.shape[-2]
+    nd = lt_key_full.shape[-2] - win_len
+    lt_key, lt_value = lt_key_full[..., :nd, :], lt_value_full[..., :nd, :]
+
+    win_scores = torch.matmul(query, key.transpose(2, 3)) * scaling
+
+    if q_C is not None:
+        k_R = k_R_full[..., :nd, :]
+        dist_scores = (
+            torch.matmul(q_C, lt_key.transpose(2, 3)) + torch.matmul(q_R, k_R.transpose(2, 3))
+        ) * scaling
+    else:
+        dist_scores = torch.matmul(query, lt_key.transpose(2, 3)) * scaling
+
+    scores = torch.cat([dist_scores, win_scores], dim=-1)  # [b,nh,1,nd+win_len], oldest->newest
+
+    if attention_mask is not None:
+        scores = scores + attention_mask[:, :, :, -scores.shape[-1] :]
+
+    probs = nn.functional.softmax(scores, dim=-1, dtype=torch.float32).to(query.dtype)
+    if head_mask is not None:
+        probs = probs * head_mask
+    probs = nn.functional.dropout(probs, p=dropout, training=module.training)
+
+    p_dist, p_win = probs[..., :nd], probs[..., nd:]
+    attn_output = torch.matmul(p_win, value) + torch.matmul(p_dist, lt_value)
+    attn_output = attn_output.transpose(1, 2).contiguous()
+
+    return attn_output, probs
+
+
+def eager_attention_forward_absorbed_decode(
+    module: nn.Module,
+    query: torch.Tensor,
+    key: torch.Tensor,
+    value: torch.Tensor,
+    attention_mask: torch.Tensor,
+    scaling: float,
+    dropout: float = 0.0,
+    head_mask: Optional[torch.Tensor] = None,
+    **kwargs,
+):
+    """O(w) single-token decode fast path (absorbed). Same window/distant split as
+    eager_attention_forward_decode, but the distant score/context is reconstructed
+    from the compressed cache (h^D/k_R) via the folded absorption weights, exactly
+    like eager_attention_forward_absorbed -- just scoped to the oldest nd entries
+    (sliced BEFORE the einsums, not after via masking) and concatenated instead of
+    torch.where-selected."""
+    q_C, q_R = kwargs["q_C"], kwargs["q_R"]
+    k_R_all_full, hD_all_full = kwargs["k_R_all"], kwargs["hD_all"]
+    WKp, cK, WVp, cV = kwargs["absorbed_weights"]
+
+    win_len = key.shape[-2]
+    nd = hD_all_full.shape[-2] - win_len
+    hD_all = hD_all_full[..., :nd, :]
+    k_R_all = k_R_all_full[..., :nd, :]
+
+    win_scores = torch.matmul(query, key.transpose(2, 3)) * scaling  # [b,nh,1,win_len]
+
+    q_C32 = q_C.float()
+    qprime = torch.einsum("bnqd,ndc->bnqc", q_C32, WKp)
+    dist_content = torch.einsum("bnqc,bkc->bnqk", qprime, hD_all.float()) * scaling
+    cK_term = torch.einsum("bnqd,nd->bnq", q_C32, cK) * scaling
+    dist_content = dist_content + cK_term[..., None]
+    score_R = torch.einsum("bnqd,bkd->bnqk", q_R.float(), k_R_all.float()) * scaling
+    dist_scores = (dist_content + score_R).to(query.dtype)  # [b,nh,1,nd]
+
+    scores = torch.cat([dist_scores, win_scores], dim=-1)
+
+    if attention_mask is not None:
+        scores = scores + attention_mask[:, :, :, -scores.shape[-1] :]
+
+    probs = nn.functional.softmax(scores, dim=-1, dtype=torch.float32).to(query.dtype)
+    if head_mask is not None:
+        probs = probs * head_mask
+    probs = nn.functional.dropout(probs, p=dropout, training=module.training)
+
+    p_dist, p_win = probs[..., :nd].float(), probs[..., nd:]
+    sum_phD = torch.einsum("bnqk,bkc->bnqc", p_dist, hD_all.float())
+    pmass = p_dist.sum(-1)
+    ctx_dist = (torch.einsum("bnqc,ndc->bnqd", sum_phD, WVp)
+               + torch.einsum("bnq,nd->bnqd", pmass, cV)).to(query.dtype)
+    attn_output = torch.matmul(p_win, value) + ctx_dist
+    attn_output = attn_output.transpose(1, 2).contiguous()
+
+    return attn_output, probs
+
+
 class GPTNeoXAttention(nn.Module):
     def __init__(self, config, layer_idx=None):
         super().__init__()
@@ -535,7 +705,20 @@ class GPTNeoXAttention(nn.Module):
             kR_all = k_R.squeeze(1)                                        # [b,s,d_r]
 
         assert self.config._attn_implementation == "eager", "LSKV only supports eager attention for now"
-        attention_interface: Callable = eager_attention_forward_absorbed if absorbed_mode else eager_attention_forward
+        # sq == 1 (single-token decode step): window cache is already capped at <=w by
+        # LSKVCache.update()'s eviction -- use the O(w) concat-based fast path (the
+        # mask-based torch.where fusion assumes a shared T-wide canvas, which capping
+        # breaks). sq > 1 (bulk/prefill call): window cache is NOT evicted before being
+        # returned for this call, so the existing mask-based path is still correct.
+        sq = input_shape[-1]
+        if absorbed_mode:
+            attention_interface: Callable = (
+                eager_attention_forward_absorbed_decode if sq == 1 else eager_attention_forward_absorbed
+            )
+        else:
+            attention_interface: Callable = (
+                eager_attention_forward_decode if sq == 1 else eager_attention_forward
+            )
 
         if absorbed_mode:
             kwargs.update(
