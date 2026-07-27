@@ -567,18 +567,26 @@ def _decode_bench(model, T, n_steps, window, mode, device, B=1, vanilla_impl="na
 
     try:
         sdpa_full = (mode == "full" and vanilla_impl == "sdpa")
+        # production KV-cache layout for ALL paths: [B, nh, T-or-w, dh], contiguous.
+        # (B, T, nh, dh) -- the layout used before this fix -- puts the heads dim
+        # between T and dh, which is NOT the layout torch.einsum's implied batched
+        # matmul needs; PyTorch silently inserts a full permute+contiguous COPY of
+        # the whole K/V cache to fix it up. At B=256/T=16384 that's a ~4.3GB hidden
+        # copy PER LAYER PER STEP -- this was the dominant cost inflating naive-
+        # vanilla's activation memory ~10x above DAR-abs's, and pushed the reported
+        # whole-step peak ratio above the architecture-only cache ceiling. Fixed by
+        # allocating (and computing against) the transpose-free layout everywhere.
         if mode == "full" and not sdpa_full:
-            Kc = [torch.randn(B, T, N_HEADS, D_HEAD, device=device, dtype=dt) for _ in range(nl)]
-            Vc = [torch.randn(B, T, N_HEADS, D_HEAD, device=device, dtype=dt) for _ in range(nl)]
+            Kc = [torch.randn(B, N_HEADS, T, D_HEAD, device=device, dtype=dt) for _ in range(nl)]
+            Vc = [torch.randn(B, N_HEADS, T, D_HEAD, device=device, dtype=dt) for _ in range(nl)]
         elif sdpa_full:
-            # production KV-cache layout: [B, nh, T, dh], allocated once (no per-step permute)
             Kc = [torch.randn(B, N_HEADS, T, D_HEAD, device=device, dtype=dt) for _ in range(nl)]
             Vc = [torch.randn(B, N_HEADS, T, D_HEAD, device=device, dtype=dt) for _ in range(nl)]
         else:
             w = min(window, T)
             nd = max(T - w, 0)
-            Kc = [torch.randn(B, w, N_HEADS, D_HEAD, device=device, dtype=dt) for _ in range(nl)]
-            Vc = [torch.randn(B, w, N_HEADS, D_HEAD, device=device, dtype=dt) for _ in range(nl)]
+            Kc = [torch.randn(B, N_HEADS, w, D_HEAD, device=device, dtype=dt) for _ in range(nl)]
+            Vc = [torch.randn(B, N_HEADS, w, D_HEAD, device=device, dtype=dt) for _ in range(nl)]
             # h^D/k_R are cached for EVERY token (size T), not just the T-w already-distant
             # ones: they're computed from x_j and cached at that token's FIRST forward pass
             # (x_j is not retained afterward, so this can't be deferred to "when the token
@@ -598,9 +606,9 @@ def _decode_bench(model, T, n_steps, window, mode, device, B=1, vanilla_impl="na
                         ctx = torch.nn.functional.scaled_dot_product_attention(
                             qsd, Kc[li], Vc[li], is_causal=False).squeeze(2)        # [B,nh,dh]
                     else:
-                        sc = torch.einsum("bnd,btnd->bnt", q, Kc[li]) / NORM_FACTOR
+                        sc = torch.einsum("bnd,bntd->bnt", q, Kc[li]) / NORM_FACTOR
                         p = torch.softmax(sc.float(), -1).to(dt)
-                        ctx = torch.einsum("bnt,btnd->bnd", p, Vc[li])
+                        ctx = torch.einsum("bnt,bntd->bnd", p, Vc[li])
                 else:
                     WKp, cK, WVp, cV = AB[li]
                     # Hc/Rc are allocated at full length T (h^D/k_R cached for every token,
@@ -609,7 +617,7 @@ def _decode_bench(model, T, n_steps, window, mode, device, B=1, vanilla_impl="na
                     # newest w are the current window and go through the Kc/Vc path instead;
                     # their Hc/Rc entries sit cached-but-unread this step, as in steady state).
                     Hd, Rd = Hc[li][:, :nd], Rc[li][:, :nd]
-                    scw = torch.einsum("bnd,btnd->bnt", q, Kc[li]) / NORM_FACTOR
+                    scw = torch.einsum("bnd,bntd->bnt", q, Kc[li]) / NORM_FACTOR
                     qp = torch.einsum("bnd,ndc->bnc", q, WKp)
                     q_R = (x @ lay["Wqr"].t()).view(B, N_HEADS, D_R)
                     scd = (torch.einsum("bnc,btc->bnt", qp, Hd)
@@ -617,10 +625,10 @@ def _decode_bench(model, T, n_steps, window, mode, device, B=1, vanilla_impl="na
                            + torch.einsum("bnd,btd->bnt", q_R, Rd)) / NORM_FACTOR
                     sc = torch.cat([scw, scd], -1)
                     p = torch.softmax(sc.float(), -1).to(dt)
-                    nwin = Kc[li].shape[1]
+                    nwin = Kc[li].shape[2]
                     pw, pd = p[:, :, :nwin], p[:, :, nwin:]
                     sph = torch.einsum("bnt,btc->bnc", pd, Hd)
-                    ctx = (torch.einsum("bnt,btnd->bnd", pw, Vc[li])
+                    ctx = (torch.einsum("bnt,bntd->bnd", pw, Vc[li])
                            + torch.einsum("bnc,ndc->bnd", sph, WVp)
                            + pd.sum(-1)[:, :, None] * cV)
                 x = ctx.reshape(B, HIDDEN) @ lay["dense_w"].t() + lay["dense_b"]
