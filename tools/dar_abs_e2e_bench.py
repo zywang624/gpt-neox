@@ -126,8 +126,16 @@ def bench_vanilla(ckpt, B, T, warmup, steps, dtype, device, seed, real_prefill_l
     torch.cuda.empty_cache()
     prefill_tokens = torch.randint(0, vocab, (B, min(real_prefill_len, T)), device=device)
     with torch.no_grad():
-        out = model(prefill_tokens, use_cache=True)
-    past = _extend_vanilla_cache(out.past_key_values, model, T, min(real_prefill_len, T), device, dtype)
+        # logits_to_keep=1: only the last position's logits are ever used (we only
+        # need past_key_values from this prefill) -- computing the full B*prefill_len*
+        # vocab logits tensor and leaving it resident (unfreed) for the rest of the
+        # decode-timing loop was silently inflating every peak-memory number in this
+        # sweep by ~B*prefill_len*vocab*dtype_bytes (~1.6GB at B=256), found via a
+        # cross-check against a from-scratch exact-tensor-accounting memory breakdown.
+        out = model(prefill_tokens, use_cache=True, logits_to_keep=1)
+    past = out.past_key_values
+    del out
+    past = _extend_vanilla_cache(past, model, T, min(real_prefill_len, T), device, dtype)
 
     peak, ms_step, ms_tok = _run_decode_bench(model, past, T, B, warmup, steps, vocab, device)
     del model, past
@@ -146,8 +154,10 @@ def bench_absorbed(ckpt, B, T, warmup, steps, dtype, device, seed, real_prefill_
     torch.cuda.empty_cache()
     prefill_tokens = torch.randint(0, vocab, (B, min(real_prefill_len, T)), device=device)
     with torch.no_grad():
-        out = model(prefill_tokens, use_cache=True)
-    past = _extend_absorbed_cache(out.past_key_values, model, T, min(real_prefill_len, T), window_size, device, dtype)
+        out = model(prefill_tokens, use_cache=True, logits_to_keep=1)
+    past = out.past_key_values
+    del out
+    past = _extend_absorbed_cache(past, model, T, min(real_prefill_len, T), window_size, device, dtype)
 
     peak, ms_step, ms_tok = _run_decode_bench(model, past, T, B, warmup, steps, vocab, device)
     del model, past
