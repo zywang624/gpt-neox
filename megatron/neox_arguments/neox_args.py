@@ -1070,6 +1070,12 @@ class NeoXArgsLSKV(NeoXArgsTemplate):
     The dimension of the bottleneck layer in LSKV.
     """
 
+    lskv_fast_attention: bool = False
+    """
+    Use the exact-math window-1 LSKV attention path (model/lskv_w1_fast.py).
+    Only applies when lskv_window_size == 1 and training without KV cache.
+    """
+
     use_alpha_routing: bool = False
     """
     If True, enables per-token alpha routing between two LT down_up_proj

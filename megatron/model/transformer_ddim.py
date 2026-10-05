@@ -17,6 +17,7 @@
 
 """Transformer."""
 
+from megatron.model.lskv_w1_fast import lskv_attention_w1_fast
 import math
 import torch
 import torch.nn.functional as F
@@ -266,6 +267,7 @@ class ParallelSelfAttention(nn.Module):
 
         ## lskv specific args start ##
         self.lskv_st_window_size = neox_args.lskv_window_size
+        self.lskv_fast_attention = bool(getattr(neox_args, "lskv_fast_attention", False))
         if self.lskv_st_window_size is None or self.lskv_st_window_size < 0:
             raise ValueError(
                 f"lskv_window_size should be a positive integer, but got {self.lskv_st_window_size}"
@@ -428,6 +430,18 @@ class ParallelSelfAttention(nn.Module):
         lt_key_layer,
         lt_value_layer,  # ← 新增两个参数
     ):
+        if (
+            self.lskv_fast_attention
+            and self.lskv_st_window_size == 1
+            and not self.use_cache
+            and not exists(layer_past)
+            and float(self.dropout_p) == 0.0
+            and query_layer.size(0) == key_layer.size(0)
+        ):
+            return self._attention_w1_fast(
+                query_layer, key_layer, value_layer, lt_key_layer, lt_value_layer, attention_mask
+            )
+
         # ===================================
         # Raw attention scores. [b, np, s, s]
         # ===================================
@@ -564,6 +578,26 @@ class ParallelSelfAttention(nn.Module):
         # change view [b, np, sq, hn]
         context_layer = context_layer.view(*output_size)
         return context_layer
+
+    def _attention_w1_fast(self, query_layer, key_layer, value_layer, lt_key_layer, lt_value_layer, attention_mask):
+        sq, b, np_, hn = query_layer.shape
+        sk = key_layer.shape[0]
+        bnp = b * np_
+
+        def softmax_fn(scores):
+            probs = self.scale_mask_softmax(scores.view(b, np_, sq, sk), attention_mask)
+            return probs.view(bnp, sq, sk)
+
+        context = lskv_attention_w1_fast(
+            query_layer.reshape(sq, bnp, hn),
+            key_layer.reshape(sk, bnp, hn),
+            value_layer.reshape(sk, bnp, hn),
+            lt_key_layer.reshape(sk, bnp, hn),
+            lt_value_layer.reshape(sk, bnp, hn),
+            self.norm_factor,
+            softmax_fn,
+        )
+        return context.view(b, np_, sq, hn)
 
     def flash_attention(self, query_layer, key_layer, value_layer):
         # [b, np, sq, sk]
