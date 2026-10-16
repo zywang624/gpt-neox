@@ -1050,3 +1050,43 @@ class NeoXArgsTextgen(NeoXArgsTemplate):
     """
     Tasks to evaluate on using lm_eval_harness
     """
+
+
+@dataclass
+class NeoXArgsDAR(NeoXArgsTemplate):
+    """
+    Distance-Adaptive Representation (DAR) attention.
+    """
+
+    dar_type: Literal["dar", "dar_opt"] = None
+    """
+    Attention variant. None (default) keeps the stock attention.
+    "dar": full-dimensional local keys/values, bottlenecked global keys/values (megatron/model/dar.py).
+    "dar_opt": MLA-style local/distant content latents with decoupled RoPE (megatron/model/dar_opt.py).
+    """
+
+    dar_window_size: int = None
+    """
+    Local window size w: key j is local to query i iff i - j < w. 0 routes every token through the
+    low-dimensional path (the uniform baseline).
+    """
+
+    dar_down_dim: int = None
+    """
+    dar: bottleneck dimension d_down of W_down / W_up.
+    """
+
+    dar_local_latent_dim: int = None
+    """
+    dar_opt: local content latent dimension d^L_c. Unused when dar_window_size is 0.
+    """
+
+    dar_distant_latent_dim: int = None
+    """
+    dar_opt: distant content latent dimension d^D_c.
+    """
+
+    dar_rotary_dim: int = None
+    """
+    dar_opt: decoupled RoPE dimension d_r (even).
+    """

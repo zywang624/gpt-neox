@@ -45,6 +45,7 @@ from .neox_args import (
     NeoXArgsTextgen,
     NeoXArgsOptimizer,
     NeoXArgsLRScheduler,
+    NeoXArgsDAR,
     ATTENTION_TYPE_CHOICES,
 )
 
@@ -86,6 +87,7 @@ BASE_CLASSES = [
     NeoXArgsLogging,
     NeoXArgsTextgen,
     NeoXArgsOther,
+    NeoXArgsDAR,
 ]
 
 DEEPSPEED_ARG_CLASSES = [NeoXArgsDeepspeedRunner, NeoXArgsDeepspeedConfig]

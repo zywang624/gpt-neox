@@ -577,6 +577,21 @@ class ParallelSelfAttention(nn.Module):
         return output, bias
 
 
+def get_attention_class(neox_args):
+    """Self-attention implementation selected by `dar_type` (None -> stock)."""
+    if neox_args.dar_type is None:
+        return ParallelSelfAttention
+    if neox_args.dar_type == "dar":
+        from megatron.model.dar import ParallelDARSelfAttention
+
+        return ParallelDARSelfAttention
+    if neox_args.dar_type == "dar_opt":
+        from megatron.model.dar_opt import ParallelDAROptSelfAttention
+
+        return ParallelDAROptSelfAttention
+    raise ValueError(f"Unknown dar_type: {neox_args.dar_type}")
+
+
 class ParallelTransformerLayer(nn.Module):
     """A single transformer layer.
 
@@ -614,7 +629,7 @@ class ParallelTransformerLayer(nn.Module):
             self.reduce = mpu.mappings.reduce_from_model_parallel_region
 
         # Self attention.
-        self.attention = ParallelSelfAttention(
+        self.attention = get_attention_class(neox_args)(
             neox_args=neox_args,
             attention_mask_func=attention_mask_func,
             init_method=init_method,
